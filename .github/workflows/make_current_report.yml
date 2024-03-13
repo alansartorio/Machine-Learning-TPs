@@ -57,10 +57,32 @@ jobs:
         run: pip install -r current/requirements.txt
 
       - name: Make
-        run: make -C current informe.pdf
+        run: make -C current build
 
-      - name: Upload Report
-        uses: actions/upload-artifact@v4
+      #- name: Upload Report
+        #uses: actions/upload-artifact@v4
+        #with:
+          #name: report
+          #path: current/informe.pdf
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: report
-          path: current/informe.pdf
+          path: current/dist
+
+  deploy:
+    needs: make
+
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
