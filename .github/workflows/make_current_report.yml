@@ -41,16 +41,15 @@ jobs:
             xcolor xurl
             zapfding
 
+      - name: Download pandoc
+        run: |
+          wget -O pandoc.deb https://github.com/jgm/pandoc/releases/download/3.1.12.2/pandoc-3.1.12.2-1-amd64.deb
+
       - name: Install APT Dependencies
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: librsvg2-bin
+          packages: librsvg2-bin ./pandoc.deb
           version: 1.0
-
-      - name: Install pandoc
-        run: |
-          wget -O pandoc.deb https://github.com/jgm/pandoc/releases/download/3.1.12.2/pandoc-3.1.12.2-1-amd64.deb
-          dpkg -i pandoc.deb
 
       - name: Set up Python
         uses: actions/setup-python@v4
