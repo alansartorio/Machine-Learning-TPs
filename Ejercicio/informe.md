@@ -28,4 +28,4 @@ Haciendo la distincion por sexo podemos notar:
 ![](./part_4.svg)
 
 Como se puede ver hay una clara tendencia creciente. A mayor cantidad de calorias consumidas, mayor cantidad de alcohol. 
-Por otro lado, se notan drasticas diferencias entre los diferentes sexos que va creciendo junto con la cantidad de calorias. El caso mas notorio es que el valor atipico maximo de los hombres es menor al valor atipico minimo de las mujeres en el caso de calorias [1700, +$\infty$]. De la misma manera, la media es muchisimo mayor (casi el doble) y los valores atipicos maximos pasan a numeros de caso el triple de la media de los hombres.
+Por otro lado, se notan drasticas diferencias entre los diferentes sexos que va creciendo junto con la cantidad de calorias. El caso mas notorio es que el valor atipico maximo de las mujeres es comparable al valor mínimo para los hombres en el caso de calorias [0, 1100]. De la misma manera, la media es muchisimo mayor (casi el doble) y los valores atipicos maximos pasan a numeros de caso el triple de la media de los hombres.
