@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install APT Dependencies
+      - name: Install TexLive Dependencies
         uses: zauguin/install-texlive@v3
         with:
           packages: >
