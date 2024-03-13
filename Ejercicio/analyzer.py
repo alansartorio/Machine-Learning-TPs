@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import os
+show_plots = os.environ.get('SHOW_PLOTS', '1') == '1'
 
 sns.set_theme()
 
@@ -23,7 +24,8 @@ def saveplot(filename):
             func()
             plt.tight_layout()
             plt.savefig(filename)
-            plt.show()
+            if show_plots:
+                plt.show()
             print(filename + " finished")
         return wrapper
     return decorator
@@ -37,8 +39,6 @@ def part_2():
     sns.countplot(data=df, x='Sexo', ax=ax4)
 
     ax4.bar_label(ax4.containers[0])
-
-
 
 part_2()
 
