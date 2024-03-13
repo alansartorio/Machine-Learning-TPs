@@ -1,0 +1,40 @@
+
+name: 'Make Current Report'
+
+on:
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  make:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pandoc
+        run: |
+          sudo apt-get update &&
+          sudo apt-get install -y pandoc
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: python -m pip install -r current/requirements.txt
+
+      - name: Make
+        run: make -C current informe.pdf
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: report
+          path: current/informe.pdf
