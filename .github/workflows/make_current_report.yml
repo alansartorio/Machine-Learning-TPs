@@ -17,20 +17,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install APT Dependencies
+        uses: zauguin/install-texlive@v3
+        with:
+          packages: >
+            scheme-basic
+            amsfonts amsmath
+            babel biber biblatex bibtex bidi bitset booktabs
+            collection-context collection-luatex collection-xetex csquotes
+            ec
+            fancyvrb filehook fontspec footnotehyper
+            geometry graphics
+            hyperref
+            iftex
+            letltxmacro listings lm lm-math lualatex-math luaotfload
+            mathspec microtype
+            natbib
+            oberdiek
+            parskip pdfescape polyglossia
+            setspace
+            tools
+            ulem unicode-math upquote
+            xcolor xurl
+            zapfding
 
       - name: Install APT Dependencies
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: pandoc librsvg2-bin texlive
+          packages: pandoc librsvg2-bin
           version: 1.0
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+          cache: 'pip' # caching pip dependencies
 
-      - name: Install dependencies
-        run: python -m pip install -r current/requirements.txt
+      - name: Install Python dependencies
+        run: pip install -r current/requirements.txt
 
       - name: Make
         run: make -C current informe.pdf
