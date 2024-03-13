@@ -17,10 +17,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install pandoc
-        run: |
-          sudo apt-get update &&
-          sudo apt-get install -y pandoc librsvg2-bin texlive
+
+      - name: Install APT Dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: pandoc librsvg2-bin texlive
+          version: 1.0
 
       - name: Set up Python
         uses: actions/setup-python@v4
