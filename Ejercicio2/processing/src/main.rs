@@ -9,17 +9,15 @@ use itertools::Itertools;
 use models::*;
 
 fn simple_linear_regression(x: &Vec<f64>, y: &Vec<f64>) -> [f64; 2] {
-    let ([beta], beta_0) = multiple_linear_regression([x], y);
+    let (betas, beta_0) = multiple_linear_regression(Box::new([x]), y);
 
-    [beta, beta_0]
+    [betas[0], beta_0]
 }
 
-fn multiple_linear_regression<const N: usize>(
-    variables: [&Vec<f64>; N],
-    y: &Vec<f64>,
-) -> ([f64; N], f64) {
-    let mut betas = [0f64; N];
-    let mut factors = [0f64; N];
+fn multiple_linear_regression(variables: Box<[&Vec<f64>]>, y: &Vec<f64>) -> (Box<[f64]>, f64) {
+    let n = variables.len();
+    let mut betas = vec![0f64; n];
+    let mut factors = vec![0f64; n];
 
     for (i, xi) in variables.into_iter().enumerate() {
         betas[i] = xi.covariance(y) / xi.variance();
@@ -28,25 +26,7 @@ fn multiple_linear_regression<const N: usize>(
 
     let beta_0 = y.mean() - factors.iter().sum::<f64>();
 
-    (betas, beta_0)
-}
-
-fn multiple_linear_regression_dyn(variables: Vec<&Vec<f64>>, y: &Vec<f64>) -> (Vec<f64>, f64) {
-    match variables.len() {
-        1 => {
-            let (betas, beta_0) = multiple_linear_regression::<1>(variables.try_into().unwrap(), y);
-            (betas.to_vec(), beta_0)
-        }
-        2 => {
-            let (betas, beta_0) = multiple_linear_regression::<2>(variables.try_into().unwrap(), y);
-            (betas.to_vec(), beta_0)
-        }
-        3 => {
-            let (betas, beta_0) = multiple_linear_regression::<3>(variables.try_into().unwrap(), y);
-            (betas.to_vec(), beta_0)
-        }
-        _ => unimplemented!("Actual length: {}", variables.len()),
-    }
+    (betas.into_boxed_slice(), beta_0)
 }
 
 impl Metric {
@@ -71,80 +51,36 @@ impl Metric {
     }
 }
 
-type Inputs<const N: usize> = [f64; N];
-struct InputsOutput<const N: usize> {
-    inputs: Inputs<N>,
-    output: f64,
-}
-struct InputsOutputDyn {
-    inputs: Vec<f64>,
+type Inputs = Box<[f64]>;
+struct InputsOutput {
+    inputs: Inputs,
     output: f64,
 }
 
-fn record_to_inputs_output(records: Vec<Record>, vars: Vec<Var>) -> Vec<InputsOutputDyn> {
+fn record_to_inputs_output(records: Vec<Record>, vars: Vec<Var>) -> Vec<InputsOutput> {
     records
         .into_iter()
         .map(|record| {
             let map: HashMap<_, _> = record.into();
-            let inputs = vars.iter().map(|v| map[v]).collect_vec();
-            InputsOutputDyn {
+            let inputs = vars.iter().map(|v| map[v]).collect_vec().into_boxed_slice();
+            InputsOutput {
                 inputs,
                 output: map["sales"],
             }
         })
         .collect_vec()
 }
-impl<const N: usize> TryFrom<InputsOutputDyn> for InputsOutput<N> {
-    type Error = anyhow::Error;
 
-    fn try_from(value: InputsOutputDyn) -> Result<Self> {
-        Ok(Self {
-            inputs: value.inputs.try_into().map_err(|_| anyhow!("Wrong size"))?,
-            output: value.output,
-        })
-    }
-}
-
-fn dot<const N: usize>(a: &[f64; N], b: &[f64; N]) -> f64 {
+fn dot(a: &[f64], b: &[f64]) -> f64 {
     a.iter().zip(b.iter()).map(|(a, b)| a * b).sum::<f64>()
 }
 
-fn rss<const N: usize>(coef: [f64; N], coef0: f64, data: &Vec<InputsOutput<N>>) -> f64 {
-    let f = |i: [f64; N]| coef0 + dot(&coef, &i);
+fn rss(coef: Box<[f64]>, coef0: f64, data: &Vec<InputsOutput>) -> f64 {
+    let f = |i: &[f64]| coef0 + dot(&coef, &i);
 
     data.iter()
-        .map(|io| (io.output - f(io.inputs)).powi(2))
+        .map(|io| (io.output - f(&io.inputs)).powi(2))
         .sum()
-}
-
-fn rss_dyn(coef: Vec<f64>, coef0: f64, data: Vec<InputsOutputDyn>) -> f64 {
-    match coef.len() {
-        1 => rss::<1>(
-            coef.try_into().unwrap(),
-            coef0,
-            &data
-                .into_iter()
-                .map(|v| v.try_into().unwrap())
-                .collect_vec(),
-        ),
-        2 => rss::<2>(
-            coef.try_into().unwrap(),
-            coef0,
-            &data
-                .into_iter()
-                .map(|v| v.try_into().unwrap())
-                .collect_vec(),
-        ),
-        3 => rss::<3>(
-            coef.try_into().unwrap(),
-            coef0,
-            &data
-                .into_iter()
-                .map(|v| v.try_into().unwrap())
-                .collect_vec(),
-        ),
-        _ => unimplemented!(),
-    }
 }
 
 fn r_squared(model_squared_sum: f64, total_squared_sum: f64) -> f64 {
@@ -221,13 +157,13 @@ fn mlr_rss(vars: &Vec<Var>, next_var: Var, inputs: &Vec<Record>) -> f64 {
         .iter()
         .map(|column_name| get_column(inputs, column_name))
         .collect_vec();
-    let betas = multiple_linear_regression_dyn(
-        transposed.iter().collect_vec(),
+    let betas = multiple_linear_regression(
+        transposed.iter().collect_vec().into_boxed_slice(),
         &get_column(inputs, "sales"),
     );
     let records = record_to_inputs_output(inputs.clone(), vars);
 
-    rss_dyn(betas.0, betas.1, records)
+    rss(betas.0, betas.1, &records)
 }
 
 fn mlr(input: Vec<Record>) -> Vec<MlrCoeficient> {
@@ -262,8 +198,8 @@ fn mlr(input: Vec<Record>) -> Vec<MlrCoeficient> {
         .iter()
         .map(|column_name| get_column(&input, column_name))
         .collect_vec();
-    let betas = multiple_linear_regression_dyn(
-        transposed.iter().collect_vec(),
+    let betas = multiple_linear_regression(
+        transposed.iter().collect_vec().into_boxed_slice(),
         &get_column(&input, "sales"),
     );
     curr_vars
@@ -271,7 +207,7 @@ fn mlr(input: Vec<Record>) -> Vec<MlrCoeficient> {
         .zip(betas.0.into_iter())
         .map(|(name, value)| MlrCoeficient {
             var: name,
-            beta: value,
+            beta: *value,
         })
         .chain(iter::once(MlrCoeficient {
             var: "beta_0",
