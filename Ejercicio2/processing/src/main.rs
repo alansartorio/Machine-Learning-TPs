@@ -10,8 +10,6 @@ use models::*;
 
 fn simple_linear_regression(x: &Vec<f64>, y: &Vec<f64>) -> [f64; 2] {
     let ([beta], beta_0) = multiple_linear_regression([x], y);
-    // let beta = x.covariance(y) / x.variance();
-    // let beta_0 = y.mean() - beta * x.mean();
 
     [beta, beta_0]
 }
@@ -29,7 +27,8 @@ fn multiple_linear_regression<const N: usize>(
     }
 
     let beta_0 = y.mean() - factors.iter().sum::<f64>();
-    return (betas, beta_0);
+
+    (betas, beta_0)
 }
 
 fn multiple_linear_regression_dyn(variables: Vec<&Vec<f64>>, y: &Vec<f64>) -> (Vec<f64>, f64) {
@@ -94,14 +93,6 @@ fn record_to_inputs_output(records: Vec<Record>, vars: Vec<Var>) -> Vec<InputsOu
             }
         })
         .collect_vec()
-    // get_column(&records, key)
-    //     .into_iter()
-    //     .zip(sales.iter().copied())
-    //     .map(|(input, output)| InputsOutput {
-    //         inputs: [input],
-    //         output,
-    //     })
-    //     .collect()
 }
 impl<const N: usize> TryFrom<InputsOutputDyn> for InputsOutput<N> {
     type Error = anyhow::Error;
@@ -120,10 +111,10 @@ fn dot<const N: usize>(a: &[f64; N], b: &[f64; N]) -> f64 {
 
 fn rss<const N: usize>(coef: [f64; N], coef0: f64, data: &Vec<InputsOutput<N>>) -> f64 {
     let f = |i: [f64; N]| coef0 + dot(&coef, &i);
-    return data
-        .iter()
+
+    data.iter()
         .map(|io| (io.output - f(io.inputs)).powi(2))
-        .sum();
+        .sum()
 }
 
 fn rss_dyn(coef: Vec<f64>, coef0: f64, data: Vec<InputsOutputDyn>) -> f64 {
@@ -171,14 +162,14 @@ fn r_squared_adjusted(
 }
 
 fn get_column(records: &Vec<Record>, column_name: &'static str) -> Vec<f64> {
-    return records
+    records
         .iter()
         .map(|r| {
             *HashMap::<&'static str, f64>::from(*r)
                 .get(column_name)
                 .unwrap()
         })
-        .collect::<Vec<f64>>();
+        .collect::<Vec<f64>>()
 }
 
 fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>>
@@ -194,12 +185,12 @@ where
 fn main() -> Result<()> {
     let records = read_input_data()?;
 
-    /// Data Analysis
+    // Data Analysis
     // covarianza entre variables input
     // covarianza de cada input con el output
     // let data_analysis_file = File::create("../data_analysis.json");
 
-    /// SLR
+    // SLR
     // let res = simple_linear_regression(records.iter().map(|r| (r.tv, r.sales)).collect::<Vec<_>>());
     // dbg!(res);
     let sales: Vec<f64> = get_column(&records, "sales");
@@ -235,18 +226,19 @@ fn mlr_rss(vars: &Vec<Var>, next_var: Var, inputs: &Vec<Record>) -> f64 {
         &get_column(inputs, "sales"),
     );
     let records = record_to_inputs_output(inputs.clone(), vars);
-    return rss_dyn(betas.0, betas.1, records);
+
+    rss_dyn(betas.0, betas.1, records)
 }
 
 fn mlr(input: Vec<Record>) -> Vec<MlrCoeficient> {
-    /// MLR  
-    /**
-    *  1. Calculas todos los modelos lineales simples
+    // MLR
+    /*
+       1. Calculas todos los modelos lineales simples
        2. Te quedás con el de menor RSS
        3. Vas agregando variables de a 1 y calculás el RSS
        4. Si te mejora el RSS, la dejás, si no la descartás
        5. Así continuas hasta que no puedas seguir mejorando el modelo agregando variables
-    *  */
+    */
     let mut vars_left: HashSet<_> = ["tv", "radio", "newspaper"].into();
     let mut curr_vars = vec![];
     let mut current_rss = f64::INFINITY;
@@ -274,7 +266,7 @@ fn mlr(input: Vec<Record>) -> Vec<MlrCoeficient> {
         transposed.iter().collect_vec(),
         &get_column(&input, "sales"),
     );
-    return curr_vars
+    curr_vars
         .into_iter()
         .zip(betas.0.into_iter())
         .map(|(name, value)| MlrCoeficient {
@@ -285,63 +277,5 @@ fn mlr(input: Vec<Record>) -> Vec<MlrCoeficient> {
             var: "beta_0",
             beta: betas.1,
         }))
-        .collect_vec();
+        .collect_vec()
 }
-
-/*
-   ////////////////////////////////////////////////////////////
-   let all_variables = ["tv", "radio", "newspaper"];
-   let res = simple_lr
-       .iter()
-       .map(|(key, coefs)| {
-           (
-               *key,
-               rss::<1>(
-                   [coefs[0]],
-                   coefs[1],
-                   &get_column(&records, key)
-                       .into_iter()
-                       .zip(sales.iter().copied())
-                       .map(|(input, output)| InputsOutput {
-                           inputs: [input],
-                           output,
-                       })
-                       .collect(),
-               ),
-           )
-       })
-       .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
-       .unwrap();
-   let minimum_variable = res.0;
-
-   let variables: [&'static str; 2] = all_variables
-       .iter()
-       .copied()
-       .filter(|&v| v != minimum_variable)
-       .collect_vec()
-       .try_into()
-       .unwrap();
-
-   let mut current_vars = vec![minimum_variable];
-
-   let mut previous_rss = res.1;
-   for variable in variables {
-       current_vars.push(variable);
-
-       let data = transpose(
-           current_vars
-               .iter()
-               .map(|column_name| get_column(&records, column_name))
-               .collect_vec(),
-       );
-
-       let betas = multiple_linear_regression::<1>(current_vars, &sales);
-       let rss = rss(betas[0], betas[1], data);
-
-       if rss > previous_rss {
-           current_vars.pop();
-       } else {
-           previous_rss = rss;
-       }
-   }
-*/
