@@ -225,6 +225,7 @@ fn mlr(input: &Vec<Record>) -> Vec<MlrCoeficient> {
             .map(|v| (*v, mlr_rss(&curr_vars, v, &input)))
             .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
             .unwrap();
+        println!("{var} {new_rss}");
         if new_rss > current_rss {
             break;
         }
