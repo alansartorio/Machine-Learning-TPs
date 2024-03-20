@@ -45,21 +45,37 @@ plot_regression_plane(df, plane_data)
 
 
 def plot_simple_regression(df, regressions: dict[str, list[float, float]]):
-    fig, axs = plt.subplots(nrows=3, figsize=(8, 16))
     out_series = df['sales']
 
-    for ax, (var, [beta, beta_0]) in zip(axs, regressions.items()):
+    for var, [beta, beta_0] in regressions.items():
+        fig = plt.figure(figsize=(8, 5))
         in_series = df[var]
-        ax.scatter(in_series, out_series)
+        plt.scatter(in_series, out_series)
         min, max = in_series.min(), in_series.max()
         line_f = lambda x:beta * x + beta_0
         x = [min, max]
         y = list(map(line_f, x))
-        ax.plot(x, y, color='red')
-        ax.set_xlabel(var)
-        ax.set_ylabel('sales')
-    plt.tight_layout()
-    plt.savefig('plots/simple_linear_regression.svg')
-    plt.show()
+        plt.plot(x, y, color='red')
+        plt.xlabel(var)
+        plt.ylabel('sales')
+        plt.tight_layout()
+        plt.savefig(f'plots/simple_linear_regression_{var}.svg')
+        plt.show()
 
 plot_simple_regression(df, regressions)
+
+def plot_scatter_between_vars(df, vars: tuple[str, str]): 
+    plt.figure(figsize=(8, 5))
+    x_var = df[vars[0]]
+    y_var = df[vars[1]]
+
+    plt.scatter(x_var, y_var)
+    plt.xlabel(vars[0])
+    plt.ylabel(vars[1])
+
+    plt.savefig(f'plots/relation-{vars[0]}-{vars[1]}.svg')
+    plt.show()
+
+plot_scatter_between_vars(df, ("tv", "newspaper"))
+plot_scatter_between_vars(df, ("tv", "radio"))
+plot_scatter_between_vars(df, ("radio", "newspaper"))
