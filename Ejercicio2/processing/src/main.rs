@@ -29,8 +29,15 @@ fn multiple_linear_regression(variables: Box<[&Vec<f64>]>, y: &Vec<f64>) -> (Box
     (betas.into_boxed_slice(), beta_0)
 }
 
+fn sq_diff(a: &[f64], b: &[f64]) -> f64 {
+    a.iter()
+        .zip(b.iter())
+        .map(|(a_elem, b_elem)| (a_elem - b_elem).powi(2))
+        .sum()
+}
+
 impl Metric {
-    fn get(&self, real: &Vec<f64>, predicted: &Vec<f64>) -> Result<f64> {
+    fn get(&self, real: &[f64], predicted: &[f64]) -> Result<f64> {
         if (real.is_empty() || predicted.is_empty()) || real.len() != predicted.len() {
             return Err(anyhow!("The arrays must be fullfilled"));
         }
@@ -90,11 +97,12 @@ fn r_squared(model_squared_sum: f64, total_squared_sum: f64) -> f64 {
 fn r_squared_adjusted(
     model_squared_sum: f64,
     total_squared_sum: f64,
-    observarions_amount: i32,
-    variables_amount: i32,
+    observarions_amount: usize,
+    variables_amount: usize,
 ) -> f64 {
     (model_squared_sum / total_squared_sum)
-        * (observarions_amount - 1 / (observarions_amount - variables_amount)) as f64
+        * ((observarions_amount as f64 - 1f64)
+            / (observarions_amount as f64 - variables_amount as f64))
 }
 
 fn get_column(records: &Vec<Record>, column_name: &'static str) -> Vec<f64> {
@@ -131,9 +139,51 @@ fn main() -> Result<()> {
         .into_iter()
         .collect();
 
+    simple_lr.iter().for_each(|(name, [beta, beta_0])| {
+        let predict_f = |x| x * beta + beta_0;
+        let predicted = get_column(&records, name)
+            .into_iter()
+            .map(predict_f)
+            .collect_vec();
+
+        let mae = Metric::MAE.get(&sales, &predicted).unwrap();
+        let mse = Metric::MSE.get(&sales, &predicted).unwrap();
+        let mean = vec![(&sales).mean(); sales.len()];
+        let r_2 = r_squared(sq_diff(&predicted, &mean), sq_diff(&sales, &mean));
+
+        println!("for input: {name}: MAE: {mae}, MSE: {mse}, R2: {r_2}");
+    });
+
     write_simple_regression(&simple_lr)?;
 
-    let result = mlr(records);
+    let result = mlr(&records);
+
+    let observarions_amount = sales.len();
+    let variables_amount = result.len() - 1;
+    let mean = vec![(&sales).mean(); observarions_amount];
+    let predict_f = |xs: Record| {
+        let xs = HashMap::from(xs);
+
+        result
+            .iter()
+            .map(|&MlrCoeficient { var, beta }| {
+                (if var == "beta_0" { 1f64 } else { xs[var] }) * beta
+            })
+            .sum()
+    };
+    let predicted = records.iter().cloned().map(predict_f).collect_vec();
+    // R2 ajustado
+    let ra_2 = r_squared_adjusted(
+        sq_diff(&predicted, &mean),
+        sq_diff(&sales, &mean),
+        observarions_amount,
+        variables_amount,
+    );
+
+    let mae = Metric::MAE.get(&sales, &predicted).unwrap();
+    let mse = Metric::MSE.get(&sales, &predicted).unwrap();
+
+    println!("for multivar regression: MAE: {mae}, MSE: {mse}, Ra2: {ra_2}");
 
     write_file(result, "../data/data.json")?;
 
@@ -156,7 +206,7 @@ fn mlr_rss(vars: &Vec<Var>, next_var: Var, inputs: &Vec<Record>) -> f64 {
     rss(betas.0, betas.1, &records)
 }
 
-fn mlr(input: Vec<Record>) -> Vec<MlrCoeficient> {
+fn mlr(input: &Vec<Record>) -> Vec<MlrCoeficient> {
     // MLR
     /*
        1. Calculas todos los modelos lineales simples
