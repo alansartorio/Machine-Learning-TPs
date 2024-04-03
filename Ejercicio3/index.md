@@ -47,6 +47,7 @@ $P(E/A,\bar{B},C,\bar{D})$
 Comenzamos por buscar la probabilidad condicional pero invertida:
 
 Asumiendo que las variables son independientes:
+
 $$
 \begin{aligned}
 P(A,\bar{B},C,\bar{D}/E) &= P(A/E) * P(\bar{B}/E) * P(C/E) * P(\bar{D}/E) \\
@@ -115,9 +116,9 @@ Entonces:
 
 $$
 \begin{aligned}
-P(G/A,\bar{B},C,\bar{D}) &= \frac{0.9*00014688}{0.122*(1-0.743)*0.308*(1-0.848)}\\
+P(G/A,\bar{B},C,\bar{D}) &= \frac{0.9 \times 0.0014688}{0.122 \times (1-0.743) \times 0.308 \times (1-0.848)}\\
 P(G/A,\bar{B},C,\bar{D}) &= 0.0900\\
-P(E/A,\bar{B},C,\bar{D}) &= \frac{0.1*0.01444}{0.122*(1-0743)*0.308*(1-0.848)}\\
+P(E/A,\bar{B},C,\bar{D}) &= \frac{0.1 \times 0.01444}{0.122 \times (1-0.743) \times 0.308 \times (1-0.848)}\\
 P(E/A,\bar{B},C,\bar{D}) &= 0.98373
 \end{aligned}
 $$
