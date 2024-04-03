@@ -95,8 +95,8 @@ donde
 
 $$
 \begin{aligned}
-P(A) &= P(A/E)*P(E) + P(A/G)*P(G) \\
-&= 0.95 * 0.1 + 0.03* 0.9 \\
+P(A) &= P(A/E) \times P(E) + P(A/G) \times P(G) \\
+&= 0.95 \times 0.1 + 0.03 \times 0.9 \\
 &= 0.122
 \end{aligned}
 $$
