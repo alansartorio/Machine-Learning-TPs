@@ -23,8 +23,8 @@ def calculate_probability_given(df: pd.DataFrame, var: str, value: str, given_va
     total = len(in_class)
     return  laplace_correction(occurrences, total, classes_amount) 
 
-def calculate_probability_of_being_in_class(var_probability: dict[str,dict[str,int]], class_probability:dict[str, int], values: dict[str, int], class_name: str):
-    # P(clase/vars) = P(clase) * P(vars/clase) / P(vars)
+def calculate_probability_of_being_in_class(var_probability: dict[str,dict[str,float]], class_probability:dict[str, float], values: dict[str, float], class_name: str):
+    # P(clase/vars) = P(clase) * P(vars/clase) / P(vars) -> P(vars) is not necessary if the class is the result
     inverted_conditional = 1
     for var, value in values.items():
         p = var_probability[class_name][var]
@@ -33,11 +33,24 @@ def calculate_probability_of_being_in_class(var_probability: dict[str,dict[str,i
             p = 1 - p
         inverted_conditional *= p
 
-    final_probability = class_probability[class_name] * inverted_conditional
+    p_vars = 0
+    for clazz, prob in class_probability.items():
+        p_vars_for_class = prob
+
+        for var, value in values.items():
+            p = var_probability[clazz][var]
+            # P(A/C) = 1 - P(~A / C)
+            if not value:
+                p = 1 - p
+            p_vars_for_class *= p
+        p_vars += p_vars_for_class
+    
+
+    final_probability = class_probability[class_name] * inverted_conditional / p_vars
     print(class_name, final_probability)
     return final_probability
 
-def classify(var_probability: dict[str,dict[str,int]], class_probability: dict[str, int], values: dict[str, int]):
+def classify(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
     classes = class_probability.keys()
     return max(classes, key=lambda c:calculate_probability_of_being_in_class(var_probability,class_probability,values, c))
 
@@ -98,8 +111,8 @@ def part_3(df):
 
     
 
-# print("Parte 1")
-# part_1(preferencias_britanicos)
+print("Parte 1")
+part_1(preferencias_britanicos)
 # print("Parte 2")
 # print("Parte 3")
 # part_3(binary)
