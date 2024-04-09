@@ -204,14 +204,14 @@ def part_3(df):
     # a) Probabilidad de que una persona que proviene de una escuela con rank 1 no sea admitida
     # P(admit=0 | rank=1) = P(admit=0, rank=1) / P(rank=1)
 
-    print("a) ",vars_probability['admit'][(0, 0, 1)] / vars_probability['rank'][1])
+    print("a) ",(1 - vars_probability['admit'][(0, 0, 1)]) / vars_probability['rank'][1])
 
 
     # b) Probabilidad de que una persona que proviene de una escuela con rank 2, GRE = 450 y GPA = 3.5 sea admitida
     # P(admit=1 | rank=2, gre=1, gpa=1) = P(admit, rank=2, gre=1, gpa=1) / P(rank=2, gre=1, gpa=1)
     # P(rank=2, gre=1, gpa=1) = P(rank=2) * P(gre=1 | rank=2) * P(gpa=1 | rank=2)
 
-    print("b) ",vars_probability['admit'][(0, 1, 2)] / (vars_probability['rank'][2] * vars_probability['gre'][2] * vars_probability['gpa'][2]))
+    print("b) ",vars_probability['admit'][(0, 1, 2)] / (vars_probability['rank'][2] * (1 - vars_probability['gre'][2]) * vars_probability['gpa'][2]))
 
 
 print("Parte 1")
