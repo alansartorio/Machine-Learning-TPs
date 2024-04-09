@@ -40,7 +40,7 @@ Clasificar noticias argentinas
 
 ## Matriz de confusión
 
-[//]: Agregar imagen de matriz de confusión
+![](./plots/2_confusion_matrix.svg)
 
 ---
 

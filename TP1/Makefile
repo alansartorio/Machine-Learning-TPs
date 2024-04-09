@@ -19,7 +19,7 @@ dist/%.html: %.md styles.html
 	$(PANDOC) $(PANDOC_OPTIONS) $(PANDOC_PDF_OPTIONS) -o $@ $<
 
 dist/%: %
-	cp -r $< $@
+	cp -r $< $(dir $@)
 
 dist/reveal.js:
 	wget https://github.com/hakimel/reveal.js/archive/master.tar.gz
