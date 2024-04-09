@@ -172,13 +172,6 @@ def part_3(df):
         return df
 
     clean_df = clean_data(df)
-    classes = (0, 1)
-    variables_and_dependencies = dict(
-        gre=["rank"],
-        gpa=["rank"],
-        rank=["rank"], # Hmmmm
-        admit=["gre", "gpa", "rank"]
-    )
 
     vars_probability = dict(
         gre={(rank): 0 for rank in (1, 2, 3, 4)},
