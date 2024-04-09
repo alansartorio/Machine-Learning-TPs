@@ -195,17 +195,28 @@ def part_1(df):
 
     plot(probabilities_x2, 'x2')
 
+def run(args):
+    df, vocabulary, split_frac = args
+    training, evaluation = split_training_and_evaluation(df, split_frac)
+    classification = classify_news(training, evaluation, vocabulary)
+    classification.to_csv(f'data/split_{split_frac:.2}.csv')
+    # print(classification)
+
 def part_2(df):
     pre_process_data(df)
     df.dropna(inplace=True)
-    df = df.iloc[:2000]
+    # df = df.iloc[:1000]
     vocabulary = get_vocabulary(df)
 
-    training, evaluation = split_training_and_evaluation(df, 0.8)
-    classification = classify_news(training, evaluation, vocabulary)
-    print(classification)
-    # for expected, predicted in zip(evaluation['categoria'], classification.iterrows()):
-    #     print(expected, predicted)
+    processes = 12
+    with Pool(processes) as pool:
+        splits = np.arange(0.2, 0.9, 0.1)
+        assert len(splits) <= processes
+        
+        for _ in pool.imap_unordered(run, map(lambda split_frac:(df, vocabulary, split_frac), splits)):
+            pass
+        # for expected, predicted in zip(evaluation['categoria'], classification.iterrows()):
+        #     print(expected, predicted)
 
 
 def part_3(df):
