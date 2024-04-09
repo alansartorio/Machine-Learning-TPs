@@ -267,19 +267,16 @@ def part_3(df):
 
     print(vars_probability)
 
-    # a) Probabilidad de que una persona que proviene de una escuela con rank 1 no sea admitida
-    # P(admit=0 | rank=1) = P(admit=0, rank=1) / P(rank=1)
-
-    def calculate_intersection_probability(vars_probability: dict[str,dict[str,dict[int, float]]], vars_intersecting: list[str], values: list[int]):
-        p = 1
+    def calculate_intersection_probability(vars_intersecting: list[str], values: list[int]):
         not_intersecting = [var for var in vars_probability.keys() if var not in vars_intersecting]
-        print(vars_intersecting, not_intersecting)
+        # print(vars_intersecting, not_intersecting)
 
         # If the not_intersecting vars are not "rank" we need to see both cases, true and false
         var_possible_values = {
             "rank": (1, 2, 3, 4),
             "gre": (0, 1),
             "gpa": (0, 1),
+            "admit": (0, 1),
         }
         acum = 0
         for vars in product(*[[(var, val) for val in var_possible_values[var]] for var in not_intersecting]):
@@ -288,13 +285,11 @@ def part_3(df):
                 var_values[var] = value
             for var, value in zip(vars_intersecting, values):
                 var_values[var] = value
-            print(var_values)
+            # print(var_values)
             prob = 1
             for var in var_values.keys():
                 var_parents = parents[var]
                 parents_values = tuple(var_values[parent] for parent in var_parents)
-                print(var)
-                print(vars_probability[var])
                 prob *= vars_probability[var][parents_values][var_values[var]]
             acum += prob
 
@@ -305,7 +300,10 @@ def part_3(df):
         
         pass
 
-    print(calculate_intersection_probability(vars_probability, ['admit', 'rank'], [0, 1]))
+    # a) Probabilidad de que una persona que proviene de una escuela con rank 1 no sea admitida
+    # P(admit=0 | rank=1) = P(admit=0, rank=1) / P(rank=1)
+
+    print(calculate_intersection_probability(['admit', 'rank'], [0, 1]) / calculate_intersection_probability(['rank'], [1]))
 
     # print("a) ",
     #       (
@@ -318,6 +316,7 @@ def part_3(df):
 
     # b) Probabilidad de que una persona que proviene de una escuela con rank 2, GRE = 450 y GPA = 3.5 sea admitida
     # P(admit=1 | rank=2, gre=1, gpa=1) = P(admit, rank=2, gre=1, gpa=1) / P(rank=2, gre=1, gpa=1)
+    print(calculate_intersection_probability(['admit', 'rank', 'gre', 'gpa'], [1, 2, 1, 1]) / calculate_intersection_probability(['rank', 'gre', 'gpa'], [2, 1, 1]))
 
     # print("b) ", 
     #       vars_probability['admit'][(0, 1, 2)] / 
