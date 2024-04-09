@@ -34,7 +34,9 @@ Clasificar noticias argentinas
 
 ---
 
-[//]: Ponemos algo de como dividimos los datos en entrenamiento y en test?
+## Datos de entrenamiento y prueba
+
+Dividimos el conjunto de datos agrupando por categoria de noticia y tomando un porcentaje de cada grupo para entrenamiento y lo que queda para prueba
 
 ---
 
@@ -44,23 +46,15 @@ Clasificar noticias argentinas
 
 ---
 
-## Accuracy, Presición
+## Metricas
 
-[//]: Agregar plot de accuracy, presición
-
-## Verdaderos positivos, falsos positivos
-
-[//]: Agregar plot de tasa de verdaderos/falsos positivos
-
-## $F_1-score$
-
-[//]: Agregar plot de F1-score
+![](./plots/2_metrics.svg)
 
 ---
 
 ## Curva ROC
 
-[//]: Agregar plot de curva ROC
+![](./plots/2_roc_curve.svg)
 
 
 
