@@ -172,11 +172,12 @@ def part_3(df):
         return df
 
     clean_df = clean_data(df)
+    # clean_df.to_csv("cleaned.csv", index=False)
 
     vars_probability = dict(
         gre={(rank): 0 for rank in (1, 2, 3, 4)},
         gpa={(rank): 0 for rank in (1, 2, 3, 4)},
-        rank={(rank): 0 for rank in (1, 2, 3, 4)}, 
+        rank={(rank): 0 for rank in (1, 2, 3, 4)}, # Esta es categorica! Eso es un problema.
         admit={(gre, gpa, rank): 0 for gre in (0, 1) for gpa in (0, 1) for rank in (1, 2, 3, 4)}
     )
 
@@ -201,21 +202,54 @@ def part_3(df):
             for c in (1, 2, 3, 4):
                 vars_probability['admit'][(a, b, c)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [a, b, c])
     
+
+    print(vars_probability)
+
     # a) Probabilidad de que una persona que proviene de una escuela con rank 1 no sea admitida
     # P(admit=0 | rank=1) = P(admit=0, rank=1) / P(rank=1)
 
-    print("a) ",(1 - vars_probability['admit'][(0, 0, 1)]) / vars_probability['rank'][1])
+    def calculate_intersection_probability(vars_probability: dict[str,dict[str,float]], vars_intersecting: list[str], values: list[int]):
+        p = 1
+        not_intersecting = [var for var in vars_probability.keys() if var not in vars_intersecting]
+        print(vars_intersecting, not_intersecting)
+
+        # If the not_intersecting vars are not "rank" we need to see both cases, true and false
+        if "rank" not in not_intersecting:
+            pass
+        else:
+            pass
+
+            
+
+    def calculate_conditional_probability(vars_probability: dict[str,dict[str,float]], var: str, value: str, given_vars: list[str], given_values: list[str]):
+        
+        pass
+
+    print(calculate_intersection_probability(vars_probability, ['admit', 'rank'], [0, 1]))
+
+    # print("a) ",
+    #       (
+    #           ((1 - vars_probability['admit'][(0, 0, 1)]) * (1-vars_probability['gre'])) + 
+    #           (1 - vars_probability['admit'][(0, 1, 1)]) + 
+    #           (1 - vars_probability['admit'][(1, 0, 1)]) + 
+    #           (1 - vars_probability['admit'][(1, 1, 1)])
+    #       ) / vars_probability['rank'][1])
 
 
     # b) Probabilidad de que una persona que proviene de una escuela con rank 2, GRE = 450 y GPA = 3.5 sea admitida
     # P(admit=1 | rank=2, gre=1, gpa=1) = P(admit, rank=2, gre=1, gpa=1) / P(rank=2, gre=1, gpa=1)
-    # P(rank=2, gre=1, gpa=1) = P(rank=2) * P(gre=1 | rank=2) * P(gpa=1 | rank=2)
 
-    print("b) ",vars_probability['admit'][(0, 1, 2)] / (vars_probability['rank'][2] * (1 - vars_probability['gre'][2]) * vars_probability['gpa'][2]))
+    # print("b) ", 
+    #       vars_probability['admit'][(0, 1, 2)] / 
+    #       (
+    #           vars_probability['rank'][2] * 
+    #           (1 - vars_probability['gre'][2]) * 
+    #           vars_probability['gpa'][2])
+    #     )
 
 
 print("Parte 1")
-part_1(preferencias_britanicos)
+# part_1(preferencias_britanicos)
 # print("Parte 2")
 print("Parte 3")
 part_3(binary)
