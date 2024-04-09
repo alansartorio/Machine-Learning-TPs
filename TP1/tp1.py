@@ -1,3 +1,4 @@
+from itertools import product
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
@@ -80,7 +81,7 @@ def build_var_probability(df: pd.DataFrame, variables: List[str], class_var: str
             var_probability_given[class_name][var] = p_var
     return var_probability_given
 
-def build_class_probability(df: pd.DataFrame, class_var: str, class_values: List[str]):
+def build_class_probability(df: pd.DataFrame, class_var: str, class_values: List[any]):
     class_probability = dict()
     for class_name in class_values:
         class_probability[class_name] = (df[class_var] == class_name).sum() / len(df)
@@ -229,27 +230,34 @@ def part_3(df):
     # clean_df.to_csv("cleaned.csv", index=False)
 
     vars_probability = dict(
-        gre={(rank): 0 for rank in (1, 2, 3, 4)},
-        gpa={(rank): 0 for rank in (1, 2, 3, 4)},
-        rank={(rank): 0 for rank in (1, 2, 3, 4)}, # Esta es categorica! Eso es un problema.
-        admit={(gre, gpa, rank): 0 for gre in (0, 1) for gpa in (0, 1) for rank in (1, 2, 3, 4)}
+        gre={},
+        gpa={},
+        rank={}, # Esta es categorica! Eso es un problema.
+        admit={}
     )
 
-    def calculate_probability_given_list_of_vars(df: pd.DataFrame, var: str, value: str, given_vars: list[str], given_values: list[str]):
+    def calculate_probability_given_list_of_vars(df: pd.DataFrame, var: str, value: int, given_vars: list[str], given_values: list[int]):
         in_class = df
         for given_var, given_value in zip(given_vars, given_values):
             in_class = in_class[in_class[given_var] == given_value]
         classes_amount = len(df[given_vars].drop_duplicates())
         occurrences = (in_class[var] == value).sum()
         total = len(in_class)
-        return  laplace_correction(occurrences, total, classes_amount)
+        p = laplace_correction(occurrences, total, classes_amount)
+        return {1: p, 0: 1 - p}
 
+    parents = {
+        'gre': ('rank',),
+        'gpa': ('rank',),
+        'rank': (),
+        'admit': ('gre', 'gpa', 'rank'),
+    }
 
     for a in (1, 2, 3, 4):
-        vars_probability['gre'][a] = calculate_probability_given_list_of_vars(clean_df, 'gre', 1, ['rank'], [a])
-        vars_probability['gpa'][a] = calculate_probability_given_list_of_vars(clean_df, 'gpa', 1, ['rank'], [a])
+        vars_probability['gre'][(a,)] = calculate_probability_given_list_of_vars(clean_df, 'gre', 1, ['rank'], [a])
+        vars_probability['gpa'][(a,)] = calculate_probability_given_list_of_vars(clean_df, 'gpa', 1, ['rank'], [a])
 
-    vars_probability['rank'] = build_class_probability(clean_df, 'rank', [1, 2, 3, 4])
+    vars_probability['rank'][()] = build_class_probability(clean_df, 'rank', [1, 2, 3, 4])
 
     for a in (0, 1):
         for b in (0, 1):
@@ -262,17 +270,35 @@ def part_3(df):
     # a) Probabilidad de que una persona que proviene de una escuela con rank 1 no sea admitida
     # P(admit=0 | rank=1) = P(admit=0, rank=1) / P(rank=1)
 
-    def calculate_intersection_probability(vars_probability: dict[str,dict[str,float]], vars_intersecting: list[str], values: list[int]):
+    def calculate_intersection_probability(vars_probability: dict[str,dict[str,dict[int, float]]], vars_intersecting: list[str], values: list[int]):
         p = 1
         not_intersecting = [var for var in vars_probability.keys() if var not in vars_intersecting]
         print(vars_intersecting, not_intersecting)
 
         # If the not_intersecting vars are not "rank" we need to see both cases, true and false
-        if "rank" not in not_intersecting:
-            pass
-        else:
-            pass
+        var_possible_values = {
+            "rank": (1, 2, 3, 4),
+            "gre": (0, 1),
+            "gpa": (0, 1),
+        }
+        acum = 0
+        for vars in product(*[[(var, val) for val in var_possible_values[var]] for var in not_intersecting]):
+            var_values = dict()
+            for var, value in vars:
+                var_values[var] = value
+            for var, value in zip(vars_intersecting, values):
+                var_values[var] = value
+            print(var_values)
+            prob = 1
+            for var in var_values.keys():
+                var_parents = parents[var]
+                parents_values = tuple(var_values[parent] for parent in var_parents)
+                print(var)
+                print(vars_probability[var])
+                prob *= vars_probability[var][parents_values][var_values[var]]
+            acum += prob
 
+        return acum
             
 
     def calculate_conditional_probability(vars_probability: dict[str,dict[str,float]], var: str, value: str, given_vars: list[str], given_values: list[str]):
@@ -303,7 +329,7 @@ def part_3(df):
 
 # print("Parte 1")
 # part_1(preferencias_britanicos)
-print("Parte 2")
-part_2(noticias_argentinas)
-# print("Parte 3")
-# part_3(binary)
+# print("Parte 2")
+# part_2(noticias_argentinas)
+print("Parte 3")
+part_3(binary)
