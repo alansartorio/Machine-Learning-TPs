@@ -204,7 +204,7 @@ def part_3(df):
     # a) Probabilidad de que una persona que proviene de una escuela con rank 1 no sea admitida
     # P(admit=0 | rank=1) = P(admit=0, rank=1) / P(rank=1)
 
-    print("a) ",vars_probability['admit'][(0, 0, 1)] * vars_probability['rank'][1])
+    print("a) ",vars_probability['admit'][(0, 0, 1)] / vars_probability['rank'][1])
 
 
     # b) Probabilidad de que una persona que proviene de una escuela con rank 2, GRE = 450 y GPA = 3.5 sea admitida
