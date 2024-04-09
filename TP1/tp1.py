@@ -58,9 +58,13 @@ def calculate_probability_of_being_in_class(var_probability: dict[str,dict[str,f
     print(class_name, final_probability)
     return final_probability
 
-def classify(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
+def classify_and_get_probabilities(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
     classes = class_probability.keys()
-    return max(classes, key=lambda c:calculate_probability_of_being_in_class(var_probability,class_probability,values, c))
+    probabilities = {c: calculate_probability_of_being_in_class(var_probability,class_probability,values, c) for c in classes}
+    return max(classes, key=probabilities.__getitem__), probabilities
+
+def classify(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
+    return classify_and_get_probabilities(var_probability, class_probability, values)[0]
 
 def build_var_probability(df: pd.DataFrame, variables: list[str], class_var: str, class_values: list[str]):
     var_probability_given = dict()
@@ -129,13 +133,28 @@ def part_1(df):
     var_probability = build_var_probability(df, variables, class_name, classes)
     class_probability = build_class_probability(df, 'Nacionalidad', classes)
 
+    def plot(prob, name):
+        res = DataFrame({f'P({"Ingles" if k == "I" else "Escoces"})': [v] for k, v in prob.items()})
+        ax = sns.barplot(res)
+        ax.bar_label(ax.containers[0])
+        plt.savefig(f'plots/{name}.svg')
+        plt.clf()
+
+
     # a
     x1={'scones': 1, 'cerveza':0, 'wiskey': 1, 'avena':1, 'futbol':0}
-    print("a)", x1, classify(var_probability, class_probability, x1))
+    class_x1, probabilities_x1 = classify_and_get_probabilities(var_probability, class_probability, x1)
+    print("a)", x1, class_x1, probabilities_x1)
+
+    plot(probabilities_x1, 'x1')
+    
 
     # b
     x2={'scones': 0, 'cerveza':1, 'wiskey': 1, 'avena':0, 'futbol':1}
-    print("b)", x2, classify(var_probability, class_probability, x2))
+    class_x2, probabilities_x2 = classify_and_get_probabilities(var_probability, class_probability, x2)
+    print("b)", x2, class_x2, probabilities_x2)
+
+    plot(probabilities_x2, 'x2')
 
 def part_2(df):
     pre_process_data(df)
@@ -171,9 +190,9 @@ def part_3(df):
 
 
 
-# print("Parte 1")
-# part_1(preferencias_britanicos)
-print("Parte 2")
-part_2(noticias_argentinas)
+print("Parte 1")
+part_1(preferencias_britanicos)
+# print("Parte 2")
+# part_2(noticias_argentinas)
 # print("Parte 3")
 # part_3(binary)

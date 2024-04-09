@@ -18,17 +18,18 @@ Clasificación de nacionalidad de personas sabiendo sus preferencias
 
 ## Clasificar el ejemplo $x_1 = (1, 0, 1, 1, 0)$
 
-[//]: Agregar bar plot con probabilidades de ingles o escoces
+![](./plots/x1.svg)
 
 ---
 
 ## Clasificar el ejemplo $x_2 = (0, 1, 1, 0, 1)$
 
-[//]: Agregar bar plot con probabilidades de ingles o escoces
+![](./plots/x2.svg)
 
----
+
 
 # Ejercicio 2
+
 Clasificar noticias argentinas
 
 ---
@@ -61,9 +62,11 @@ Clasificar noticias argentinas
 
 [//]: Agregar plot de curva ROC
 
----
+
+
 
 # Ejercicio 3
+
 Admisión de estudiantes
 
 ---
