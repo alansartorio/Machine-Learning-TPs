@@ -14,7 +14,9 @@ P(C/E) &= 0.02 \\
 P(D/E) &= 0.2
 \end{aligned}
 $$
+
 Y para los graduados:
+
 $$
 \begin{aligned}
 P(A/G) &= 0.03 \\
@@ -47,6 +49,7 @@ $P(E/A,\bar{B},C,\bar{D})$
 Comenzamos por buscar la probabilidad condicional pero invertida:
 
 Asumiendo que las variables son independientes:
+
 $$
 \begin{aligned}
 P(A,\bar{B},C,\bar{D}/E) &= P(A/E) * P(\bar{B}/E) * P(C/E) * P(\bar{D}/E) \\
@@ -86,28 +89,9 @@ Solo falta:
 
 $$
 \begin{aligned}
-P(A,\bar{B},C,\bar{D})=P(A) * P(\bar{B}) * P(C) * P(\bar{D})
-\end{aligned}
-$$
-
-donde
-
-$$
-\begin{aligned}
-P(A) &= P(A/E)*P(E) + P(A/G)*P(G) \\
-&= 0.95 * 0.1 + 0.03* 0.9 \\
-&= 0.122
-\end{aligned}
-$$
-
-Replicando esto para todos los casos sabemos que:
-
-$$
-\begin{aligned}
-P(A) &= 0.122 \\
-P(B) &= 0.743 \\
-P(C) &= 0.308 \\
-P(D) &= 0.848
+P(A,\bar{B},C,\bar{D})&=P(A,\bar{B},C,\bar{D}/E) \times P(E) + P(A,\bar{B},C,\bar{D}/G) \times P(G) \\
+&= 0.00014688 \times 0.1 + 0.01444 \times 0.9 \\
+&= 0.001572192
 \end{aligned}
 $$
 
@@ -115,9 +99,9 @@ Entonces:
 
 $$
 \begin{aligned}
-P(G/A,\bar{B},C,\bar{D}) &= \frac{0.9*00014688}{0.122*(1-0.743)*0.308*(1-0.848)}\\
-P(G/A,\bar{B},C,\bar{D}) &= 0.0900\\
-P(E/A,\bar{B},C,\bar{D}) &= \frac{0.1*0.01444}{0.122*(1-0743)*0.308*(1-0.848)}\\
-P(E/A,\bar{B},C,\bar{D}) &= 0.98373
+P(G/A,\bar{B},C,\bar{D}) &= \frac{0.9 \times 0.0014688}{0.001572192}\\
+P(G/A,\bar{B},C,\bar{D}) &= 0.08408\\
+P(E/A,\bar{B},C,\bar{D}) &= \frac{0.1 \times 0.01444}{0.001572192}\\
+P(E/A,\bar{B},C,\bar{D}) &= 0.91462
 \end{aligned}
 $$
