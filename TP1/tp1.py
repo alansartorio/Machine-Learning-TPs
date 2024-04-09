@@ -9,6 +9,7 @@ import re
 from typing import Callable, Dict, List, Tuple
 import math
 import random
+import defaultdict
 show_plots = os.environ.get('SHOW_PLOTS', '1') == '1'
 
 sns.set_theme()
@@ -118,12 +119,11 @@ def classify_news(df: DataFrame, vocabulary: set) -> List[int]:
     # Build vocabulary vector
     vocab_vec_name = 'vector'
     vocabulary_list = list(vocabulary)
-    def build_vector(words: List[str]) -> List[int]:
-        base_vector = np.zeros(len(vocabulary))
+    def build_vector(words: List[str]):
+        base_vector = defaultdict(lambda :0)
         for word in words:
             try:
-                index = vocabulary_list.index(word)
-                base_vector[index] = 1
+                base_vector[word] = 1
             except:
                 pass
         return base_vector
@@ -136,6 +136,7 @@ def classify_news(df: DataFrame, vocabulary: set) -> List[int]:
             var_probabilities[clazz][word] = get_word_probability(word, clazz, df)
     
     df[vocab_vec_name] = df['data'].apply(build_vector)
+    print(df.head())
 
     return list(map(lambda doc: classify(var_probabilities, class_probability, doc), df[vocab_vec_name]))
 
