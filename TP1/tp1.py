@@ -6,9 +6,11 @@ import seaborn as sns
 import os
 import json
 import re
-from typing import Callable
+from typing import Callable, Dict, List, Tuple
 import math
 import random
+from collections import defaultdict
+from tqdm import tqdm
 show_plots = os.environ.get('SHOW_PLOTS', '1') == '1'
 
 sns.set_theme()
@@ -20,18 +22,19 @@ binary = pd.read_csv("binary.csv")
 def laplace_correction(occurrences, total, classes_amount):
     return (occurrences + 1) / float(total + classes_amount)
     
-
-def calculate_predicate_probability_given(df: pd.DataFrame, predicate: Callable[[pd.Series], bool], given_var: str, given_value: str):
+def calculate_predicate_probability_given(df: pd.DataFrame, predicate: Callable[[pd.Series], bool], given_var: str, given_value: str, class_amount = None, in_class_amount = None):
     in_class = df[df[given_var] == given_value]
-    classes_amount = len(df[given_var].unique())
+    if class_amount is None:
+        class_amount = len(df[given_var].unique())
     occurrences = in_class.apply(predicate, 'columns').sum()
-    total = len(in_class)
-    return laplace_correction(occurrences, total, classes_amount) 
+    if class_amount is None:
+        in_class_amount = len(in_class)
+    return laplace_correction(occurrences, in_class_amount, class_amount) 
 
-def calculate_probability_given(df: pd.DataFrame, var: str, value: str, given_var: str, given_value: str,):
+def calculate_probability_given(df: pd.DataFrame, var: str, value: str, given_var: str, given_value: str):
     return calculate_predicate_probability_given(df, lambda r:r[var] == value, given_var, given_value)
 
-def calculate_probability_of_being_in_class(var_probability: dict[str,dict[str,float]], class_probability:dict[str, float], values: dict[str, float], class_name: str):
+def calculate_probability_of_being_in_class(var_probability: Dict[str,Dict[str,float]], class_probability:Dict[str, float], values: Dict[str, float], class_name: str):
     # P(clase/vars) = P(clase) * P(vars/clase) / P(vars) -> P(vars) is not necessary if the class is the result
     inverted_conditional = 1
     for var, value in values.items():
@@ -58,6 +61,11 @@ def calculate_probability_of_being_in_class(var_probability: dict[str,dict[str,f
     print(class_name, final_probability)
     return final_probability
 
+def classify(var_probability: Dict[str,Dict[str,float]], class_probability: Dict[str, float], values: Dict[str, float]):
+    classes = class_probability.keys()
+    probabilities = {c: calculate_probability_of_being_in_class(var_probability,class_probability,values, c) for c in classes}
+    return max(classes, key=probabilities.__getitem__), probabilities
+
 def classify_and_get_probabilities(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
     classes = class_probability.keys()
     probabilities = {c: calculate_probability_of_being_in_class(var_probability,class_probability,values, c) for c in classes}
@@ -66,7 +74,7 @@ def classify_and_get_probabilities(var_probability: dict[str,dict[str,float]], c
 def classify(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
     return classify_and_get_probabilities(var_probability, class_probability, values)[0]
 
-def build_var_probability(df: pd.DataFrame, variables: list[str], class_var: str, class_values: list[str]):
+def build_var_probability(df: pd.DataFrame, variables: List[str], class_var: str, class_values: List[str]):
     var_probability_given = dict()
     for class_name in class_values:
         var_probability_given[class_name] = dict()
@@ -75,13 +83,13 @@ def build_var_probability(df: pd.DataFrame, variables: list[str], class_var: str
             var_probability_given[class_name][var] = p_var
     return var_probability_given
 
-def build_class_probability(df: pd.DataFrame, class_var: str, class_values: list[str]):
+def build_class_probability(df: pd.DataFrame, class_var: str, class_values: List[str]):
     class_probability = dict()
     for class_name in class_values:
         class_probability[class_name] = (df[class_var] == class_name).sum() / len(df)
     return class_probability
 
-def split_training_and_evaluation(df: DataFrame, training_frac: float) -> tuple[DataFrame, DataFrame]:
+def split_training_and_evaluation(df: DataFrame, training_frac: float) -> Tuple[DataFrame, DataFrame]:
     training, evaluation = DataFrame(), DataFrame()
     for clazz in df['categoria'].unique():
         class_subset = df[df['categoria'] == clazz]
@@ -100,7 +108,7 @@ def pre_process_data(df: DataFrame) -> DataFrame:
         # Remove stop words
         # s = s
         # Tokenize string
-        return [v for v in s.split() if v]
+        return set(v for v in s.split() if v)
     df['data'] = df['titular'].apply(sanitize_title)
 
 
@@ -112,18 +120,45 @@ def get_vocabulary(df: DataFrame):
 
 
 # 3. Contar la cantidad de documentos de una clase que contienen a la palabra / la cantidad de documentos de esa clase
-def get_word_probability(word: str, clazz: str, df: DataFrame):
-    return calculate_predicate_probability_given(df, lambda r:word in r['data'], 'categoria', clazz)
+def get_word_probability(word: str, clazz: str, df: DataFrame, class_amount: int, in_class_amount: int):
+    return calculate_predicate_probability_given(df, lambda r:word in r['data'], 'categoria', clazz, class_amount, in_class_amount)
 
-def classify_news(df: DataFrame, vocabulary: set) -> list[int]:
+def classify_news(df: DataFrame, vocabulary: set) -> List[int]:
     class_name = 'categoria'
     classes = set(df[class_name].tolist())
-    var_probability = build_var_probability(df, vocabulary, class_name, )
+    print('Working with classes', classes)
+    # var_probability = build_var_probability(df, vocabulary, class_name, classes)
+    print('Computing class probabilities..')
+    class_probability = build_class_probability(df, class_name, classes)
+    print('Class probabilities built')
+    # Build vocabulary vector
+    vocab_vec_name = 'vector'
+    vocabulary_list = list(vocabulary)
+    def build_vector(words: List[str]) -> Dict[str, int]:
+        base_vector = dict()
+        for word in words:
+            try:
+                base_vector[word] = 1
+            except:
+                pass
+        return base_vector
+    
+    var_probabilities = {}
 
-    results = []
-    for document in df['data']:
-        pass
-        # res = classify()
+    class_amount = len(classes)
+    for clazz in tqdm(classes):
+        var_probabilities[clazz] = {}
+        in_class_amount = len(df[df['categoria'] == clazz])
+        for word in tqdm(vocabulary_list):
+            var_probabilities[clazz][word] = get_word_probability(word, clazz, df, class_amount, in_class_amount)
+    
+    print('Building the vocabulary vectors...')
+    df[vocab_vec_name] = df['data'].apply(build_vector)
+    print('Vocabulary vectors built')
+
+    print("Classifying documents...")
+    return list(tqdm(map(lambda doc: classify(var_probabilities, class_probability, doc), df[vocab_vec_name])))
+
 
 def part_1(df):
     classes = ('I', 'E')
@@ -159,11 +194,11 @@ def part_1(df):
 def part_2(df):
     pre_process_data(df)
     df.dropna(inplace=True)
-    # vocabulary = get_vocabulary(df)
+    vocabulary = get_vocabulary(df)
     training, evaluation = split_training_and_evaluation(df, 0.8)
-    print(len(training), len(evaluation))
-    # print(get_word_probability("el", "Deportes", df))
-    # print(len(vocabulary))
+    classification = classify_news(training, vocabulary)
+    print(classification)
+
 
 def part_3(df):
     def clean_data(df):
@@ -247,9 +282,9 @@ def part_3(df):
     #           vars_probability['gpa'][2])
     #     )
 
-
-print("Parte 1")
+# print("Parte 1")
 # part_1(preferencias_britanicos)
-# print("Parte 2")
-print("Parte 3")
-part_3(binary)
+print("Parte 2")
+part_2(noticias_argentinas)
+# print("Parte 3")
+# part_3(binary)
