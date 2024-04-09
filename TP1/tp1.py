@@ -81,25 +81,75 @@ def part_3(df):
 
     clean_df = clean_data(df)
     classes = (0, 1)
-    variables = ('gre', 'gpa', 'rank')
-    class_name = 'admit'
+    variables_and_dependencies = dict(
+        gre=["rank"],
+        gpa=["rank"],
+        rank=["rank"], # Hmmmm
+        admit=["gre", "gpa", "rank"]
+    )
 
-    var_probability = build_var_probability(clean_df, variables, class_name, classes)
-    class_probability = build_class_probability(clean_df, class_name, classes)
+    vars_probability = dict(
+        gre={(rank): 0 for rank in (1, 2, 3, 4)},
+        gpa={(rank): 0 for rank in (1, 2, 3, 4)},
+        rank={(rank): 0 for rank in (1, 2, 3, 4)}, 
+        admit={(gre, gpa, rank): 0 for gre in (0, 1) for gpa in (0, 1) for rank in (1, 2, 3, 4)}
+    )
 
-    # a -> 0.04479106692712246
-    x1 = {'gre': 1, 'gpa': 1, 'rank': 1}
-    print("a)", x1, classify(var_probability, class_probability, x1))
+    def calculate_probability_given_list_of_vars(df: pd.DataFrame, var: str, value: str, given_vars: list[str], given_values: list[str]):
+        in_class = df
+        for given_var, given_value in zip(given_vars, given_values):
+            in_class = in_class[in_class[given_var] == given_value]
+        classes_amount = len(df[given_vars].drop_duplicates())
+        occurrences = (in_class[var] == value).sum()
+        total = len(in_class)
+        return  laplace_correction(occurrences, total, classes_amount)
 
-    # b -> 0.009660083505342415
-    x2 = {'gre': 0, 'gpa': 1, 'rank': 2}
-    print("b)", x2, classify(var_probability, class_probability, x2))
+    vars_probability['gre'][1] = calculate_probability_given_list_of_vars(clean_df, 'gre', 1, ['rank'], [1])
+    vars_probability['gre'][2] = calculate_probability_given_list_of_vars(clean_df, 'gre', 1, ['rank'], [2])
+    vars_probability['gre'][3] = calculate_probability_given_list_of_vars(clean_df, 'gre', 1, ['rank'], [3])
+    vars_probability['gre'][4] = calculate_probability_given_list_of_vars(clean_df, 'gre', 1, ['rank'], [4])
 
+    vars_probability['gpa'][1] = calculate_probability_given_list_of_vars(clean_df, 'gpa', 1, ['rank'], [1])
+    vars_probability['gpa'][2] = calculate_probability_given_list_of_vars(clean_df, 'gpa', 1, ['rank'], [2])
+    vars_probability['gpa'][3] = calculate_probability_given_list_of_vars(clean_df, 'gpa', 1, ['rank'], [3])
+    vars_probability['gpa'][4] = calculate_probability_given_list_of_vars(clean_df, 'gpa', 1, ['rank'], [4])
 
+    vars_probability['rank'] = build_class_probability(clean_df, 'rank', [1, 2, 3, 4])
+
+    vars_probability['admit'][(0, 0, 1)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [0, 0, 1])
+    vars_probability['admit'][(0, 0, 2)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [0, 0, 2])
+    vars_probability['admit'][(0, 0, 3)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [0, 0, 3])
+    vars_probability['admit'][(0, 0, 4)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [0, 0, 4])
+
+    vars_probability['admit'][(1, 0, 1)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [1, 0, 1])
+    vars_probability['admit'][(1, 0, 2)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [1, 0, 2])
+    vars_probability['admit'][(1, 0, 3)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [1, 0, 3])
+    vars_probability['admit'][(1, 0, 4)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [1, 0, 4])
+
+    vars_probability['admit'][(0, 1, 1)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [0, 1, 1])
+    vars_probability['admit'][(0, 1, 2)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [0, 1, 2])
+    vars_probability['admit'][(0, 1, 3)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [0, 1, 3])
+    vars_probability['admit'][(0, 1, 4)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [0, 1, 4])
+
+    vars_probability['admit'][(1, 1, 1)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [1, 1, 1])
+    vars_probability['admit'][(1, 1, 2)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [1, 1, 2])
+    vars_probability['admit'][(1, 1, 3)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [1, 1, 3])
+    vars_probability['admit'][(1, 1, 4)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [1, 1, 4])
     
+    # a) Probabilidad de que una persona que proviene de una escuela con rank 1 no sea admitida
+    # P(admit=0 | rank=1) = P(admit=0, rank=1) / P(rank=1)
+
+    print("a) ",vars_probability['admit'][(0, 0, 1)] * vars_probability['rank'][1])
+
+
+    # b) Probabilidad de que una persona que proviene de una escuela con rank 2, GRE = 450 y GPA = 3.5 sea admitida
+    # P(admit=1 | rank=2, gre=1, gpa=1) = P(admit, rank=2, gre=1, gpa=1) / P(rank=2, gre=1, gpa=1)
+    # P(rank=2, gre=1, gpa=1) = P(rank=2) * P(gre=1 | rank=2) * P(gpa=1 | rank=2)
+
+    print("b) ",vars_probability['admit'][(0, 1, 2)] / (vars_probability['rank'][2] * vars_probability['gre'][2] * vars_probability['gpa'][2]))
 
 # print("Parte 1")
 # part_1(preferencias_britanicos)
 # print("Parte 2")
-# print("Parte 3")
-# part_3(binary)
+print("Parte 3")
+part_3(binary)
