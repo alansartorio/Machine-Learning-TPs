@@ -19,6 +19,7 @@ dist/%.html: %.md styles.html
 	$(PANDOC) $(PANDOC_OPTIONS) $(PANDOC_PDF_OPTIONS) -o $@ $<
 
 dist/%: %
+	mkdir -p $(dir $@)
 	cp -r $< $(dir $@)
 
 dist/reveal.js:
