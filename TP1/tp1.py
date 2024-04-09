@@ -296,14 +296,22 @@ def part_3(df):
         return acum
             
 
-    def calculate_conditional_probability(vars_probability: dict[str,dict[str,float]], var: str, value: str, given_vars: list[str], given_values: list[str]):
-        
-        pass
+    def plot_bar(v, filename):
+        fig, ax = plt.subplots()
+        ax.bar(0, v)
+        ax.set_xlim((-1, 1))
+        ax.set_ylim((0, 1))
+        ax.bar_label(ax.containers[0])
+        plt.savefig(f'plots/{filename}')
+        plt.show()
 
     # a) Probabilidad de que una persona que proviene de una escuela con rank 1 no sea admitida
     # P(admit=0 | rank=1) = P(admit=0, rank=1) / P(rank=1)
 
-    print(calculate_intersection_probability(['admit', 'rank'], [0, 1]) / calculate_intersection_probability(['rank'], [1]))
+    a = calculate_intersection_probability(['admit', 'rank'], [0, 1]) / calculate_intersection_probability(['rank'], [1])
+    print(f"a) {a}")
+
+    plot_bar(a, '3_a.svg')
 
     # print("a) ",
     #       (
@@ -316,7 +324,10 @@ def part_3(df):
 
     # b) Probabilidad de que una persona que proviene de una escuela con rank 2, GRE = 450 y GPA = 3.5 sea admitida
     # P(admit=1 | rank=2, gre=1, gpa=1) = P(admit, rank=2, gre=1, gpa=1) / P(rank=2, gre=1, gpa=1)
-    print(calculate_intersection_probability(['admit', 'rank', 'gre', 'gpa'], [1, 2, 1, 1]) / calculate_intersection_probability(['rank', 'gre', 'gpa'], [2, 1, 1]))
+    b = calculate_intersection_probability(['admit', 'rank', 'gre', 'gpa'], [1, 2, 1, 1]) / calculate_intersection_probability(['rank', 'gre', 'gpa'], [2, 1, 1])
+    print(f"b) {b}")
+
+    plot_bar(b, '3_b.svg')
 
     # print("b) ", 
     #       vars_probability['admit'][(0, 1, 2)] / 

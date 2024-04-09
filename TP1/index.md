@@ -67,13 +67,13 @@ Admisión de estudiantes
 
 ## Probabilidad de admisión, caso A
 
-[//]: Agregar bar plot con probabilidad de ej. a
+![](./plots/3_a.svg)
 
 ---
 
 ## Probabilidad de admisión, caso B
 
-[//]: Agregar bar plot con probabilidad de ej. a
+![](./plots/3_b.svg)
 
 ---
 
