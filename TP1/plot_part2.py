@@ -29,11 +29,11 @@ for split_frac in split_fracs:
     # Pivot
     groups = groups.reset_index().pivot(index='Real', columns=['Predicción'])['probability'].fillna(0)
     # Normalize rows
-    groups = groups.div(groups.sum(axis=1), axis=0)
+    groups = groups.div(groups.sum(axis=1), axis=0).mul(100)
     print(groups)
     plt.figure(figsize=(8, 7))
     # plt.title("Matriz de confusión")
-    sns.heatmap(groups, annot=True, cmap="Blues", fmt="0.2f", vmin=0, vmax=1)
+    sns.heatmap(groups, annot=True, cmap="Blues", fmt="0.1f", vmin=0, vmax=100)
     plt.tight_layout()
     plt.savefig("plots/2_confusion_matrix.svg")
     # plt.show()
