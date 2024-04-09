@@ -63,7 +63,16 @@ def calculate_probability_of_being_in_class(var_probability: Dict[str,Dict[str,f
 
 def classify(var_probability: Dict[str,Dict[str,float]], class_probability: Dict[str, float], values: Dict[str, float]):
     classes = class_probability.keys()
-    return max(classes, key=lambda c:calculate_probability_of_being_in_class(var_probability,class_probability,values, c))
+    probabilities = {c: calculate_probability_of_being_in_class(var_probability,class_probability,values, c) for c in classes}
+    return max(classes, key=probabilities.__getitem__), probabilities
+
+def classify_and_get_probabilities(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
+    classes = class_probability.keys()
+    probabilities = {c: calculate_probability_of_being_in_class(var_probability,class_probability,values, c) for c in classes}
+    return max(classes, key=probabilities.__getitem__), probabilities
+
+def classify(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
+    return classify_and_get_probabilities(var_probability, class_probability, values)[0]
 
 def build_var_probability(df: pd.DataFrame, variables: List[str], class_var: str, class_values: List[str]):
     var_probability_given = dict()
@@ -159,13 +168,28 @@ def part_1(df):
     var_probability = build_var_probability(df, variables, class_name, classes)
     class_probability = build_class_probability(df, 'Nacionalidad', classes)
 
+    def plot(prob, name):
+        res = DataFrame({f'P({"Ingles" if k == "I" else "Escoces"})': [v] for k, v in prob.items()})
+        ax = sns.barplot(res)
+        ax.bar_label(ax.containers[0])
+        plt.savefig(f'plots/{name}.svg')
+        plt.clf()
+
+
     # a
     x1={'scones': 1, 'cerveza':0, 'wiskey': 1, 'avena':1, 'futbol':0}
-    print("a)", x1, classify(var_probability, class_probability, x1))
+    class_x1, probabilities_x1 = classify_and_get_probabilities(var_probability, class_probability, x1)
+    print("a)", x1, class_x1, probabilities_x1)
+
+    plot(probabilities_x1, 'x1')
+    
 
     # b
     x2={'scones': 0, 'cerveza':1, 'wiskey': 1, 'avena':0, 'futbol':1}
-    print("b)", x2, classify(var_probability, class_probability, x2))
+    class_x2, probabilities_x2 = classify_and_get_probabilities(var_probability, class_probability, x2)
+    print("b)", x2, class_x2, probabilities_x2)
+
+    plot(probabilities_x2, 'x2')
 
 def part_2(df):
     pre_process_data(df)
@@ -183,22 +207,46 @@ def part_3(df):
         return df
 
     clean_df = clean_data(df)
-    classes = (0, 1)
-    variables = ('gre', 'gpa', 'rank')
-    class_name = 'admit'
 
-    var_probability = build_var_probability(clean_df, variables, class_name, classes)
-    class_probability = build_class_probability(clean_df, class_name, classes)
+    vars_probability = dict(
+        gre={(rank): 0 for rank in (1, 2, 3, 4)},
+        gpa={(rank): 0 for rank in (1, 2, 3, 4)},
+        rank={(rank): 0 for rank in (1, 2, 3, 4)}, 
+        admit={(gre, gpa, rank): 0 for gre in (0, 1) for gpa in (0, 1) for rank in (1, 2, 3, 4)}
+    )
 
-    # a -> 0.04479106692712246
-    x1 = {'gre': 1, 'gpa': 1, 'rank': 1}
-    print("a)", x1, classify(var_probability, class_probability, x1))
+    def calculate_probability_given_list_of_vars(df: pd.DataFrame, var: str, value: str, given_vars: list[str], given_values: list[str]):
+        in_class = df
+        for given_var, given_value in zip(given_vars, given_values):
+            in_class = in_class[in_class[given_var] == given_value]
+        classes_amount = len(df[given_vars].drop_duplicates())
+        occurrences = (in_class[var] == value).sum()
+        total = len(in_class)
+        return  laplace_correction(occurrences, total, classes_amount)
 
-    # b -> 0.009660083505342415
-    x2 = {'gre': 0, 'gpa': 1, 'rank': 2}
-    print("b)", x2, classify(var_probability, class_probability, x2))
+
+    for a in (1, 2, 3, 4):
+        vars_probability['gre'][a] = calculate_probability_given_list_of_vars(clean_df, 'gre', 1, ['rank'], [a])
+        vars_probability['gpa'][a] = calculate_probability_given_list_of_vars(clean_df, 'gpa', 1, ['rank'], [a])
+
+    vars_probability['rank'] = build_class_probability(clean_df, 'rank', [1, 2, 3, 4])
+
+    for a in (0, 1):
+        for b in (0, 1):
+            for c in (1, 2, 3, 4):
+                vars_probability['admit'][(a, b, c)] = calculate_probability_given_list_of_vars(clean_df, 'admit', 1, ['gre', 'gpa', 'rank'], [a, b, c])
+    
+    # a) Probabilidad de que una persona que proviene de una escuela con rank 1 no sea admitida
+    # P(admit=0 | rank=1) = P(admit=0, rank=1) / P(rank=1)
+
+    print("a) ",(1 - vars_probability['admit'][(0, 0, 1)]) / vars_probability['rank'][1])
 
 
+    # b) Probabilidad de que una persona que proviene de una escuela con rank 2, GRE = 450 y GPA = 3.5 sea admitida
+    # P(admit=1 | rank=2, gre=1, gpa=1) = P(admit, rank=2, gre=1, gpa=1) / P(rank=2, gre=1, gpa=1)
+    # P(rank=2, gre=1, gpa=1) = P(rank=2) * P(gre=1 | rank=2) * P(gpa=1 | rank=2)
+
+    print("b) ",vars_probability['admit'][(0, 1, 2)] / (vars_probability['rank'][2] * (1 - vars_probability['gre'][2]) * vars_probability['gpa'][2]))
 
 # print("Parte 1")
 # part_1(preferencias_britanicos)
