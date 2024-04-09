@@ -11,6 +11,7 @@ import math
 import random
 from collections import defaultdict
 from tqdm import tqdm
+from multiprocessing import Pool
 show_plots = os.environ.get('SHOW_PLOTS', '1') == '1'
 
 sns.set_theme()
@@ -58,13 +59,9 @@ def calculate_probability_of_being_in_class(var_probability: Dict[str,Dict[str,f
     
 
     final_probability = class_probability[class_name] * inverted_conditional / p_vars
-    print(class_name, final_probability)
+    # print(class_name, final_probability)
     return final_probability
 
-def classify(var_probability: Dict[str,Dict[str,float]], class_probability: Dict[str, float], values: Dict[str, float]):
-    classes = class_probability.keys()
-    probabilities = {c: calculate_probability_of_being_in_class(var_probability,class_probability,values, c) for c in classes}
-    return max(classes, key=probabilities.__getitem__), probabilities
 
 def classify_and_get_probabilities(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
     classes = class_probability.keys()
@@ -123,7 +120,7 @@ def get_vocabulary(df: DataFrame):
 def get_word_probability(word: str, clazz: str, df: DataFrame, class_amount: int, in_class_amount: int):
     return calculate_predicate_probability_given(df, lambda r:word in r['data'], 'categoria', clazz, class_amount, in_class_amount)
 
-def classify_news(df: DataFrame, vocabulary: set) -> List[int]:
+def classify_news(df: DataFrame, evaluation: DataFrame, vocabulary: set) -> DataFrame:
     class_name = 'categoria'
     classes = set(df[class_name].tolist())
     print('Working with classes', classes)
@@ -149,16 +146,23 @@ def classify_news(df: DataFrame, vocabulary: set) -> List[int]:
     for clazz in tqdm(classes):
         var_probabilities[clazz] = {}
         in_class_amount = len(df[df['categoria'] == clazz])
+
         for word in tqdm(vocabulary_list):
             var_probabilities[clazz][word] = get_word_probability(word, clazz, df, class_amount, in_class_amount)
     
     print('Building the vocabulary vectors...')
-    df[vocab_vec_name] = df['data'].apply(build_vector)
+    evaluation[vocab_vec_name] = evaluation['data'].apply(build_vector)
     print('Vocabulary vectors built')
 
     print("Classifying documents...")
-    return list(tqdm(map(lambda doc: classify(var_probabilities, class_probability, doc), df[vocab_vec_name])))
+    result = DataFrame()
+    for index, doc in evaluation.iterrows():
+        prediction, probabilities = classify_and_get_probabilities(var_probabilities, class_probability, doc[vocab_vec_name])
+        tmp = DataFrame({'index': [index], 'expected': [doc['categoria']], 'prediction': [prediction], 'probability': [probabilities[prediction]]})
+        result = pd.concat((result, tmp))
+    result.set_index('index', inplace=True)
 
+    return result
 
 def part_1(df):
     classes = ('I', 'E')
@@ -194,10 +198,14 @@ def part_1(df):
 def part_2(df):
     pre_process_data(df)
     df.dropna(inplace=True)
+    df = df.iloc[:2000]
     vocabulary = get_vocabulary(df)
+
     training, evaluation = split_training_and_evaluation(df, 0.8)
-    classification = classify_news(training, vocabulary)
+    classification = classify_news(training, evaluation, vocabulary)
     print(classification)
+    # for expected, predicted in zip(evaluation['categoria'], classification.iterrows()):
+    #     print(expected, predicted)
 
 
 def part_3(df):
