@@ -27,7 +27,7 @@ def calculate_predicate_probability_given(df: pd.DataFrame, predicate: Callable[
     if class_amount is None:
         class_amount = len(df[given_var].unique())
     occurrences = in_class.apply(predicate, 'columns').sum()
-    if class_amount is None:
+    if in_class_amount is None:
         in_class_amount = len(in_class)
     return laplace_correction(occurrences, in_class_amount, class_amount) 
 
