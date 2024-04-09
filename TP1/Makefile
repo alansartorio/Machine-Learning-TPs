@@ -6,8 +6,8 @@ PANDOC_OPTIONS=-t revealjs -s --include-in-header=styles.html --slide-level=2 -V
 
 PANDOC_PDF_OPTIONS=
 
-# PLOTS=$(shell find plots -type f)
-PLOTS=plots
+PLOTS=$(shell find plots -type f)
+#PLOTS=plots
 DIST_DIR=dist
 DIST=$(DIST_DIR)/index.html $(DIST_DIR)/reveal.js $(PLOTS:%=$(DIST_DIR)/%)
 
