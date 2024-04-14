@@ -67,10 +67,6 @@ $$
 P(D/C) = \prod_{d_i\in D}\ P(d_i|C)\ \implies \ P(D) = \sum_{c_i\in C}\ {(\prod_{d_i\in D}\ P(d_i|c_i) * P(c_i))}
 $$
 
-
-
-<!-- Acá se puede explicar brevemente cómo lo hacemos -->
-
 ---
 
 ## Clasificar el ejemplo 
@@ -88,8 +84,6 @@ En este caso tratamos con una persona a la que:
 ---
 
 ### Resultado
-<!--- Mostrar lo que supuestamente vimos a ojo en los datos del input (algun plot supongo) -->
-<!--- Mostar los nombres de cada variable asignados a sus valores -->
 
 Para el primer ejemplo, al correr el clasificados obtuvimos que la persona es **Escocesa**. Para obtener más detalle sobre el resultado, calculamos las probabilidades para cada nacionalidad.
 
@@ -121,16 +115,39 @@ Esta vez, obtuvimos como resultado que la persona en cuestión es **Inglesa**. L
 
 Clasificar noticias argentinas
 
-<!--- Explicar como tokenizamos los titulos en una diapo mas -->
+---
+
+## Datos
+
+En este ejercicio contamos con un dataset que tiene titulares de diferentes noticias publicadas en el país. Cada documento cuenta con: 
+
+- El texto de la noticia
+- La fuente de la noticia 
+- Su categoría correspondiente
 
 ---
 
-## Datos de entrenamiento y prueba
+### Análisis previo
 
-<!--- Por ahí correr de nuevo reduciendo la categoria con 100 mil noticias -->
-<!--- Decir porcentaje -->
+<!-- completar -->
 
-Dividimos el conjunto de datos agrupando por categoria de noticia y tomando un porcentaje de cada grupo para entrenamiento y lo que queda para prueba.
+---
+
+### Transformación del dataset
+
+Para poder implementar un clasificador de texto en base al dataset provisto, primero necesitamos transformar los datos de entrada para que puedan ser procesados por el algoritmo de Naive Bayes.
+
+Para esto, decidimos transformar los titulares en *"vectores de vocabulario"*. Estos vectores tienen la misma dimensión que el tamaño de nuestro vocabulario, donde cada posición representa una palabra del mismo. De esta forma, cada titular tendrá un **1** en las posiciones correspondientes a las palabras incluídas en el mismo, y un **0** en el resto. El vocabulario consiste en un set de todas las plabras incluídas en los titulares.
+
+Además, antes de generar estos vectores tokenizamos los titulares removiendo signos de puntuación y convirtiendo todas las palabras a minúsculas para evitar diferenciación por la capitalización.
+
+---
+
+### Transformación del dataset
+
+Finalmente, para el entrenamiento del algoritmo dividimos el dataset en dos: uno de **training** y uno de **test**. 
+
+Para evitar que estas particiones queden desbalanceadas nos aseguramos de que ambas cuenten con la misma proporción de documentos para cada categoría.
 
 ---
 
@@ -143,6 +160,9 @@ Dividimos el conjunto de datos agrupando por categoria de noticia y tomando un p
 ## Metricas
 
 ![](./plots/2_metrics.svg)
+
+<!-- Si el F1 sigue dando mal, podríamos agregar una hipótesis de por qué está así -->
+<!-- En general se podría añadir un análisis de los datos -->
 
 ---
 
