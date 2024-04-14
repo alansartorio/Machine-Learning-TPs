@@ -2,7 +2,7 @@ RM=rm
 
 PANDOC=pandoc
 
-PANDOC_OPTIONS=-t revealjs -s --include-in-header=styles.html --slide-level=2 -V revealjs-url=reveal.js -V theme=blood
+PANDOC_OPTIONS=--mathjax -t revealjs -s --include-in-header=styles.html --slide-level=2 -V revealjs-url=reveal.js -V theme=blood
 
 PANDOC_PDF_OPTIONS=
 
