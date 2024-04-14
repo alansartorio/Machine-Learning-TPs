@@ -16,10 +16,82 @@ Clasificación de nacionalidad de personas sabiendo sus preferencias
 
 ---
 
-## Clasificar el ejemplo $x_1 = (1, 0, 1, 1, 0)$
+## Datos
+Para este ejercicio se nos dio un dataset en el cuál se registran la nacionalidad (Escocés o Inglés) de diferentes personas y si les gustan o no los siguientes atributos:
 
+- scones
+- cerveza
+- wiskey
+- avena
+- futbol
+
+
+---
+
+### Análisis previo
+
+Para entender mejor los datos decidimos analizar la proporción de gente, agrupada por nacionalidad, que prefiere cada uno de los atributos
+
+<div style="display: flex; flex-direction: row; width:100%;align-items:center;gap:2rem">
+![](./plots/relative_preference.svg){max-width=50%}
+
+<p style="max-width: 40%;font-size:1.5rem;text-align:justify">
+En base a este resultado se puede observar que, mientras las preferencias de los ingleses están distribuidos de forma bastante uniforme (no hay ningún atributo que sea preferido por más de la mitad de la población), en el caso de los escoceses hay una gran preferencia tanto por los scones como por la avena.
+</p> 
+</div>
+
+
+---
+
+## Clasificación
+
+En base a estos datos, se nos pide que determinemos la nacionalidad de dos personas en base a sus preferencias.
+
+Para esto, utilizaremos el algoritmo de Naive Bayes con el cuál podremos clasificar a las personas en base a la nacionalidad que resulte con valor máximo. 
+
+---
+
+### Cálculo de probabilidades
+
+<p style="font-size:1.5rem">
+Podremos obtener valores de probabilidades al dividir los resultados de Naive Bayes por la probabilidad del dato de la persona. Este último lo obtenemos mediante el cálculo de **Probabilidad Total**:
+</p>
+
+$P(D) = \sum_{c_i\in C}\ {P(D |c_i) * P(c_i)}$
+
+<p style="font-size:1.5rem">
+En este caso, asumimos que las variables son independientes dada una clase, por lo que la ecuación nos queda como:
+</p>
+
+$$
+P(D/C) = \prod_{d_i\in D}\ P(d_i|C)\ \implies \ P(D) = \sum_{c_i\in C}\ {(\prod_{d_i\in D}\ P(d_i|c_i) * P(c_i))}
+$$
+
+
+
+<!-- Acá se puede explicar brevemente cómo lo hacemos -->
+
+---
+
+## Clasificar el ejemplo 
+
+### $x_1 = (1, 0, 1, 1, 0)$
+
+En este caso tratamos con una persona a la que:
+
+- <span style="color:green">Le gustan los scones </span>
+- <span style="color:red">No le gusta la cerveza</span>
+- <span style="color:green">Le gusta el whisky</span>
+- <span style="color:green">Le gusta la avena</span>
+- <span style="color:red">No juega al fútbol</span>
+
+---
+
+### Resultado
 <!--- Mostrar lo que supuestamente vimos a ojo en los datos del input (algun plot supongo) -->
 <!--- Mostar los nombres de cada variable asignados a sus valores -->
+
+Para el primer ejemplo, al correr el clasificados obtuvimos que la persona es **Escocesa**. Para obtener más detalle sobre el resultado, calculamos las probabilidades para cada nacionalidad.
 
 ![](./plots/x1.svg)
 
@@ -27,7 +99,19 @@ Clasificación de nacionalidad de personas sabiendo sus preferencias
 
 ## Clasificar el ejemplo $x_2 = (0, 1, 1, 0, 1)$
 
-<!--- Mostar los nombres de cada variable asignados a sus valores -->
+En este caso tratamos con una persona a la que:
+
+- <span style="color:red">No le gustan los scones</span>
+- <span style="color:green">Le gusta la cerveza</span>
+- <span style="color:green">Le gusta el whisky</span>
+- <span style="color:red">No le gusta la avena</span>
+- <span style="color:green">Juega al fútbol</span>
+
+---
+
+### Resultado
+
+Esta vez, obtuvimos como resultado que la persona en cuestión es **Inglesa**. Luego, al calcular las probabilidades obtenemos:
 
 ![](./plots/x2.svg)
 

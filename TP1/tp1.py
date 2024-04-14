@@ -7,7 +7,7 @@ import seaborn as sns
 import os
 import json
 import re
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, List, Tuple, Set, Union, Optional
 import math
 import random
 from collections import defaultdict
@@ -64,12 +64,12 @@ def calculate_probability_of_being_in_class(var_probability: Dict[str,Dict[str,f
     return final_probability
 
 
-def classify_and_get_probabilities(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
+def classify_and_get_probabilities(var_probability: Dict[str,Dict[str,float]], class_probability: Dict[str, float], values: Dict[str, float]):
     classes = class_probability.keys()
     probabilities = {c: calculate_probability_of_being_in_class(var_probability,class_probability,values, c) for c in classes}
     return max(classes, key=probabilities.__getitem__), probabilities
 
-def classify(var_probability: dict[str,dict[str,float]], class_probability: dict[str, float], values: dict[str, float]):
+def classify(var_probability: Dict[str,Dict[str,float]], class_probability: Dict[str, float], values: Dict[str, float]):
     return classify_and_get_probabilities(var_probability, class_probability, values)[0]
 
 def build_var_probability(df: pd.DataFrame, variables: List[str], class_var: str, class_values: List[str]):
@@ -165,17 +165,74 @@ def classify_news(df: DataFrame, evaluation: DataFrame, vocabulary: set) -> Data
 
     return result
 
-def part_1(df):
+def preference_count_by_nationality(df: DataFrame, nationalities: Set, nationality_name: str, variables: Set) -> Dict[str, Dict[str, int]]:
+    # Have to initialize items like this because otherwise python will put the same reference for each dict
+    preferences = dict()
+    for nationality in nationalities:
+        count_dict = dict()
+        for variable in variables:
+            count_dict[variable] = 0
+        preferences[nationality] = count_dict
+    for index, row in df.iterrows():
+        for var in variables:
+            preferences[row[nationality_name]][var] += row[var]
+
+    return preferences
+
+
+def part_1_pre_analisis(df: DataFrame, class_name: str, classes: Set, variables: Set):
+    count_by_nationality: Dict[str,int] = dict(
+        I= df[df[class_name] == 'I'][class_name].count(),
+        E= df[df[class_name] == 'E'][class_name].count(),
+    )
+    pref = preference_count_by_nationality(df, classes, class_name, variables)
+    rel_pref = {k: {k2: v2/count_by_nationality[k] for k2,v2 in v.items()} for k,v in pref.items()}
+
+    def double_barplot(
+            data: Dict[str, Dict[str, Union[int,float]]],
+            title: str,
+            x_title: str = 'item',
+            y_title: str = 'count',
+            show: bool = True,
+            save_to: Optional[str] = None,
+            ):
+        res_df = pd.DataFrame(data)
+        res_df = res_df.reset_index()
+        res_df = res_df.rename(columns={'index': x_title})
+        res_df_long = res_df.melt(id_vars=x_title, var_name='nationality', value_name=y_title)
+
+        sns.barplot(x=x_title, y=y_title, hue='nationality', data=res_df_long)
+        plt.xticks(rotation=45)
+        plt.title(title)
+        plt.tight_layout()
+        if save_to is not None:
+            plt.savefig(save_to)
+        if show:
+            plt.show()
+        plt.clf()
+
+    double_barplot(
+        dict(Ingles=rel_pref['I'], Escoces=rel_pref['E']),
+        "Proporción de gente que prefiere atributo",
+        "Atributo",
+        "Proporción",
+        show=True,
+        save_to='plots/relative_preference.svg'
+        )
+
+def part_1(df: DataFrame):
     classes = ('I', 'E')
     variables = ('scones','cerveza','wiskey','avena','futbol')
     class_name = 'Nacionalidad'
-
+    
+    part_1_pre_analisis(df, class_name, classes, variables)
     var_probability = build_var_probability(df, variables, class_name, classes)
     class_probability = build_class_probability(df, 'Nacionalidad', classes)
 
     def plot(prob, name):
         res = DataFrame({f'P({"Ingles" if k == "I" else "Escoces"})': [v] for k, v in prob.items()})
-        ax = sns.barplot(res)
+        print(res)
+        ax = sns.barplot(data=res)
         ax.bar_label(ax.containers[0])
         plt.savefig(f'plots/{name}.svg')
         plt.clf()
@@ -337,9 +394,9 @@ def part_3(df):
     #           vars_probability['gpa'][2])
     #     )
 
-# print("Parte 1")
-# part_1(preferencias_britanicos)
+print("Parte 1")
+part_1(preferencias_britanicos)
 # print("Parte 2")
 # part_2(noticias_argentinas)
-print("Parte 3")
-part_3(binary)
+# print("Parte 3")
+# part_3(binary)
