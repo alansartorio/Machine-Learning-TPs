@@ -99,7 +99,7 @@ def split_training_and_evaluation(df: DataFrame, training_frac: float) -> Tuple[
 def get_cofusion_matrix(df: DataFrame):
     pass
 
-def pre_process_data(df: DataFrame) -> DataFrame:
+def tokenize_data(df: DataFrame, data_name: str, out_name: str) -> DataFrame:
     def sanitize_title(s: str):
         # Remove symbols
         s = re.sub(r'[^\w]', ' ', s).lower()
@@ -107,12 +107,12 @@ def pre_process_data(df: DataFrame) -> DataFrame:
         # s = s
         # Tokenize string
         return set(v for v in s.split() if v)
-    df['data'] = df['titular'].apply(sanitize_title)
+    df[out_name] = df[data_name].apply(sanitize_title)
 
 
-def get_vocabulary(df: DataFrame):
+def get_vocabulary(df: DataFrame, data_name: str):
     vocabulary = set()
-    for vector in df['data']:
+    for vector in df[data_name]:
         vocabulary.update(vector)
     return vocabulary
 
@@ -180,7 +180,7 @@ def preference_count_by_nationality(df: DataFrame, nationalities: Set, nationali
     return preferences
 
 
-def part_1_pre_analisis(df: DataFrame, class_name: str, classes: Set, variables: Set):
+def part_1_pre_analysis(df: DataFrame, class_name: str, classes: Set, variables: Set):
     count_by_nationality: Dict[str,int] = dict(
         I= df[df[class_name] == 'I'][class_name].count(),
         E= df[df[class_name] == 'E'][class_name].count(),
@@ -225,7 +225,7 @@ def part_1(df: DataFrame):
     variables = ('scones','cerveza','wiskey','avena','futbol')
     class_name = 'Nacionalidad'
     
-    part_1_pre_analisis(df, class_name, classes, variables)
+    part_1_pre_analysis(df, class_name, classes, variables)
     var_probability = build_var_probability(df, variables, class_name, classes)
     class_probability = build_class_probability(df, 'Nacionalidad', classes)
 
@@ -260,21 +260,100 @@ def run(args):
     classification.to_csv(f'data/split_{split_frac:.2}.csv')
     # print(classification)
 
-def part_2(df):
-    pre_process_data(df)
-    df.dropna(inplace=True)
-    # df = df.iloc[:1000]
-    vocabulary = get_vocabulary(df)
+def part_2_pre_analysis(df: DataFrame, class_name: str, data_name: str, print_output=True, save_output=True):
+    df.dropna(subset=[class_name], inplace=True)
 
-    processes = 12
-    with Pool(processes) as pool:
-        splits = np.arange(0.2, 0.9, 0.1)
-        assert len(splits) <= processes
+    classes = set(df[class_name].unique())
+
+    # Count the ammount of documents per class
+    class_count = DataFrame(df[class_name].value_counts())
+    class_count.reset_index(inplace=True)
+    class_count.columns = [class_name, 'count']
+    if print_output:
+        print(class_count)
+    if save_output:
+        class_count.to_json('out/part2/class_count.json')
+
+    # Downsample the dataset to the lowest amount
+    min_count = class_count['count'].min()
+    balanced_df = DataFrame()
+    for category in classes:
+        category_slice = df[df[class_name] == category].sample(min_count)
+        balanced_df = pd.concat([balanced_df, category_slice])
+    df = balanced_df
+
+    # Compute a Bag of Words
+    tokenized_column = 'data'
+    tokenize_data(df, data_name, tokenized_column) # tokenize words first
+    bog = dict()
+    for _, row in df.iterrows():
+        for word in row[tokenized_column]:
+            bog[word] = bog.get(word, 0) + 1
+
+    top_words = DataFrame(list(sorted(bog.items(), key=lambda x: x[1], reverse=True)[:30]), columns=['Palabra', 'Cantidad'])
+    if print_output:
+        print("Top Words", top_words)
+    if save_output:
+        top_words.to_json('out/part2/top_words.json')
+    ax = sns.barplot(x='Palabra', y='Cantidad', data=top_words)
+    plt.xticks(rotation=45)
+    plt.title('Cantidad de apariciones en el vocabulario')
+    if print_output:
+        plt.show()
+    if save_output:
+        plt.tight_layout()
+        plt.savefig('plots/word_count.svg')
+    plt.clf()
+
+    stop_words = {
+        "de",
+        "la",
+        "el",
+        "en",
+        "a",
+        "y",
+        "que",
+        "un",
+        "los",
+        "del",
+        "por",
+        "una",
+        "con",
+        "se",
+        "para",
+        "su",
+        "las",
+        "al",
+        "no",
+        "más",
+        "es"
+    }
+    def remove_stop_words(words: Set[str]) -> Set[str]:
+        return words.difference(stop_words)
+    df[tokenized_column] = df[tokenized_column].apply(remove_stop_words)
+
+    df.reset_index()
+    return df
+
+def part_2(df):
+    df = df.drop(['fecha', 'fuente'], axis=1)
+    class_name = "categoria"
+    data_name = "titular"
+    df = part_2_pre_analysis(df, class_name, data_name, print_output=False, save_output=True)
+
+    # df = df.iloc[:1000]
+    vocabulary = get_vocabulary(df, 'data')
+
+    run((df, vocabulary, 0.7))
+    # processes = 12
+    # with Pool(processes) as pool:
+    #     splits = np.arange(0.2, 0.9, 0.1)
+    #     assert len(splits) <= processes
         
-        for _ in pool.imap_unordered(run, map(lambda split_frac:(df, vocabulary, split_frac), splits)):
-            pass
-        # for expected, predicted in zip(evaluation['categoria'], classification.iterrows()):
-        #     print(expected, predicted)
+    #     for _ in pool.imap_unordered(run, map(lambda split_frac:(df, vocabulary, split_frac), splits)):
+    #         pass
+    #     # for expected, predicted in zip(evaluation['categoria'], classification.iterrows()):
+    #     #     print(expected, predicted)
 
 
 def part_3(df):
@@ -394,9 +473,9 @@ def part_3(df):
     #           vars_probability['gpa'][2])
     #     )
 
-print("Parte 1")
-part_1(preferencias_britanicos)
-# print("Parte 2")
-# part_2(noticias_argentinas)
+# print("Parte 1")
+# part_1(preferencias_britanicos)
+print("Parte 2")
+part_2(noticias_argentinas)
 # print("Parte 3")
 # part_3(binary)

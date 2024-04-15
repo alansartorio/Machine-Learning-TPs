@@ -129,7 +129,60 @@ En este ejercicio contamos con un dataset que tiene titulares de diferentes noti
 
 ### Análisis previo
 
+Al analizar los datos, primero buscamos qué categorías existen dentro del dataset, ante lo cuál obtuvimos que son las 9 siguientes:
+
+- Noticias destacadas  
+- Nacional
+- Destacadas
+- Ciencia y Tecnologia
+- Deportes
+- Entretenimiento
+- Economia
+- Internacional
+- Salud
 <!-- completar -->
+
+---
+
+### Análisis previo
+
+Luego, decidimos investigar la cantidad de registros por cada una de estas categorías:
+
+|Categoría|Cantidad| 
+----------|--------
+Noticias destacadas |      133,819
+Nacional |                 3,860
+Destacadas |               3,859
+Ciencia y Tecnologia |     3,856
+Deportes |                 3,855
+Entretenimiento |          3,850
+Economia |                 3,850
+Internacional |            3,850
+Salud |                    3,840
+
+---
+
+### Análisis previo
+
+Por este resultado decidimos recortar el dataset original para limitar la cantidad de registros por categoría. De esta forma, reducimos el dataset para que cada clase cuente con **3,840 registros**.
+
+---
+
+### Análisis previo
+
+Otro aspecto a analizar del dataset es el vocabulario de los titulares, ya que será lo que usaremos para el entrenamiento del clasificador. Para esto, decidimos armar una *Bag of Words* de las palabras que aparecen en cada titular. Previamente a esto hicimos una pre-tokenización de los titulares, removiendo signos de puntuación y convirtiendo todas las palabras a minúsculas para evitar diferenciación por la capitalización. 
+
+---
+
+### Análisis previo
+
+<div style="display: flex; flex-direction: row; width:100%;align-items:center;gap:2rem">
+![](./plots/word_count.svg)
+<p style="max-width: 40%;font-size:1.5rem;text-align:left">
+Al graficar las primeras 30 palabras ordenadas por la cantidad de apariciones en el vocabulario, podemos observar la presencia de varias *stop words*, cuya frecuencia de aparición es significativamente mayor al resto.
+Por esto, decidimos tomar como *stop words* las 20 palabras más frecuentes que aquí figuran y **removerlas del dataset**.
+</p>
+
 
 ---
 
@@ -138,8 +191,6 @@ En este ejercicio contamos con un dataset que tiene titulares de diferentes noti
 Para poder implementar un clasificador de texto en base al dataset provisto, primero necesitamos transformar los datos de entrada para que puedan ser procesados por el algoritmo de Naive Bayes.
 
 Para esto, decidimos transformar los titulares en *"vectores de vocabulario"*. Estos vectores tienen la misma dimensión que el tamaño de nuestro vocabulario, donde cada posición representa una palabra del mismo. De esta forma, cada titular tendrá un **1** en las posiciones correspondientes a las palabras incluídas en el mismo, y un **0** en el resto. El vocabulario consiste en un set de todas las plabras incluídas en los titulares.
-
-Además, antes de generar estos vectores tokenizamos los titulares removiendo signos de puntuación y convirtiendo todas las palabras a minúsculas para evitar diferenciación por la capitalización.
 
 ---
 
