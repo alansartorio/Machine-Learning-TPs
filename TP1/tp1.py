@@ -159,8 +159,13 @@ def classify_news(df: DataFrame, evaluation: DataFrame, vocabulary: set) -> Data
     result = DataFrame()
     for index, doc in evaluation.iterrows():
         prediction, probabilities = classify_and_get_probabilities(var_probabilities, class_probability, doc[vocab_vec_name])
-        tmp = DataFrame({'index': [index], 'expected': [doc['categoria']], 'prediction': [prediction], 'probability': [probabilities[prediction]]})
+        data_dict = {'index': [index], 'expected': [doc['categoria']], 'prediction': [prediction], 'probability_prediction': [probabilities[prediction]]}
+        for var, prob in probabilities.items():
+            data_dict[f"probability_{var}"] = [prob]
+        
+        tmp = DataFrame(data_dict)
         result = pd.concat((result, tmp))
+        
     result.set_index('index', inplace=True)
 
     return result

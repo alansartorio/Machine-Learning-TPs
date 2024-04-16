@@ -202,6 +202,40 @@ Para evitar que estas particiones queden desbalanceadas nos aseguramos de que am
 
 ---
 
+## Clasificación
+
+Al tener la división propuesta de nuestro dataset, usaremos los datos de training para calcular las probabilidades condicionales de cada palabra dentro del vocabulario con respecto a cada categoría, además de las probabilidades de ocurrencia de cada una de las categorías y de los titulares.
+
+Luego, utilizaremos esos datos para estimar la categoría a la que pertenece cada uno de los titulares del dataset de test, pudiendo comparar luego con el valor real.
+
+---
+
+### Cálculo de probabilidades
+
+Para estimar la categoría de un titular utilizaremos el clasificador de *Naive Bayes*. Tomaremos como datos a los titulares, a los cuáles consideramos como un vector de valores binarios
+
+$T = (w_1, w_2, \dots, w_n)$
+
+Tal que $w_i = 1$ si la i-esima palabra del vocabulario está en $T$ y $w_i = 0$ en caso contrario.
+
+Entonces, utilizamos el teorema de Bayes para calcular la probabilidad de que el titular pertenezca a cada una de las categorías dadas las palabras que contiene.
+
+$P(c|T) =  {P(c) P(T|c)\over P(T)}$
+
+---
+
+### Cálculo de probabilidades
+
+Similar al ejercicio anterior, utilizaremos el hecho de que se asumen las variables (en nuestro caso, cada una de las palabras) como independientes con respecto a la clase para calcular la probabilidad condicional del numerador
+
+$P(T|c) = \prod_{w_i\in T} P(w_i|c)$
+
+Asimismo, utilizamos probabilidad total para el cálculo de la probabilidad del titular.
+
+$P(T) = \sum_{c_i\in C} [P(c_i) * \prod_{w_i\in T} P(w_i|c_i)]$
+
+---
+
 ## Matriz de confusión
 
 ![](./plots/2_confusion_matrix.svg)

@@ -6,7 +6,7 @@ import seaborn as sns
 import os
 import json
 import re
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, List, Tuple, Set
 import math
 import random
 from collections import defaultdict
@@ -18,10 +18,109 @@ sns.set_theme()
 
 points = DataFrame(columns=['TFP', 'TVP', 'Categoria', 'Training %'])
 
-split_fracs = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+def compute_metrics_per_class(data: DataFrame, classes: Set[str], threshold: float, tag_name: str, save_results = False) -> Tuple[float, float]:
+    metrics = {"true_positive", "false_negative", "false_positive", "true_negative"}
+    class_metrics = dict()
+    for c in classes:
+        initial_metrics = dict()
+        for metric in metrics:
+            initial_metrics[metric] = 0
+        class_metrics[c] = initial_metrics
+
+    for _, row in data.iterrows():
+        for class_ in classes:
+            is_class_prediction = row[f"probability_{class_}"] > threshold
+            is_class_real: bool = row[tag_name] == class_
+
+            if is_class_real and is_class_prediction:
+                result = 'true_positive'
+            elif is_class_real and not is_class_prediction:
+                result = 'false_negative'
+            elif not is_class_real and is_class_prediction:
+                result = 'false_positive'
+            else:
+                result = 'true_negative'
+            class_metrics[class_][result] += 1
+
+    for class_ in classes:
+        true_positive = class_metrics[class_]['true_positive']
+        true_negative = class_metrics[class_]['true_negative']
+        false_positive = class_metrics[class_]['false_positive']
+        false_negative = class_metrics[class_]['false_negative']
+
+        def safe_divide(a, b) -> float:
+            if b == 0:
+                return 0
+            return a / b
+        accuracy = safe_divide(true_positive + true_negative, true_positive + true_negative + false_positive + false_negative)
+        presicion = safe_divide(true_positive, (true_positive + false_positive))
+        recall = true_positive_rate = safe_divide(true_positive, (true_positive + false_negative))
+        false_positive_rate = safe_divide(false_positive, (false_positive + true_negative))
+        f1_score = safe_divide(2 * presicion * recall, (presicion + recall))
+
+        class_metrics[class_]["accuracy"] = accuracy
+        class_metrics[class_]["presicion"] = presicion
+        class_metrics[class_]["recall"] = recall
+        class_metrics[class_]["false_positive_rate"] = false_positive_rate
+        class_metrics[class_]["true_positive_rate"] = true_positive_rate
+        class_metrics[class_]["f1_score"] = f1_score
+
+    if save_results:
+        with open('out/part2/metrics.json', '+w') as f:
+            json.dump(class_metrics, f, indent=4)
+    
+    return class_metrics
+            
+
+
+split_fracs = [0.7]
 # split_fracs = [0.8]
 for split_frac in split_fracs:
     data = pd.read_csv(f'data/split_{split_frac:02}.csv', index_col='index')
+
+    classes = data['expected'].unique()
+
+    points = []
+    for threshold in np.arange(0, 0.9, 0.1):
+        metrics = compute_metrics_per_class(data, classes, threshold, 'prediction')
+        points.append(metrics)
+
+    # with open('out/part2/metrics.json', '+w') as f:
+    #         json.dump(points, f, indent=4)
+
+    roc_data = []
+    for entry in points:
+        for class_name, metrics in entry.items():
+            roc_data.append({
+                'Class': class_name,
+                'False Positive Rate': metrics['false_positive_rate'],
+                'True Positive Rate': metrics['true_positive_rate']
+            })
+
+    df_roc = pd.DataFrame(roc_data)
+    
+    sns.set_style("whitegrid")
+
+    plt.figure(figsize=(10, 8))
+    for class_name in df_roc['Class'].unique():
+        class_data = df_roc[df_roc['Class'] == class_name]
+        sns.lineplot(
+            data=class_data, 
+            x='False Positive Rate', 
+            y='True Positive Rate', 
+            label=class_name,
+            marker='o',
+            )
+
+
+    plt.plot([0, 1], [0, 1], 'k--', label='Clas. aleatorio')
+    plt.xlabel('TFP')
+    plt.ylabel('TVP')
+    plt.title('Curva ROC por categoría')
+    plt.legend(title='Categorías')
+    plt.tight_layout()
+    plt.show()
+    exit()
     data.rename(columns={
         "expected": "Real",
         "prediction": "Predicción"
@@ -92,7 +191,6 @@ for split_frac in split_fracs:
         plt.savefig("plots/2_confusion_matrix.svg")
         # plt.show()
         plt.clf()
-
 
 print(points)
 print(points['Training %'].map(str))
