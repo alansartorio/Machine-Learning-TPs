@@ -6,7 +6,7 @@ import seaborn as sns
 import os
 import json
 import re
-from typing import Callable, Dict, List, Tuple, Set
+from typing import Callable, Dict, List, Tuple, Set, Optional
 import math
 import random
 from collections import defaultdict
@@ -53,14 +53,13 @@ def compute_metrics_per_class(data: DataFrame, classes: Set[str], threshold: flo
                 return 0
             return a / b
         accuracy = safe_divide(true_positive + true_negative, true_positive + true_negative + false_positive + false_negative)
-        presicion = safe_divide(true_positive, (true_positive + false_positive))
+        precision = safe_divide(true_positive, (true_positive + false_positive))
         recall = true_positive_rate = safe_divide(true_positive, (true_positive + false_negative))
         false_positive_rate = safe_divide(false_positive, (false_positive + true_negative))
-        f1_score = safe_divide(2 * presicion * recall, (presicion + recall))
+        f1_score = safe_divide(2 * precision * recall, (precision + recall))
 
         class_metrics[class_]["accuracy"] = accuracy
-        class_metrics[class_]["presicion"] = presicion
-        class_metrics[class_]["recall"] = recall
+        class_metrics[class_]["precision"] = precision
         class_metrics[class_]["false_positive_rate"] = false_positive_rate
         class_metrics[class_]["true_positive_rate"] = true_positive_rate
         class_metrics[class_]["f1_score"] = f1_score
@@ -72,6 +71,73 @@ def compute_metrics_per_class(data: DataFrame, classes: Set[str], threshold: flo
     return class_metrics
             
 
+def plot_roc(data: DataFrame, show_fig = True, save_path: Optional[str] = None) -> None:
+    sns.set_style("whitegrid")
+
+    plt.figure(figsize=(10, 8))
+
+    for class_name in df_roc['Categoria'].unique():
+        class_data = df_roc[df_roc['Categoria'] == class_name]
+        ax = sns.lineplot(
+            data=class_data, 
+            x='TFP', 
+            y='TVP', 
+            label=class_name,
+            marker='o',
+            )
+
+    plt.plot([0, 1], [0, 1], 'k--', label='Clas. aleatorio')
+    plt.xlabel('TFP')
+    plt.ylabel('TVP')
+    plt.title('Curva ROC por categoría')
+    plt.legend(title='Categorías')
+    if show_fig:
+        plt.show()
+    if save_path is not None:
+        plt.tight_layout()
+        plt.savefig(save_path)
+    plt.clf()
+
+
+def plot_metrics(data: DataFrame, show_fig = True, save_path: Optional[str] = None) -> None:
+    highest_frac = data.melt(
+            id_vars=['Categoria'],
+            value_vars=['TFP','TVP','Exactitud','Precisión','F1-score'],
+            var_name='Metrica',
+            value_name='Valor',
+    )
+
+    plt.figure(figsize=(14, 9))
+    sns.barplot(data=highest_frac, y='Valor', x='Categoria', hue='Metrica', ci=None)
+    plt.title('Métricas')
+    if show_fig:
+        plt.show()
+    if save_path is not None:
+        plt.tight_layout()
+        plt.savefig(save_path)
+    plt.clf()
+
+def plot_confusion_matrix(data: DataFrame, show_fig = False, save_path: Optional[str] = None) -> None:
+    data.rename(columns={
+        "expected": "Real",
+        "prediction": "Predicción"
+    }, inplace=True, errors='raise')
+    groups = data.groupby(['Real', 'Predicción']).count()
+    # Pivot
+    groups = groups.reset_index().pivot(index='Real', columns=['Predicción'])['probability_prediction'].fillna(0)
+
+    # Normalize rows
+    groups = groups.div(groups.sum(axis=1), axis=0).mul(100)
+    plt.figure(figsize=(8, 7))
+    plt.title("Matriz de confusión")
+    sns.heatmap(groups, annot=True, cmap="Blues", fmt="0.1f", vmin=0, vmax=100)
+    if show_fig:
+        plt.show()
+    if save_path is not None:
+        plt.tight_layout()
+        plt.savefig(save_path)
+    plt.clf()
+
 
 split_fracs = [0.7]
 # split_fracs = [0.8]
@@ -80,46 +146,46 @@ for split_frac in split_fracs:
 
     classes = data['expected'].unique()
 
-    points = []
+    roc_data = []
     for threshold in np.arange(0, 0.9, 0.1):
         metrics = compute_metrics_per_class(data, classes, threshold, 'prediction')
-        points.append(metrics)
+        # points.append(metrics)
+        for class_name, metrics in metrics.items():
+            roc_data.append({
+                'Categoria': class_name,
+                'TFP': metrics['false_positive_rate'],
+                'TVP': metrics['true_positive_rate'],
+                'Umbral': threshold,
+                'Precisión': metrics['precision'],
+                'Exactitud': metrics['accuracy'],
+                'F1-score': metrics['f1_score'],
+            })
 
     # with open('out/part2/metrics.json', '+w') as f:
     #         json.dump(points, f, indent=4)
 
-    roc_data = []
-    for entry in points:
-        for class_name, metrics in entry.items():
-            roc_data.append({
-                'Class': class_name,
-                'False Positive Rate': metrics['false_positive_rate'],
-                'True Positive Rate': metrics['true_positive_rate']
-            })
-
     df_roc = pd.DataFrame(roc_data)
     
-    sns.set_style("whitegrid")
+    plot_roc(
+        df_roc, 
+        show_fig=False, 
+        # save_path='plots/2_roc_curve.svg'
+        )
 
-    plt.figure(figsize=(10, 8))
-    for class_name in df_roc['Class'].unique():
-        class_data = df_roc[df_roc['Class'] == class_name]
-        sns.lineplot(
-            data=class_data, 
-            x='False Positive Rate', 
-            y='True Positive Rate', 
-            label=class_name,
-            marker='o',
-            )
+    best_threshold = 0.3    
+    df_metrics = df_roc.drop(df_roc[df_roc['Umbral'] == best_threshold].index)
 
+    plot_metrics(
+        df_metrics,
+        show_fig=False,
+        # save_path='plots/2_metrics.svg'
+    )    
 
-    plt.plot([0, 1], [0, 1], 'k--', label='Clas. aleatorio')
-    plt.xlabel('TFP')
-    plt.ylabel('TVP')
-    plt.title('Curva ROC por categoría')
-    plt.legend(title='Categorías')
-    plt.tight_layout()
-    plt.show()
+    # plot_confusion_matrix(
+    #     df_metrics,
+    #     show_fig=True
+    # )
+    
     exit()
     data.rename(columns={
         "expected": "Real",
