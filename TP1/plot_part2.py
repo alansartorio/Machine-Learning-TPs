@@ -91,11 +91,11 @@ def plot_roc(data: DataFrame, show_fig = True, save_path: Optional[str] = None) 
     plt.ylabel('TVP')
     plt.title('Curva ROC por categoría')
     plt.legend(title='Categorías')
-    if show_fig:
-        plt.show()
     if save_path is not None:
         plt.tight_layout()
         plt.savefig(save_path)
+    if show_fig:
+        plt.show()
     plt.clf()
 
 
@@ -108,13 +108,13 @@ def plot_metrics(data: DataFrame, show_fig = True, save_path: Optional[str] = No
     )
 
     plt.figure(figsize=(14, 9))
-    sns.barplot(data=highest_frac, y='Valor', x='Categoria', hue='Metrica', ci=None)
+    sns.barplot(data=highest_frac, y='Valor', x='Categoria', hue='Metrica', errorbar=None)
     plt.title('Métricas')
-    if show_fig:
-        plt.show()
     if save_path is not None:
         plt.tight_layout()
         plt.savefig(save_path)
+    if show_fig:
+        plt.show()
     plt.clf()
 
 def plot_confusion_matrix(data: DataFrame, show_fig = False, save_path: Optional[str] = None) -> None:
@@ -131,11 +131,11 @@ def plot_confusion_matrix(data: DataFrame, show_fig = False, save_path: Optional
     plt.figure(figsize=(8, 7))
     plt.title("Matriz de confusión")
     sns.heatmap(groups, annot=True, cmap="Blues", fmt="0.1f", vmin=0, vmax=100)
-    if show_fig:
-        plt.show()
     if save_path is not None:
         plt.tight_layout()
         plt.savefig(save_path)
+    if show_fig:
+        plt.show()
     plt.clf()
 
 
@@ -169,7 +169,7 @@ for split_frac in split_fracs:
     plot_roc(
         df_roc, 
         show_fig=False, 
-        # save_path='plots/2_roc_curve.svg'
+        save_path='plots/2_roc_curve.svg'
         )
 
     best_threshold = 0.3    
@@ -178,13 +178,14 @@ for split_frac in split_fracs:
     plot_metrics(
         df_metrics,
         show_fig=False,
-        # save_path='plots/2_metrics.svg'
+        save_path='plots/2_metrics.svg'
     )    
 
-    # plot_confusion_matrix(
-    #     df_metrics,
-    #     show_fig=True
-    # )
+    plot_confusion_matrix(
+        data,
+        show_fig=False,
+        save_path='plots/2_confusion_matrix.svg'
+    )
     
     exit()
     data.rename(columns={
