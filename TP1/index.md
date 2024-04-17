@@ -266,6 +266,19 @@ Admisión de estudiantes
 
 ---
 
+## Variables
+
+```{.mermaid format=svg}
+flowchart TB
+    rank --> GPA
+    rank --> GRE
+    GRE --> admit
+    rank --> admit
+    GPA --> admit
+```
+
+---
+
 ## Probabilidad de *no* admisión
 
 <!--- Mencionar si usamos la correccion de laplace (o sacarla por no ser necesaria) -->
