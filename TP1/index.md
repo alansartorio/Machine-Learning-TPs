@@ -279,12 +279,82 @@ flowchart TB
 
 ---
 
+## Transformación del dataset
+
+Para este caso tuvimos que discretizar los valores de las variables GRE y GPA:
+
+$$
+\text{GRE}' =
+\begin{cases}
+1 \ \text{ si }\ GRE \ge 500\\
+0 \  \text{ si }\ GRE \lt 500\\
+\end{cases}
+$$
+$$
+\text{GPA}' =
+\begin{cases}
+1 \ \text{ si }\ GPA \ge 3\\
+0 \  \text{ si }\ GPA \lt 3\\
+\end{cases}
+$$
+
+---
+
+## Cálculo de probabilidades
+
+Para el cálculo de probabilidades, debimos computar todas las probabilidades condicionales de las variables con respecto a sus nodos padre. Para esto, utilizamos la frecuencia relativa:
+$$
+P(B_i|A_j, C_k)={\# B_iA_jC_k \over \# A_j C_k}
+$$
+
+---
+
+## Cálculo de probabilidades
+
+Al momento de realizar estos cálculos, encontramos que algunas de las probabilidades nos daban 0, por lo que decidimos recalcular todos los valores aplicando la corrección de Laplace
+
+$$
+\hat p={\text{cantidad de ocurrencias} + 1\over \text{total} +k}
+$$
+
+---
+
+## Probabilidad de *no* admisión
+
+Calcularemos la probabilidad de no admisión para una persona que proviene de una escuela con rango 1
+
+$$
+P(\text{admit}=0|\text{rank}=1) = {P(\text{admit}=0,\text{rank}=1)\over P(\text{rank}=1)}
+$$
+
+---
+
+## Probabilidad de *no* admisión
+
+Usando probabilidad conjunta tenemos que
+
+$$
+\begin{gather}
+P(\text{admit}=0,\text{rank}=1)=\\
+\sum_{GRE\in\{0,1\}}\sum_{\text{GPA}\in \{0,1\}}P(\text{admit}=0,\text{GRE},\text{GPA},\text{rank}=1)
+\end{gather}
+$$
+
+$$
+\begin{gather}
+P(\text{rank}=1)=\\
+\sum_{admit\in\{0,1\}}\sum_{GRE\in\{0,1\}}\sum_{\text{GPA}\in \{0,1\}}P(\text{admit},\text{GRE},\text{GPA},\text{rank}=1)
+\end{gather}
+$$
+
+
+---
+
 ## Probabilidad de *no* admisión
 
 <!--- Mencionar si usamos la correccion de laplace (o sacarla por no ser necesaria) -->
 <!--- Corregir la corrección de laplace porque el classes_amount parecia estar mal usado? (si no la usamos no deberia ser necesario) -->
 
-de una persona que proviene de una escuela con rango 1
 
 ![](./plots/3_a.svg)
 
@@ -293,6 +363,18 @@ de una persona que proviene de una escuela con rango 1
 ## Probabilidad de admisión
 
 de una persona que fue a una escuela de rango 2, y tiene GRE = 450 y GPA = 3.5
+
+<!-- P(admit=1 | rank=2, gre=1, gpa=1) = P(admit, rank=2, gre=1, gpa=1) / P(rank=2, gre=1, gpa=1) -->
+
+$$
+\begin{gather}
+P(\text{admit}=1|\text{rank}=2,\text{GRE}=1,\text{GPA}=1) =\\ {P(\text{admit}=1,\text{rank}=2,\text{GRE}=1,\text{GPA}=1)\over P(\text{rank}=2,\text{GRE}=1,\text{GPA}=1)}
+\end{gather}
+$$
+
+---
+
+## Probabilidad de admisión
 
 ![](./plots/3_b.svg)
 
