@@ -384,7 +384,8 @@ def part_3(df):
         classes_amount = len(df[given_vars].drop_duplicates())
         occurrences = (in_class[var] == value).sum()
         total = len(in_class)
-        p = laplace_correction(occurrences, total, classes_amount)
+        # p = laplace_correction(occurrences, total, classes_amount)
+        p = occurrences / total
         return {1: p, 0: 1 - p}
 
     parents = {
