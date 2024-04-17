@@ -266,19 +266,20 @@ Admisión de estudiantes
 
 ---
 
-## Probabilidad de admisión, caso A
+## Probabilidad de *no* admisión
 
 <!--- Mencionar si usamos la correccion de laplace (o sacarla por no ser necesaria) -->
 <!--- Corregir la corrección de laplace porque el classes_amount parecia estar mal usado? (si no la usamos no deberia ser necesario) -->
-<!--- Agregar que significa caso A (consigna e input) -->
+
+de una persona que proviene de una escuela con rango 1
 
 ![](./plots/3_a.svg)
 
 ---
 
-## Probabilidad de admisión, caso B
+## Probabilidad de admisión
 
-<!--- Agregar que significa caso B (consigna e input) -->
+de una persona que fue a una escuela de rango 2, y tenga GRE = 450 y GPA = 3.5
 
 ![](./plots/3_b.svg)
 
