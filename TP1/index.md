@@ -279,7 +279,7 @@ de una persona que proviene de una escuela con rango 1
 
 ## Probabilidad de admisión
 
-de una persona que fue a una escuela de rango 2, y tenga GRE = 450 y GPA = 3.5
+de una persona que fue a una escuela de rango 2, y tiene GRE = 450 y GPA = 3.5
 
 ![](./plots/3_b.svg)
 

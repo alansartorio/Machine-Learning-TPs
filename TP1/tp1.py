@@ -442,7 +442,9 @@ def part_3(df):
         ax.bar(0, v)
         ax.set_xlim((-1, 1))
         ax.set_ylim((0, 1))
+        ax.set_ylabel("P()")
         ax.bar_label(ax.containers[0])
+        ax.xaxis.set_major_locator(plt.NullLocator())
         plt.savefig(f'plots/{filename}')
         plt.show()
 
@@ -480,7 +482,7 @@ def part_3(df):
 
 # print("Parte 1")
 # part_1(preferencias_britanicos)
-print("Parte 2")
-part_2(noticias_argentinas)
-# print("Parte 3")
-# part_3(binary)
+# print("Parte 2")
+# part_2(noticias_argentinas)
+print("Parte 3")
+part_3(binary)
