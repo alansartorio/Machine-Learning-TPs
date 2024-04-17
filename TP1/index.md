@@ -85,7 +85,7 @@ En este caso tratamos con una persona a la que:
 
 ### Resultado
 
-Para el primer ejemplo, al correr el clasificados obtuvimos que la persona es **Escocesa**. Para obtener más detalle sobre el resultado, calculamos las probabilidades para cada nacionalidad.
+Para el primer ejemplo, al correr el clasificador obtuvimos que la persona es **Escocesa**. Para obtener más detalle sobre el resultado, calculamos las probabilidades para cada nacionalidad.
 
 ![](./plots/x1.svg)
 
@@ -150,21 +150,21 @@ Luego, decidimos investigar la cantidad de registros por cada una de estas categ
 
 |Categoría|Cantidad| 
 ----------|--------
-Noticias destacadas |      133,819
-Nacional |                 3,860
-Destacadas |               3,859
-Ciencia y Tecnologia |     3,856
-Deportes |                 3,855
-Entretenimiento |          3,850
-Economia |                 3,850
-Internacional |            3,850
-Salud |                    3,840
+Noticias destacadas | 43513
+Destacadas | 2293
+Deportes | 1886
+Internacional | 1856
+Nacional | 1690
+Entretenimiento | 1593
+Economia | 1292
+Ciencia y Tecnologia | 949
+Salud | 853
 
 ---
 
 ### Análisis previo
 
-Por este resultado decidimos recortar el dataset original para limitar la cantidad de registros por categoría. De esta forma, reducimos el dataset para que cada clase cuente con **3,840 registros**.
+Por este resultado decidimos recortar el dataset original para limitar la cantidad de registros por categoría. De esta forma, reducimos el dataset para que cada clase cuente con **853 registros**.
 
 ---
 

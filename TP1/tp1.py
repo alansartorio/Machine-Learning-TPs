@@ -268,8 +268,6 @@ def run(args):
 def part_2_pre_analysis(df: DataFrame, class_name: str, data_name: str, print_output=True, save_output=True):
     df.dropna(subset=[class_name], inplace=True)
 
-    classes = set(df[class_name].unique())
-
     # Count the ammount of documents per class
     class_count = DataFrame(df[class_name].value_counts())
     class_count.reset_index(inplace=True)
@@ -278,6 +276,18 @@ def part_2_pre_analysis(df: DataFrame, class_name: str, data_name: str, print_ou
         print(class_count)
     if save_output:
         class_count.to_json('out/part2/class_count.json')
+
+    class_count.drop(class_count[class_count['count'] < 1000].index, inplace = True)
+    classes = set(class_count['categoria'])
+    print(classes)
+
+    print(df['categoria'])
+    print(df['categoria'].apply(lambda c:c not in classes))
+    to_remove = df[df['categoria'].apply(lambda c:c not in classes)].index
+    print(to_remove)
+    df.drop(to_remove, inplace=True)
+
+    print(classes)
 
     # Downsample the dataset to the lowest amount
     min_count = class_count['count'].min()
@@ -482,7 +492,7 @@ def part_3(df):
 
 # print("Parte 1")
 # part_1(preferencias_britanicos)
-# print("Parte 2")
-# part_2(noticias_argentinas)
-print("Parte 3")
-part_3(binary)
+print("Parte 2")
+part_2(noticias_argentinas)
+# print("Parte 3")
+# part_3(binary)
