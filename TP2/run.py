@@ -49,5 +49,9 @@ df = pl.read_csv("input/german_credit.csv", new_columns=columns)
 
 credit_category = (df.get_column(credit_amount) / 1000).round().cast(pl.Int64)
 df = df.with_columns(credit_category.alias(credit_amount))
+df = df.with_columns(df.get_column(creditability).cast(pl.String))
 
-print(repr(tp2.train(df)))
+print(df)
+
+with open("tree.dot", 'w') as graph_file:
+    print(repr(tp2.train(df, creditability)), file=graph_file)

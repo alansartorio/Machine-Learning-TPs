@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 itertools = "0.12.1"
-polars = { version = "0.39.2", features = ["lazy"] }
+#polars = { version = "0.39.2", default-features = false }
+polars = { version = "0.39.2", features = ["polars-ops", "log", "dot_product", "lazy"] }
 pyo3 = { version = "0.21.2", features = ["extension-module"] }
 pyo3-polars = "0.13.0"

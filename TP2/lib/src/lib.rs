@@ -27,9 +27,9 @@ impl Tree {
 
 #[pyfunction]
 #[pyo3(name = "train")]
-fn py_train(df: PyDataFrame) -> Tree {
+fn py_train(df: PyDataFrame, output_col: String) -> Tree {
     Tree {
-        root: train(&df.into()),
+        root: train(&df.into(), &output_col),
     }
 }
 
