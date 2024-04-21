@@ -1,9 +1,9 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, sync::Arc};
 
 use tp2::decision_tree::{Node, RootData};
 
 fn main() {
-    let root_data = Rc::new(RootData {
+    let root_data = Arc::new(RootData {
         class_names: ["AA", "BB", "CC", "DD", "EE", "OO", "UU"]
             .map(ToOwned::to_owned)
             .to_vec(),

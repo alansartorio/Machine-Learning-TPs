@@ -1116,6 +1116,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "pyo3-polars"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "469bd1d378fb3a34c1b182383e84741d9e7c5451a5d29a3f9c557aac161876cd"
+dependencies = [
+ "polars",
+ "polars-core",
+ "pyo3",
+ "thiserror",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1491,6 +1503,7 @@ dependencies = [
  "itertools",
  "polars",
  "pyo3",
+ "pyo3-polars",
 ]
 
 [[package]]

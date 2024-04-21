@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use std::{collections::HashMap, fmt::Debug, rc::Rc};
+use std::{collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
 
 pub type Class = usize;
 pub type Attribute = usize;
@@ -30,12 +30,12 @@ impl RootData {
 }
 
 pub struct Node {
-    root_data: Rc<RootData>,
+    root_data: Arc<RootData>,
     variant: NodeType,
 }
 
 impl Node {
-    pub fn new_classification(root_data: Rc<RootData>, class_name: &str) -> Node {
+    pub fn new_classification(root_data: Arc<RootData>, class_name: &str) -> Node {
         let class = root_data.get_class_index(class_name);
         Node {
             root_data,
@@ -44,7 +44,7 @@ impl Node {
     }
 
     pub fn new_split(
-        root_data: Rc<RootData>,
+        root_data: Arc<RootData>,
         attribute_name: &str,
         values: HashMap<Value, Node>,
         otherwise_class_name: &str,
@@ -150,7 +150,7 @@ impl Debug for Node {
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashMap, rc::Rc};
+    use std::{collections::HashMap, sync::Arc};
 
     use crate::decision_tree::RootData;
 
@@ -158,7 +158,7 @@ mod tests {
 
     #[test]
     fn test_classification() {
-        let root_data = Rc::new(RootData {
+        let root_data = Arc::new(RootData {
             class_names: ["AA", "BB", "CC", "DD", "EE", "OO", "UU"]
                 .map(ToOwned::to_owned)
                 .to_vec(),
