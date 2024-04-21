@@ -1,4 +1,7 @@
 venv
+target
+__pycache__
+.venv
 *.svg
 *.pdf
 dist
