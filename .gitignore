@@ -2,3 +2,6 @@ venv
 *.svg
 *.pdf
 dist
+*.tar*
+mermaid-filter.err
+*.mp4
