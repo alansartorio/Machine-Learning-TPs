@@ -3,7 +3,7 @@ use std::{collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
 
 pub type Class = usize;
 pub type Attribute = usize;
-pub type Value = u8;
+pub type Value = i64;
 
 pub enum NodeType {
     Classification(Class),
@@ -118,7 +118,7 @@ impl Node {
         let mut statements = vec![];
         let mut counter = 0;
         self.to_graphviz_inner(&mut statements, &mut counter);
-        format!("digraph {{{}}}", statements.join(";\n"))
+        format!("digraph {{rankdir=LR;\n{}}}", statements.join(";\n"))
     }
 }
 

@@ -68,33 +68,55 @@ fn find_highest_information_gain(df: &DataFrame, output_col: &str) -> String {
         .to_owned()
 }
 
-fn train_inner(df: &DataFrame, output_col: &str, root_data: Arc<RootData>) -> Node {
-    let attr = find_highest_information_gain(df, output_col);
-    dbg!(&attr);
-    let most_frequent = df
-        .column(output_col)
+fn find_most_frequent(s: &Series) -> String {
+    mode::mode(s)
         .unwrap()
-        .value_counts(false, true)
-        .unwrap()
-        .lazy()
-        .sort(
-            ["count"],
-            SortMultipleOptions::new().with_order_descending(true),
-        )
-        .first()
-        .collect()
-        .unwrap()
-        .column(output_col)
-        .unwrap()
-        //.rechunk()
-        .iter()
-        .next()
+        .get(0)
         .unwrap()
         .get_str()
         .unwrap()
-        .to_owned();
+        .to_owned()
+}
 
-    Node::new_split(root_data.clone(), &attr, HashMap::new(), &most_frequent)
+fn train_inner(df: &DataFrame, output_col: &str, root_data: Arc<RootData>) -> Node {
+    let attr = find_highest_information_gain(df, output_col);
+    dbg!(&attr);
+    let attr_values = df.column(&attr).unwrap().unique().unwrap().rechunk();
+    let most_frequent = find_most_frequent(df.column(output_col).unwrap());
+    let filter = |attr_value: i64| {
+        let mask = df.column(&attr).unwrap().equal(attr_value).unwrap();
+        df.filter(&mask).unwrap()
+    };
+
+    Node::new_split(
+        root_data.clone(),
+        &attr,
+        HashMap::<_, _>::from_iter(attr_values.iter().map(|value| {
+            let value = value.try_extract().unwrap();
+            (value, {
+                let filtered = filter(value);
+                let unique = filtered.column(output_col).unwrap().unique().unwrap();
+
+                match unique.len() {
+                    0 => {
+                        eprintln!("No rows with {attr} = {value}");
+                        Node::new_classification(root_data.clone(), &most_frequent)
+                    }
+                    1 => {
+                        let anyvalue = unique.get(0).unwrap();
+                        let class = anyvalue.get_str().unwrap();
+                        eprintln!("Can only be of class = {class} with {attr} = {value}");
+                        Node::new_classification(root_data.clone(), class)
+                    }
+                    _ => {
+                        eprintln!("Can be of many classes = {unique} with {attr} = {value}");
+                        train_inner(&filtered, output_col, root_data.clone())
+                    },
+                }
+            })
+        })),
+        &most_frequent,
+    )
 }
 
 pub fn train(df: &DataFrame, output_col: &str) -> Node {
