@@ -69,7 +69,7 @@ impl Node {
                 values,
                 otherwise,
             } => values
-                .get(&entry[&attribute])
+                .get(&entry[attribute])
                 .map(|child| child.classify(entry))
                 .unwrap_or(*otherwise),
         }

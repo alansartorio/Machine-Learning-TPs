@@ -52,7 +52,7 @@ pub fn information_gain(df: &DataFrame, attribute: &str, output_col: &str) -> f6
     shannon_entropy(df.column(output_col).unwrap()) - conditional_entropy
 }
 
-fn find_highest_information_gain(df: &DataFrame, output_col: &str) -> String {
+fn find_highest_information_gain(df: &DataFrame, output_col: &str) -> Option<String> {
     let information_gain = |attr| information_gain(df, attr, output_col);
 
     df.get_columns()
@@ -64,8 +64,7 @@ fn find_highest_information_gain(df: &DataFrame, output_col: &str) -> String {
                 .partial_cmp(&information_gain(b))
                 .unwrap()
         })
-        .unwrap()
-        .to_owned()
+        .map(ToOwned::to_owned)
 }
 
 fn find_most_frequent(s: &Series) -> String {
@@ -79,13 +78,18 @@ fn find_most_frequent(s: &Series) -> String {
 }
 
 fn train_inner(df: &DataFrame, output_col: &str, root_data: Arc<RootData>) -> Node {
-    let attr = find_highest_information_gain(df, output_col);
-    dbg!(&attr);
-    let attr_values = df.column(&attr).unwrap().unique().unwrap().rechunk();
     let most_frequent = find_most_frequent(df.column(output_col).unwrap());
+
+    let Some(attr) = find_highest_information_gain(df, output_col) else {
+        return Node::new_classification(root_data, &most_frequent);
+    };
+    eprintln!("Attribute = {attr} has highest information gain");
+    let attr_values = df.column(&attr).unwrap().unique().unwrap().rechunk();
     let filter = |attr_value: i64| {
         let mask = df.column(&attr).unwrap().equal(attr_value).unwrap();
-        df.filter(&mask).unwrap()
+        let mut filtered = df.filter(&mask).unwrap();
+        let _ = filtered.drop_in_place(&attr).unwrap();
+        filtered
     };
 
     Node::new_split(
@@ -111,7 +115,7 @@ fn train_inner(df: &DataFrame, output_col: &str, root_data: Arc<RootData>) -> No
                     _ => {
                         eprintln!("Can be of many classes = {unique} with {attr} = {value}");
                         train_inner(&filtered, output_col, root_data.clone())
-                    },
+                    }
                 }
             })
         })),
