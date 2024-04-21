@@ -2,7 +2,7 @@ use itertools::Itertools;
 use polars::prelude::*;
 use std::{collections::HashMap, sync::Arc};
 
-use crate::decision_tree::{Node, RootData};
+use crate::decision_tree::{Node, RootData, Value};
 
 fn relative_freq(s: &Series) -> DataFrame {
     let mut res = s.value_counts(false, true).unwrap();
@@ -114,7 +114,13 @@ fn train_inner(df: &DataFrame, output_col: &str, root_data: Arc<RootData>) -> No
                         Node::new_classification(root_data.clone(), class)
                     }
                     _ => {
-                        eprintln!("Can be of many classes = {:?} with \"{attr}\" = {value}", unique.iter().map(|v| v.get_str().unwrap().to_owned()).collect_vec());
+                        eprintln!(
+                            "Can be of many classes = {:?} with \"{attr}\" = {value}",
+                            unique
+                                .iter()
+                                .map(|v| v.get_str().unwrap().to_owned())
+                                .collect_vec()
+                        );
                         train_inner(&filtered, output_col, root_data.clone())
                     }
                 }
@@ -124,7 +130,11 @@ fn train_inner(df: &DataFrame, output_col: &str, root_data: Arc<RootData>) -> No
     )
 }
 
-pub fn train(df: &DataFrame, output_col: &str) -> Node {
+pub fn train(
+    df: &DataFrame,
+    output_col: &str,
+    value_mapping: HashMap<String, HashMap<Value, String>>,
+) -> Node {
     let class_names = df
         .column(output_col)
         .unwrap()
@@ -143,6 +153,7 @@ pub fn train(df: &DataFrame, output_col: &str) -> Node {
     let root_data = Arc::new(RootData {
         class_names,
         attribute_names,
+        value_mapping,
     });
 
     train_inner(df, output_col, root_data)

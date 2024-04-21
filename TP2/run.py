@@ -54,8 +54,11 @@ def print_unique_ns(df):
 
 print_unique_ns(df)
 
+value_mapping = {column.name: {value:str(value) for value in column.unique()} for column in df.get_columns()}
+
 def reduce_column(df, column, factor):
     series = (df.get_column(column) / factor).round().cast(pl.Int64)
+    value_mapping[column] = {reduced: f'[{reduced * factor}, {(reduced + 1) * factor})' for reduced in series.unique()}
     return df.with_columns(series.alias(column))
 
 df = reduce_column(df, credit_amount, 2000)
@@ -69,4 +72,4 @@ print_unique_ns(df)
 print(df)
 
 with open("tree.dot", 'w') as graph_file:
-    print(repr(tp2.train(df, creditability)), file=graph_file)
+    print(tp2.train(df, creditability, value_mapping).to_graphviz(), file=graph_file)

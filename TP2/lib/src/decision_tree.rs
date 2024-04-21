@@ -17,6 +17,7 @@ pub enum NodeType {
 pub struct RootData {
     pub class_names: Vec<String>,
     pub attribute_names: Vec<String>,
+    pub value_mapping: HashMap<String, HashMap<Value, String>>,
 }
 
 impl RootData {
@@ -85,6 +86,7 @@ impl Node {
     pub fn to_graphviz_inner(&self, statements: &mut Vec<String>, counter: &mut usize) -> String {
         let classes = &self.root_data.class_names;
         let attributes = &self.root_data.attribute_names;
+        let value_mapping = &self.root_data.value_mapping;
 
         *counter += 1;
         let self_name = format!("n{counter:03}");
@@ -102,7 +104,9 @@ impl Node {
                 for (value, node) in values.iter().sorted_by_key(|(value, _)| *value) {
                     *counter += 1;
                     let variant_name = format!("n{counter:03}");
-                    let variant_label = format!("{} = {value}", attributes[*attribute]);
+                    let attribute_name = &attributes[*attribute];
+                    let value_label = &value_mapping[attribute_name][value];
+                    let variant_label = format!("{attribute_name} = {value_label}");
                     statements.push(format!("{variant_name} [label=\"{variant_label}\"]"));
                     statements.push(format!("{self_name} -> {variant_name}"));
                     let child = node.to_graphviz_inner(statements, counter);

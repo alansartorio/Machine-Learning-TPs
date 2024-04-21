@@ -1,7 +1,7 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
-use decision_tree::{Node, RootData};
-use pyo3::prelude::*;
+use decision_tree::{Node, RootData, Value};
+use pyo3::{prelude::*, types::PyDict};
 use pyo3_polars::PyDataFrame;
 use train::train;
 
@@ -20,16 +20,20 @@ struct Tree {
 
 #[pymethods]
 impl Tree {
-    pub fn __repr__(&self) -> String {
+    pub fn to_graphviz(&self) -> String {
         self.root.to_graphviz()
     }
 }
 
 #[pyfunction]
 #[pyo3(name = "train")]
-fn py_train(df: PyDataFrame, output_col: String) -> Tree {
+fn py_train(
+    df: PyDataFrame,
+    output_col: String,
+    value_mapping: HashMap<String, HashMap<Value, String>>,
+) -> Tree {
     Tree {
-        root: train(&df.into(), &output_col),
+        root: train(&df.into(), &output_col, value_mapping),
     }
 }
 
