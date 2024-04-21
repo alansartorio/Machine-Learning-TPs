@@ -99,7 +99,7 @@ impl Node {
             NodeType::Split {
                 attribute, values, ..
             } => {
-                for (value, node) in values.iter() {
+                for (value, node) in values.iter().sorted_by_key(|(value, _)| *value) {
                     *counter += 1;
                     let variant_name = format!("n{counter:03}");
                     let variant_label = format!("{} = {value}", attributes[*attribute]);

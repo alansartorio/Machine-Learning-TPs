@@ -81,9 +81,10 @@ fn train_inner(df: &DataFrame, output_col: &str, root_data: Arc<RootData>) -> No
     let most_frequent = find_most_frequent(df.column(output_col).unwrap());
 
     let Some(attr) = find_highest_information_gain(df, output_col) else {
+        eprintln!("No more attributes to choose from, class = {most_frequent}");
         return Node::new_classification(root_data, &most_frequent);
     };
-    eprintln!("Attribute = {attr} has highest information gain");
+    eprintln!("Attribute = \"{attr}\" has highest information gain");
     let attr_values = df.column(&attr).unwrap().unique().unwrap().rechunk();
     let filter = |attr_value: i64| {
         let mask = df.column(&attr).unwrap().equal(attr_value).unwrap();
@@ -109,11 +110,11 @@ fn train_inner(df: &DataFrame, output_col: &str, root_data: Arc<RootData>) -> No
                     1 => {
                         let anyvalue = unique.get(0).unwrap();
                         let class = anyvalue.get_str().unwrap();
-                        eprintln!("Can only be of class = {class} with {attr} = {value}");
+                        eprintln!("Can only be of class = {class} with \"{attr}\" = {value}");
                         Node::new_classification(root_data.clone(), class)
                     }
                     _ => {
-                        eprintln!("Can be of many classes = {unique} with {attr} = {value}");
+                        eprintln!("Can be of many classes = {:?} with \"{attr}\" = {value}", unique.iter().map(|v| v.get_str().unwrap().to_owned()).collect_vec());
                         train_inner(&filtered, output_col, root_data.clone())
                     }
                 }
