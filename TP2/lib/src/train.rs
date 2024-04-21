@@ -1,10 +1,8 @@
-use std::collections::{HashMap, HashSet};
+use polars::frame::DataFrame;
 
-use crate::decision_tree::{Attribute, Class, Node, Value};
+use crate::decision_tree::Node;
 
-pub fn train<'a>(
-    classes: HashSet<Class<'a>>,
-    attribute_values: HashMap<Attribute<'a>, Value>,
-) -> Node<'a> {
-    todo!();
+pub fn train(df: &DataFrame) -> Node {
+    dbg!(df);
+    todo!()
 }

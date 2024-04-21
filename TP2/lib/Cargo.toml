@@ -5,7 +5,9 @@ edition = "2021"
 
 [lib]
 name = "tp2"
-crate-type = ["cdylib"]
+#crate-type = ["cdylib"]
 
 [dependencies]
+itertools = "0.12.1"
+polars = { version = "0.39.2", features = ["lazy"] }
 pyo3 = { version = "0.21.2", features = ["extension-module"] }
