@@ -47,9 +47,24 @@ creditability, \
     foreign_worker = columns
 df = pl.read_csv("input/german_credit.csv", new_columns=columns)
 
-credit_category = (df.get_column(credit_amount) / 1000).round().cast(pl.Int64)
-df = df.with_columns(credit_category.alias(credit_amount))
+import json
+def print_unique_ns(df):
+    unique_values = {column.name: column.n_unique() for column in df.get_columns()}
+    print(json.dumps(unique_values, indent=4))
+
+print_unique_ns(df)
+
+def reduce_column(df, column, factor):
+    series = (df.get_column(column) / factor).round().cast(pl.Int64)
+    return df.with_columns(series.alias(column))
+
+df = reduce_column(df, credit_amount, 2000)
+df = reduce_column(df, age, 5)
+df = reduce_column(df, duration_of_credit, 10)
 df = df.with_columns(df.get_column(creditability).cast(pl.String))
+
+print_unique_ns(df)
+# exit()
 
 print(df)
 
