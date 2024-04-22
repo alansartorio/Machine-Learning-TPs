@@ -23,6 +23,11 @@ impl Tree {
     pub fn to_graphviz(&self) -> String {
         self.root.to_graphviz()
     }
+
+    pub fn classify(&self, record: HashMap<String, Value>) -> String {
+        self.root
+            .classify_with_names(&record.iter().map(|(attr, &value)| (attr.as_str(), value)).collect())
+    }
 }
 
 #[pyfunction]

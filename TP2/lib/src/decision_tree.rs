@@ -76,8 +76,8 @@ impl Node {
         }
     }
 
-    pub fn classify_with_names(&self, entry: HashMap<&str, Value>) -> String {
-        let entry = HashMap::from_iter(entry.into_iter().map(|(attribute_name, value)| {
+    pub fn classify_with_names(&self, entry: &HashMap<&str, Value>) -> String {
+        let entry = HashMap::from_iter(entry.iter().map(|(attribute_name, &value)| {
             (self.root_data.get_attribute_index(attribute_name), value)
         }));
         self.root_data.class_names[self.classify(entry)].to_string()

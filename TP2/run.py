@@ -67,9 +67,16 @@ df = reduce_column(df, duration_of_credit, 10)
 df = df.with_columns(df.get_column(creditability).cast(pl.String))
 
 print_unique_ns(df)
-# exit()
 
 print(df)
 
+tree = tp2.train(df, creditability, value_mapping)
 with open("tree.dot", 'w') as graph_file:
-    print(tp2.train(df, creditability, value_mapping).to_graphviz(), file=graph_file)
+    print(tree.to_graphviz(), file=graph_file)
+
+for row in df.iter_rows(named = True):
+    expected = row[creditability]
+    del row[creditability]
+    result = tree.classify(row)
+    if expected != result:
+        print(expected, result)
