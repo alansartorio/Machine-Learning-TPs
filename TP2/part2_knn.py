@@ -20,8 +20,10 @@ def evaluate_k(k):
 
     return successful, total
 
+max_k = df['index'].max()
+
 data = pd.DataFrame()
-for k in range(1, 150, 2):
+for k in range(1, max_k + 1, 2):
     success, total = evaluate_k(k)
     data = pd.concat([data, pd.DataFrame({
         'k': [k],
