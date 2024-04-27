@@ -37,7 +37,7 @@ clean:
 
 
 run: install
-	source $(VENV)/bin/activate && $(PYTHON) run.py
+	source $(VENV)/bin/activate && $(PYTHON) $(SCRIPT)
 
 run-docker:
 	docker build --tag ml-tp2 . && \
@@ -45,6 +45,7 @@ run-docker:
 			-v $$(pwd)/.rustcache:/root/.cargo/registry \
 			-v $$(pwd)/..:/io \
 			-v $$(pwd)/docker-target:/io/TP2/lib/target \
-			ml-tp2:latest
+			ml-tp2:latest \
+			SCRIPT=$(SCRIPT)
 
 .PHONY: .venv run run-docker clean install wheelfile
