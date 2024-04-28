@@ -150,4 +150,50 @@ Finalmente para saber que tan bueno es el modelo entrenado, se realizo:
 # Ejercicio 2
 
 Clasificacion con KNN
+
+---
+
+## Analisis del conjunto de datos
+
+En este caso, como conjunto de datos contamos con 257 registros de opiniones de usuarios sobre una aplicacion, con variables como:
+- Review Title
+- Title sentiment
+- SentimentValue
+
+Entre otros.
+
+---
+
+### Que queremos saber?
+
+Buscamos clasificar opiniones en positivas o negativas segun el sentimiento expresado en el texto del titulo y la descripcion.
+
+---
+
+## Clasificacion
+
+Para clasificar los datos utilizaremos el algoritmo de KNN y KNN con distancias pesadas.
+
+Pero, como funciona KNN
+---
+
+### KNN
+
+Es un algoritmo de clasificacion donde para determinar las clases, se ubican los datos en un espacio de N dimensiones y se calculan las distancias euclideas entre estos puntos.
+
+Pero como se obtiene la clase resultado? Se seleccionan los $k$ vecinos mas cercanos y se analiza que clase es la mas abundante en ese conjunto.
+
+Esto es el llamado: Aprendizaje basado en instancias, ya que, para cada dato nuevo, hay ubicarlo, que calcular las distancias y clasificarlo
+
+---
+
+#### Distancia Euclidea
+
+Recordar distancia euclidea:
+
+$$
+d(P_1,P_2) = \sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}
+$$
+
+
 ---
