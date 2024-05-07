@@ -1,5 +1,5 @@
 ---
-title: TP1
+title: TP2
 # subtitle: Aprendizaje Automático
 author:
 - Benvenuto Agustín - 61448

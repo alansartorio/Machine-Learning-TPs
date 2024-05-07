@@ -1,4 +1,3 @@
-
 SHELL=/bin/bash
 
 RUST_FILES=$(shell git ls-files lib)
@@ -47,5 +46,7 @@ run-docker:
 			-v $$(pwd)/docker-target:/io/TP2/lib/target \
 			ml-tp2:latest \
 			SCRIPT=$(SCRIPT)
+
+include ../SlideMakefile.mk
 
 .PHONY: .venv run run-docker clean install wheelfile
