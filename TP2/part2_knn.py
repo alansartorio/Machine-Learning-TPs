@@ -34,5 +34,6 @@ data.reset_index(drop=True, inplace=True)
 
 ax = sns.barplot(data=data, x='k', y='success %')
 ax.set_ylim((0, 1))
-plt.show()
+plt.savefig('./plots/knn.svg')
 print(data)
+print("Best k", data.iloc[data['success %'].argmax()])

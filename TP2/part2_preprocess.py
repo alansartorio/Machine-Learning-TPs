@@ -28,7 +28,7 @@ def split_training_and_evaluation(df: DataFrame, training_frac: float) -> Tuple[
     evaluation = pd.concat((evaluation, df[~training_mask]))
     return (training, evaluation)
 
-training, test = split_training_and_evaluation(df, 0.5)
+training, test = split_training_and_evaluation(df, 0.8)
 
 input_columns = (wordcount, title_sentiment, sentiment_value)
 # print(test[list(input_columns)].to_string())
