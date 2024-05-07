@@ -77,8 +77,17 @@ fn find_most_frequent(s: &Series) -> String {
         .to_owned()
 }
 
-fn train_inner(df: &DataFrame, output_col: &str, root_data: Arc<RootData>) -> Node {
+fn train_inner(
+    df: &DataFrame,
+    output_col: &str,
+    root_data: Arc<RootData>,
+    max_depth: Option<usize>,
+) -> Node {
     let most_frequent = find_most_frequent(df.column(output_col).unwrap());
+
+    if max_depth.is_some_and(|d| d == 0) {
+        return Node::new_classification(root_data, &most_frequent);
+    }
 
     let Some(attr) = find_highest_information_gain(df, output_col) else {
         eprintln!("No more attributes to choose from, class = {most_frequent}");
@@ -121,7 +130,7 @@ fn train_inner(df: &DataFrame, output_col: &str, root_data: Arc<RootData>) -> No
                                 .map(|v| v.get_str().unwrap().to_owned())
                                 .collect_vec()
                         );
-                        train_inner(&filtered, output_col, root_data.clone())
+                        train_inner(&filtered, output_col, root_data.clone(), max_depth.map(|d| d - 1))
                     }
                 }
             })
@@ -134,6 +143,7 @@ pub fn train(
     df: &DataFrame,
     output_col: &str,
     value_mapping: HashMap<String, HashMap<Value, String>>,
+    max_depth: Option<usize>,
 ) -> Node {
     let class_names = df
         .column(output_col)
@@ -156,5 +166,5 @@ pub fn train(
         value_mapping,
     });
 
-    train_inner(df, output_col, root_data)
+    train_inner(df, output_col, root_data, max_depth)
 }

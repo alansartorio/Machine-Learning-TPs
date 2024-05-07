@@ -25,8 +25,12 @@ impl Tree {
     }
 
     pub fn classify(&self, record: HashMap<String, Value>) -> String {
-        self.root
-            .classify_with_names(&record.iter().map(|(attr, &value)| (attr.as_str(), value)).collect())
+        self.root.classify_with_names(
+            &record
+                .iter()
+                .map(|(attr, &value)| (attr.as_str(), value))
+                .collect(),
+        )
     }
 }
 
@@ -36,9 +40,10 @@ fn py_train(
     df: PyDataFrame,
     output_col: String,
     value_mapping: HashMap<String, HashMap<Value, String>>,
+    max_depth: Option<usize>,
 ) -> Tree {
     Tree {
-        root: train(&df.into(), &output_col, value_mapping),
+        root: train(&df.into(), &output_col, value_mapping, max_depth),
     }
 }
 

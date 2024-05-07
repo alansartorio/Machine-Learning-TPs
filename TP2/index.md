@@ -130,8 +130,9 @@ Obteniendo= ?????
 
 ## Analisis del modelo
 
-Finalmente para saber que tan bueno es el modelo entrenado, se realizo:
-- La matriz de confusion  para un arbol y para el random forest.
+Finalmente para saber que tan bueno es el modelo entrenado, se realizó:
+
+- La matriz de confusion para un arbol y para el random forest.
 - Grafico de curvas de precision del arbol teniendo en cuenta la cantidad de nodos, donde en nuestro caso, usamos la altura del arbol.
 
 
@@ -139,7 +140,7 @@ Finalmente para saber que tan bueno es el modelo entrenado, se realizo:
 
 ### Matriz de confusion
 
----
+![](./plots/part1_confusion.svg)
 
 ---
 
