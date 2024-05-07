@@ -47,6 +47,6 @@ run-docker:
 			ml-tp2:latest \
 			SCRIPT=$(SCRIPT)
 
-include ../SlideMakefile.mk
+-include ../SlideMakefile.mk
 
 .PHONY: .venv run run-docker clean install wheelfile
