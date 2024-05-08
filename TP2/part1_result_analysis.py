@@ -2,11 +2,12 @@ import matplotlib.pyplot as plt
 import matplotlib
 import seaborn as sns
 import polars as pl
+import numpy as np
 
 sns.set_theme()
 
 
-def plot_confusion(df):
+def plot_confusion(df, filename):
     confusion = df.group_by(['expected', 'predicted']).len()
     confusion = confusion.rows_by_key(['expected', 'predicted'])
 
@@ -15,27 +16,38 @@ def plot_confusion(df):
     fp = confusion[(False, True)][0]
     fn = confusion[(True, False)][0]
 
-    sns.heatmap(
-        [[tn, fp], [fn, tp]],
+
+    conf = np.array([[tn, fp], [fn, tp]], dtype=np.float64)
+
+    conf[0, :] = conf[0, :] / conf[0, :].sum() * 100
+    conf[1, :] = conf[1, :] / conf[1, :].sum() * 100
+
+    ax = sns.heatmap(
+        conf,
         xticklabels=['Predicted Negative', 'Predicted Positive'],
         yticklabels=['True Negative', 'True Positive'],
         annot=True,
         cmap='Blues',
-        fmt='0.0f',
+        fmt='0.1f',
+        vmin=0,
+        vmax=100
     )
+    for t in ax.texts: t.set_text(t.get_text() + "%")
 
     plt.tight_layout()
-    # plt.savefig('plots/part1_confusion.svg')
-    plt.show()
+    plt.savefig(f'plots/{filename}.svg')
+    # plt.show()
+    plt.clf()
 
-df = pl.read_csv("out/part1_single_tree_results.csv")
-plot_confusion(df)
-
-def plot_precision_by_depth(df):
-    confusion = df.group_by(['max depth', 'expected', 'predicted', 'data split']).len()
+def plot_precision_by_depth(single: pl.DataFrame, forest: pl.DataFrame):
+    df = pl.concat([
+        single.with_columns(pl.lit('single').alias('type')),
+        forest.with_columns(pl.lit('forest').alias('type'))
+    ])
+    confusion = df.group_by(['type', 'max depth', 'expected', 'predicted', 'data split']).len()
     confusion = confusion \
             .pivot(
-                index=['max depth', 'data split'],
+                index=['type', 'max depth', 'data split'],
                 columns=['expected', 'predicted'],
                 values='len',
             ) \
@@ -54,12 +66,37 @@ def plot_precision_by_depth(df):
 
     print(confusion)
 
-    sns.lineplot(confusion, x='max depth', y='precision', hue='data split')
+    print(confusion.select(pl.concat_str([pl.col('type'), pl.col('data split')])).to_series())
+
+    sns.lineplot(
+        confusion,
+        x='max depth',
+        y='precision',
+        hue='type',
+        style='data split',
+    )
     plt.ylim((0, 1))
     plt.tight_layout()
-    plt.savefig('plots/part1_precision_over_depth.svg')
+    plt.savefig(f'plots/part1_precision_over_depth.svg')
     # plt.show()
+    plt.clf()
 
-df = pl.read_csv("out/part1_results.csv")
 
-plot_precision_by_depth(df)
+single = pl.read_csv("out/part1_single_tree_results.csv")
+plot_confusion(
+    single \
+        .filter(pl.col('data split').eq('evaluation')) \
+        .filter(pl.col('max depth').eq(4)),
+    'part1_single_confusion'
+)
+
+
+forest = pl.read_csv("out/part1_results.csv")
+plot_confusion(
+    forest \
+        .filter(pl.col('data split').eq('evaluation')) \
+        .filter(pl.col('max depth').eq(4)),
+    'part1_forest_confusion'
+)
+
+plot_precision_by_depth(single, forest)

@@ -133,9 +133,15 @@ Finalmente para saber que tan bueno es el modelo entrenado, se realizó:
 
 ---
 
-### Matriz de confusion
+### Matriz de confusion para Arbol simple
 
-![](./plots/part1_confusion.svg)
+![](./plots/part1_single_confusion.svg)
+
+---
+
+### Matriz de confusión para Forest
+
+![](./plots/part1_forest_confusion.svg)
 
 ---
 
@@ -143,7 +149,7 @@ Finalmente para saber que tan bueno es el modelo entrenado, se realizó:
 
 ![](./plots/part1_precision_over_depth.svg)
 
----
+
 
 # Ejercicio 2
 
@@ -194,5 +200,3 @@ $$
 d(P_1,P_2) = \sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}
 $$
 
-
----

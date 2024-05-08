@@ -88,15 +88,21 @@ if __name__ == '__main__':
     value_mapping['Creditability'] = {}
 
     def single_tree():
-        forest = train_model(training, value_mapping, subset_size=None, tree_count=1, max_depth=None)
-        results = evaluate_model(evaluation, forest)
-        results.write_csv("out/part1_single_tree_results.csv")
-        
-        # print('Tree count', len(forest.trees))
-        with open("out/single_tree.dot", 'w') as graph_file:
-            print(forest.trees[0].to_graphviz(), file=graph_file)
+        all_results = []
+        for tree_depth in range(1, 10):
+            print(f'Training with tree depth = {tree_depth}')
+            forest = train_model(training, value_mapping, subset_size=None, tree_count=1, max_depth=tree_depth)
+            print()
+            evaluation_results = evaluate_model(evaluation, forest).with_columns(pl.lit("evaluation").alias("data split"))
+            training_results = evaluate_model(training, forest).with_columns(pl.lit("training").alias("data split"))
+            results = pl.concat([evaluation_results, training_results]).with_columns(pl.lit(tree_depth).alias("max depth"))
+            all_results.append(results)
 
-    # single_tree()
+        all_results = pl.concat(all_results, rechunk=True)
+
+        all_results.write_csv("out/part1_single_tree_results.csv")
+
+    single_tree()
 
     def single_tree_for_graph():
         forest = train_model(training, value_mapping, subset_size=None, tree_count=1, max_depth=2)
@@ -107,7 +113,7 @@ if __name__ == '__main__':
         with open("out/single_tree_depth_2.dot", 'w') as graph_file:
             print(forest.trees[0].to_graphviz(), file=graph_file)
 
-    single_tree_for_graph()
+    # single_tree_for_graph()
 
 
     def forest():
