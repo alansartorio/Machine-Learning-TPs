@@ -29,6 +29,60 @@ Entre otras.
 
 ---
 
+## Analisis del conjunto de datos
+
+### Distribución de variables
+
+Para tratar de entender de antemano la relevancia de cada variable, graficamos la distribución de cada una de ellas en cuanto a los valores existentes y también según la clase a la que pertenecen.
+
+<!-- Estos gráficos se consiguen al correr part1_analysis.py -->
+---
+
+<!-- Opcional -->
+### Distribución de variables
+
+Primero, obtuvimos una vista general de la distribución de todas las variables.
+
+![](./plots/part_1/distribution_overview.svg)
+
+---
+
+### Distribución de variables
+
+Estos son los resultados más relevantes.
+
+---
+
+### Distribución de variables - Edad
+
+![](./plots/part_1/age_distribution.svg)
+
+---
+
+### Distribución de variables - Balance de cuenta
+
+![](./plots/part_1/account_balance_distribution.svg)
+
+---
+
+### Distribución de variables - Tamaño del crédito
+
+![](./plots/part_1/credit_distribution.svg)
+
+---
+
+### Distribución de variables - Duración del crédito
+
+![](./plots/part_1/duration_of_credit_distribution.svg)
+
+---
+
+### Distribución de variables - Activo más valioso
+
+![](./plots/part_1/most_valuable_asset_distribution.svg)
+
+---
+
 ### Que queremos saber?
 
 Queremos poder determinar si una persona devolvera un credito que pide o no.
@@ -302,7 +356,6 @@ En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con
 ::::
 :::
 
-<<<<<<< HEAD
 En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con $k=9$, con el cuál obtuvimos una precisión de 82.35%
 
 ---
@@ -322,6 +375,4 @@ En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con
 ### Métricas
 
 ![](./plots/part_2/metrics.svg)
-=======
 # GRACIAS
->>>>>>> 8543fec5cbdb0d2a18851e12e3d2972993e10ed9

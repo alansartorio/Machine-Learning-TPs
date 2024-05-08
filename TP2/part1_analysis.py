@@ -1,4 +1,4 @@
-from part1_fetch import creditability, age, duration_of_credit, credit_amount, purpose
+from part1_fetch import creditability, age, account_balance, duration_of_credit, most_valuable_available_asset, credit_amount, purpose
 import polars as pl
 from polars import DataFrame
 from typing import List, Set, Sequence, Optional, Callable, Tuple, Dict, Iterable
@@ -6,7 +6,7 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib
 import seaborn as sns
-from part1_fetch import get_data, columns as col_names
+from part1_fetch import get_unbalanced_data, columns as col_names
 import textwrap
 from dataclasses import dataclass
 from copy import copy
@@ -37,6 +37,7 @@ class PlotConfig:
         if self.save_fig:
             if not (p := Path(self.save_dir)).exists():
                 p.mkdir()
+            plt.tight_layout()
             plt.savefig(self.save_path)
 
     @property
@@ -48,6 +49,18 @@ class PlotConfig:
         c.fig_name = name
         return c
 
+
+def credit_result_analysis(df: DataFrame):
+    ax = sns.histplot(df, x=creditability)
+    ax.set_title('Distribución de las devoluciones del crédito')
+    ax.set_xlabel('Creditabilidad')
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(['No devolvió', 'Devolvió'])
+
+    plt.tight_layout()
+    plt.savefig('./plots/part_1/creditability_distribution.svg')
+
+    plt.clf()
 
 def analyze_and_transform_data(df: DataFrame, columns: Sequence[str]) -> Tuple[DataFrame,ValueMapping]:
     # plot = sns.displot(
@@ -62,7 +75,7 @@ def analyze_and_transform_data(df: DataFrame, columns: Sequence[str]) -> Tuple[D
         )
     variables = set(filter(lambda c: c != creditability, columns))
     value_mapping = {column.name: {value:str(value) for value in column.unique()} for column in df.get_columns()}
-    
+
     ##########
     # Categorical variables -> bar charts for distributions, box plots for outliers
     # Continuous variables -> histograms
@@ -91,7 +104,7 @@ def plot_distribution_for_variable(df: DataFrame, variable: str, config: PlotCon
     column = df.get_column(variable)
     match type:
         case DistType.HIST:
-            ax = sns.histplot(column, kde=False)
+            ax = sns.histplot(df, x=variable, kde=False, hue=creditability)
         case DistType.BOXPLOT:
             ax = sns.boxplot(column)
         case _:
@@ -119,7 +132,7 @@ def overview_of_distribution(df: DataFrame, columns: Sequence[str], config: Plot
 
     for i, col in enumerate(columns):
         ax: plt.Axes = ax_flat[i]
-        sns.histplot(df[col], ax=ax, kde=False)
+        sns.histplot(df, x=col, ax=ax, kde=False, hue=creditability)
         ax.set_title(textwrap.fill(col, width=25))
         ax.set_axis_off()
 
@@ -152,4 +165,40 @@ def balance_variables(df: DataFrame, variables: Sequence[str], value_mappings: V
     return df, value_mappings, balancers
 
 if __name__ == '__main__':
-    transformed_data, value_mappings = analyze_and_transform_data(get_data(), col_names)
+    df = get_unbalanced_data()
+    # credit_result_analysis(df)
+    config = PlotConfig(
+        show_fig=False,
+        save_fig=True, 
+        save_dir='./plots/part_1'
+        )
+    variables = set(filter(lambda c: c != creditability, col_names))
+    
+    plot_distribution_for_variable(
+        df,
+        age,
+        config.with_fig_name('age_distribution.svg'),
+    )
+    plot_distribution_for_variable(
+        df,
+        credit_amount,
+        config.with_fig_name('credit_distribution.svg'),
+    )
+    plot_distribution_for_variable(
+        df,
+        account_balance,
+        config.with_fig_name('account_balance_distribution.svg')
+    )
+    plot_distribution_for_variable(
+        df,
+        most_valuable_available_asset,
+        config.with_fig_name('most_valuable_asset_distribution.svg')
+    )
+    plot_distribution_for_variable(
+        df,
+        duration_of_credit,
+        config.with_fig_name('duration_of_credit_distribution.svg')
+    )
+
+    sns.set_theme(font_scale=1)
+    overview_of_distribution(df, variables, config.with_fig_name('distribution_overview.svg'))
