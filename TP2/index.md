@@ -119,7 +119,7 @@ Una vez implementado, obtuvimos este arbol de decision:
 
 #### Random Forest
 
-Ademas de probarlo con un solo arbol, tambien observamos que resultado obteniamos al utilizar 20 arboles y elegir la categoria mas frecuente.
+Ademas de probarlo con un solo arbol, tambien observamos que resultado obteniamos al utilizar 16 arboles y elegir la categoria mas frecuente.
 
 ---
 
@@ -130,6 +130,18 @@ Finalmente para saber que tan bueno es el modelo entrenado, se realizó:
 - La matriz de confusion para un arbol y para el random forest.
 - Grafico de curvas de precision del arbol teniendo en cuenta la cantidad de nodos, donde en nuestro caso, usamos la altura del arbol.
 
+
+---
+
+### Presición variando Cantidad de arboles
+
+![](./plots/part1_precision_over_tree count.svg)
+
+---
+
+### Presición variando Tamaño de bolsa
+
+![](./plots/part1_precision_over_bag size.svg)
 
 ---
 
@@ -147,7 +159,7 @@ Finalmente para saber que tan bueno es el modelo entrenado, se realizó:
 
 ### Curvas de precision
 
-![](./plots/part1_precision_over_depth.svg)
+![](./plots/part1_single_vs_forest_precision_over_max depth.svg)
 
 
 
@@ -290,3 +302,4 @@ En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con
 ::::
 :::
 
+# GRACIAS

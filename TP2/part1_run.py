@@ -43,10 +43,11 @@ def train_model(df: pl.DataFrame,value_mapping: Dict[str, Dict[int, str]], subse
 
     forest = Forest()
     # print('Len', len(df))
+
     if subset_size is None:
         subset_chooser = lambda _:df
     else:
-        subset_chooser = lambda _:df.sample(400, with_replacement=True)
+        subset_chooser = lambda i:df.sample(400, with_replacement=True, seed=i * 12412)
     forest.train(tree_count, subset_chooser, value_mapping, max_depth=max_depth)
 
     return forest
@@ -87,6 +88,7 @@ if __name__ == '__main__':
 
     def split_training_and_evaluation(df: DataFrame, training_frac: float) -> Tuple[DataFrame, DataFrame]:
         training, evaluation = DataFrame(), DataFrame()
+        np.random.seed(seed=13123414)
         training_mask =  np.random.rand(len(df)) < training_frac
         training = pl.concat((training, df.filter(training_mask)))
         evaluation = pl.concat((evaluation, df.filter(~training_mask)))
@@ -99,7 +101,7 @@ if __name__ == '__main__':
 
     def single_tree():
         all_results = []
-        for tree_depth in range(1, 10):
+        for tree_depth in range(1, 11):
             print(f'Training with tree depth = {tree_depth}')
             forest = train_model(training, value_mapping, subset_size=None, tree_count=1, max_depth=tree_depth)
             print()
@@ -107,8 +109,16 @@ if __name__ == '__main__':
             training_results = evaluate_model(training, forest).with_columns(pl.lit("training").alias("data split"))
             results = pl.concat([evaluation_results, training_results]).with_columns(pl.lit(tree_depth).alias("max depth"))
             all_results.append(results)
+            if tree_depth == 1:
+                with open("out/single_tree_depth_1.dot", 'w') as graph_file:
+                    print(forest.trees[0].to_graphviz(), file=graph_file)
 
-        all_results = pl.concat(all_results, rechunk=True)
+
+        all_results = pl.concat(all_results, rechunk=True)\
+        .with_columns([
+            pl.lit(1).alias("tree count"),
+            pl.lit(len(training)).alias("bag size")
+        ])
 
         all_results.write_csv("out/part1_single_tree_results.csv")
 
@@ -125,13 +135,13 @@ if __name__ == '__main__':
 
     # single_tree_for_graph()
 
-    tree_counts = (1, 2, 4, 8, 16, 32)
-    subset_sizes = (32, 64, 128, 256, 512, 1024)
+    tree_counts = (2, 4, 8, 16, 32)
+    subset_sizes = (32, 64, 128, 256, 512)
     tree_depths = tuple(range(1, 11))
 
-    best_tree_count = 8
-    best_subset_size = 256
-    best_tree_depth = 5
+    best_tree_count = 16
+    best_subset_size = 128
+    best_tree_depth = 4
 
     def forest():
         all_results = []
