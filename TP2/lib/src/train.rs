@@ -1,6 +1,7 @@
 use itertools::Itertools;
 use polars::prelude::*;
 use std::{collections::HashMap, sync::Arc};
+use log::debug;
 
 use crate::decision_tree::{Node, RootData, Value};
 
@@ -90,10 +91,10 @@ fn train_inner(
     }
 
     let Some(attr) = find_highest_information_gain(df, output_col) else {
-        eprintln!("No more attributes to choose from, class = {most_frequent}");
+        debug!("No more attributes to choose from, class = {most_frequent}");
         return Node::new_classification(root_data, &most_frequent);
     };
-    eprintln!("Attribute = \"{attr}\" has highest information gain");
+    debug!("Attribute = \"{attr}\" has highest information gain");
     let attr_values = df.column(&attr).unwrap().unique().unwrap().rechunk();
     let filter = |attr_value: i64| {
         let mask = df.column(&attr).unwrap().equal(attr_value).unwrap();
@@ -113,17 +114,17 @@ fn train_inner(
 
                 match unique.len() {
                     0 => {
-                        eprintln!("No rows with {attr} = {value}");
+                        debug!("No rows with {attr} = {value}");
                         Node::new_classification(root_data.clone(), &most_frequent)
                     }
                     1 => {
                         let anyvalue = unique.get(0).unwrap();
                         let class = anyvalue.get_str().unwrap();
-                        eprintln!("Can only be of class = {class} with \"{attr}\" = {value}");
+                        debug!("Can only be of class = {class} with \"{attr}\" = {value}");
                         Node::new_classification(root_data.clone(), class)
                     }
                     _ => {
-                        eprintln!(
+                        debug!(
                             "Can be of many classes = {:?} with \"{attr}\" = {value}",
                             unique
                                 .iter()

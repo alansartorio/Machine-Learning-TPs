@@ -15,6 +15,9 @@ $(info $$VENV is [${VENV}])
 $(info $$WHEEL_OUTPUT is [${WHEEL_OUTPUT}])
 $(info $$WHEELS is [${WHEELS}])
 
+GRAPHS=out/single_tree_depth_3.dot
+GRAPHS_OUT=$(GRAPHS:out/%.dot=plots/graphs/%.svg)
+
 .venv: requirements.txt
 	$(PYTHON) -m venv $(VENV)
 	$(VENV)/bin/pip install -r requirements.txt
@@ -47,6 +50,14 @@ run-docker:
 			ml-tp2:latest \
 			SCRIPT=$(SCRIPT)
 
+dist/index.html: $(GRAPHS_OUT)
+
+plots/graphs/%.svg: out/%.dot
+	mkdir -p $(dir $@)
+	dot $< -Tsvg > $@
+
 -include ../SlideMakefile.mk
+
+$(info $$GRAPHS_OUT is [${GRAPHS_OUT}])
 
 .PHONY: .venv run run-docker clean install wheelfile

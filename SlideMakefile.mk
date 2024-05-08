@@ -6,10 +6,12 @@ PANDOC_OPTIONS=-F mermaid-filter --mathjax -t revealjs -s --include-in-header=st
 
 PANDOC_PDF_OPTIONS=
 
-PLOTS=$(shell find plots -type f)
-#PLOTS=plots
+PLOTS=plots
 DIST_DIR=dist
 DIST=$(DIST_DIR)/index.html $(DIST_DIR)/reveal.js $(PLOTS:%=$(DIST_DIR)/%)
+
+dist/$(PLOTS): $(PLOTS)
+	ln -s ../$(PLOTS) $(DIST_DIR)/$(PLOTS)
 
 dist/%.html: %.md styles.html
 	mkdir -p dist

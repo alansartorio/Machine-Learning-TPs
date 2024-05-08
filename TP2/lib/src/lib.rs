@@ -49,6 +49,8 @@ fn py_train(
 
 #[pymodule]
 fn tp2(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    pyo3_log::init();
+
     m.add_function(wrap_pyfunction!(testing, m)?)?;
     m.add_function(wrap_pyfunction!(py_train, m)?)?;
     Ok(())

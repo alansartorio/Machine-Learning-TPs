@@ -20,6 +20,7 @@ Clasificacion con Arboles de decision.
 
 Contamos con datos sobre personas que solicitaron creditos bancarios en basncos alemanes en el año 1994.
 Para cada entrada tenemos 20 variables, entre las que se encuentran: 
+
 - creditability: si devolvió el crédito (1) o no (0).
 - purpose: Toma valores de 0 a 10, indicando el objeto que el cliente desea comprar, por ejemplo 0 es un auto.
 - age..years: edad variable numérica.
@@ -46,6 +47,7 @@ Ahora podemos entender el por que es importante saber si devolveran el credito.
 ### Que variables son cruciales en este contexto historico?
 
 Antes de realizar el analisis fino, podemos tener en cuenta que las siguientes variables pueden ser importantes:
+
 - type.of.apartment: valores de 1 a 3 que son :Free, Rented, Owned.
 - no.of.credits.at.this.bank: valores de 1 a 4
 - occupation: valores de 1 a 4, Unemployed, Unskilled Permanent Resident, Skilled, Executive.
@@ -58,11 +60,10 @@ Por que? Ya que todas dan a entender la situacion financiera del cliente tomando
 
 ## Clasificacion
 
-Para la clasificacion primero dividimos el conjunto de datos en:
-- training: ????%
-- test: ????%
+Para la clasificacion primero dividimos el conjunto de datos aleatoriamente en:
 
-Lo hicimos ALEATORIAMENTE??? LA CONSIGNA DICE ALEATORIO.
+- training: 70%
+- test: 30%
 
 ---
 
@@ -94,6 +95,7 @@ H(X) = -\sum_{i=1}^{n} P(x_i) log_b P(x_i)
 $$
 
 Donde:
+
 - $n$ es la cantidad de valorees distintos de la variable
 - $P(X_i)$ es la frecuencia relativa del $x_i$
 
@@ -111,7 +113,7 @@ $$
 
 Una vez implementado, obtuvimos este arbol de decision:
 
-PONER ARBOLITO
+![](./plots/graphs/single_tree_depth_3.svg)
 
 ---
 
@@ -146,6 +148,8 @@ Finalmente para saber que tan bueno es el modelo entrenado, se realizó:
 
 ### Curvas de precision
 
+![](./plots/part1_precision_over_depth.svg)
+
 ---
 
 # Ejercicio 2
@@ -157,6 +161,7 @@ Clasificacion con KNN
 ## Analisis del conjunto de datos
 
 En este caso, como conjunto de datos contamos con 257 registros de opiniones de usuarios sobre una aplicacion, con variables como:
+
 - Review Title
 - Title sentiment
 - SentimentValue
