@@ -113,20 +113,13 @@ $$
 
 Una vez implementado, obtuvimos este arbol de decision:
 
-![](./plots/graphs/single_tree_depth_3.svg)
-
----
-
-Ahora podemos responder la pregunta. 
-CON QUE PERSONA HAY QUE TESTEAR ESTO??
+![](./plots/graphs/single_tree_depth_2.svg)
 
 ---
 
 #### Random Forest
 
-Ademas de probarlo con un solo arbol, tambien observamos que resultado obteniamos al utilizar ??? arboles y sumando sus resultados.
-
-Obteniendo= ?????
+Ademas de probarlo con un solo arbol, tambien observamos que resultado obteniamos al utilizar 20 arboles y elegir la categoria mas frecuente.
 
 ---
 

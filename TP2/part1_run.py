@@ -99,12 +99,12 @@ if __name__ == '__main__':
     # single_tree()
 
     def single_tree_for_graph():
-        forest = train_model(training, value_mapping, subset_size=None, tree_count=1, max_depth=3)
+        forest = train_model(training, value_mapping, subset_size=None, tree_count=1, max_depth=2)
         # results = evaluate_model(evaluation, forest)
         # results.write_csv("out/part1_single_tree_results.csv")
         
         print('Tree count', len(forest.trees))
-        with open("out/single_tree_depth_3.dot", 'w') as graph_file:
+        with open("out/single_tree_depth_2.dot", 'w') as graph_file:
             print(forest.trees[0].to_graphviz(), file=graph_file)
 
     single_tree_for_graph()

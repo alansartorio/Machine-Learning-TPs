@@ -15,7 +15,7 @@ $(info $$VENV is [${VENV}])
 $(info $$WHEEL_OUTPUT is [${WHEEL_OUTPUT}])
 $(info $$WHEELS is [${WHEELS}])
 
-GRAPHS=out/single_tree_depth_3.dot
+GRAPHS=out/single_tree_depth_2.dot
 GRAPHS_OUT=$(GRAPHS:out/%.dot=plots/graphs/%.svg)
 
 .venv: requirements.txt
