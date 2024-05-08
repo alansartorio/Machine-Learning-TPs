@@ -268,3 +268,10 @@ El segundo resultado más relevante es la relación entre la cantidad de palabra
 
 ---
 
+## Elección de k
+
+Para elegir el mejor valor de $k$, corrimos el algoritmo de KNN para todas las instancias del dataset de test probando con todos los valores de $k$ posibles. En base a esto calculamos el porcentaje de aciertos para cada valor de $k$ elegido.
+
+![](./plots/knn.svg)
+
+En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con $k=9$, con el cuál obtuvimos una precisión de 82.35%

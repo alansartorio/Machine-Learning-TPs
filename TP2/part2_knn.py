@@ -1,6 +1,7 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
 
 sns.set_theme()
 
@@ -34,6 +35,10 @@ data.reset_index(drop=True, inplace=True)
 
 ax = sns.barplot(data=data, x='k', y='success %')
 ax.set_ylim((0, 1))
+xticks = list(range(1, int(max_k/2), 5))
+ax.set_xticks(xticks)
+ax.set_xticklabels([str(x) for x in xticks])
+plt.tight_layout()
 plt.savefig('./plots/knn.svg')
 print(data)
 print("Best k", data.iloc[data['success %'].argmax()])
