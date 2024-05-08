@@ -4,7 +4,6 @@ import pandas as pd
 from pandas import DataFrame
 import numpy as np
 
-
 review_title, \
         review_text, \
         wordcount, \

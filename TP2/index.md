@@ -180,23 +180,91 @@ Buscamos clasificar opiniones en positivas o negativas segun el sentimiento expr
 Para clasificar los datos utilizaremos el algoritmo de KNN y KNN con distancias pesadas.
 
 Pero, como funciona KNN
+
 ---
 
-### KNN
+## KNN
 
-Es un algoritmo de clasificacion donde para determinar las clases, se ubican los datos en un espacio de N dimensiones y se calculan las distancias euclideas entre estos puntos.
+Es un algoritmo de clasificacion donde para determinar las clases, se ubican los datos en un espacio de N dimensiones y se calculan las distancias entre estos puntos.
 
 Pero como se obtiene la clase resultado? Se seleccionan los $k$ vecinos mas cercanos y se analiza que clase es la mas abundante en ese conjunto.
 
-Esto es el llamado: Aprendizaje basado en instancias, ya que, para cada dato nuevo, hay ubicarlo, que calcular las distancias y clasificarlo
+Esto es el llamado Aprendizaje basado en instancias, ya que para cada dato nuevo necesitamos recalcular su relación con todo el dataset si queremos clasificarlo.
 
 ---
 
-#### Distancia Euclidea
+## Implementación
 
-Recordar distancia euclidea:
+Para implementar el algoritmo KNN ubicaremos las variables en el espacio $\R^n$, donde $n$ es la cantidad de variables presentes en el dataset ($n=4$ en nuestro caso). 
+
+Luego, para calcular la distancia entre dos puntos tomaremos la distancia Euclídea.
+
 
 $$
-d(P_1,P_2) = \sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}
+d(P,Q) = \sqrt{(p_1-q_1)^2 + (p_2-q_2)^2 + \dots + (p_n-q_n)^2}
 $$
+
+---
+
+### Clasificación
+
+Luego, teniendo como conjunto de entrenamiento a una lista de valores con formato
+$$
+(X, f(X))
+$$
+donde $X=(x_1,x_2,\dots, x_n)$ es un dato del conjunto y $f(X)$ su clase correspondiente. 
+Para clasificar una nueva instancia $P$, buscamos los $X_1, X_2,\dots, X_k$ más cercanos a $P$ del conjunto de entrenamiento y la clase que se le asignará a $P$ será la más frecuente dentro de este conjunto, es decir que estimamos la clasificación $\hat f(P)$ como:
+
+$$
+\hat f(P) = \underset{c\ \in\ C}{\text{argmax}}\sum_{i=1}^k 1_{\{\ c = f(X_i)\ \}}
+$$
+
+---
+
+## Análisis de datos
+
+---
+
+### Cantidad de datos por valoración
+
+![](./plots/part_2/count_per_star_rating.svg)
+
+---
+
+### Promedio de palabras por valoración
+
+![](./plots/part_2/wordcount_per_star_rating.svg)
+
+Para el caso de las valoraciones de 1 estrella **la cantidad promedio de palabras es de 12.47**
+
+---
+
+### Distribución de datos en el espacio
+Para entender un poco mejor la distribución de los datos en el espacio multivariado decidimos reducir la dimensión del dataset a 2 variables para así poder graficar la distribución. 
+
+De esta manera, graficamos los puntos tomando todos los pares de variables posibles. De estos, encontramos que los mejores resultados se dan al relacionar la variable de la cantidad de palabras de una reseña.
+
+---
+### Distribución de datos en el espacio
+
+Uno de los resultados más interesantes es el de la relación entre la cantidad de palabras y el sentimiento del texto de la reseña
+
+![](./plots/part_2/points_wordcount_textSentiment_swarm.svg)
+
+En este caso se utilizó un swarmplot para poder apreciar mejor la distribución de los puntos en cuanto a su 'textSentiment'
+
+---
+### Distribución de datos en el espacio
+
+En el gráfico se puede apreciar como, dentro de los comentarios de clasificados con sentimiento positivo, los que terminan teniendo mejor puntaje son los de menor longitud.
+
+---
+
+### Distribución de datos en el espacio
+
+El segundo resultado más relevante es la relación entre la cantidad de palabras y la valuación del sentimiento.
+
+![](./plots/part_2/points_wordcount_sentimentValue_scatter.svg)
+
+---
 

@@ -63,10 +63,22 @@ def analyze_and_transform_data(df: DataFrame, columns: Sequence[str]) -> Tuple[D
     variables = set(filter(lambda c: c != creditability, columns))
     value_mapping = {column.name: {value:str(value) for value in column.unique()} for column in df.get_columns()}
     
+    ##########
+    # Categorical variables -> bar charts for distributions, box plots for outliers
+    # Continuous variables -> histograms
+    ##########
+
     # overview_of_distribution(df, variables, config.with_fig_name('distribution_overview.svg'))
     df, _, balancers = balance_variables(df, variables, value_mapping)
     age_balancer = balancers[age] 
-    plot_distribution_for_variable(df, age, config, xticks=age_balancer.get_balanced_values() ,xtick_labels=[age_balancer.balanced_value_to_str(x) for x in age_balancer.get_balanced_values()])
+    plot_distribution_for_variable(
+        df, 
+        age, 
+        config, 
+        xticks=age_balancer.get_balanced_values(),
+        xtick_labels=[age_balancer.balanced_value_to_str(x) for x in age_balancer.get_balanced_values()]
+        )
+
     # plot_distribution_for_variable(df, credit_amount, config, 'box')
     
     return df, value_mapping
