@@ -156,11 +156,16 @@ if __name__ == '__main__':
 
         complete_configs = list((training.clone(), value_mapping.copy(), *config) for config in configs)
         # print(complete_configs)
+        main_forest = None
 
         # with Pool(12) as pool:
         for forest, (tree_count, subset_size, tree_depth) in tqdm(zip(map(train, complete_configs), configs), total=len(configs)):
             # forest = train_model(training, value_mapping, subset_size=subset_size, tree_count=tree_count, max_depth=tree_depth)
             # print()
+            if tree_count == best_tree_count and \
+                subset_size == best_subset_size and \
+                tree_depth == best_tree_depth:
+                main_forest = forest
             evaluation_results = evaluate_model(evaluation, forest).with_columns(pl.lit("evaluation").alias("data split"))
             training_results = evaluate_model(training, forest).with_columns(pl.lit("training").alias("data split"))
             results = pl \
@@ -171,6 +176,9 @@ if __name__ == '__main__':
                     pl.lit(subset_size).alias("bag size")
                 ])
             all_results.append(results)
+
+        first_attributes = [tree.get_first_split() for tree in main_forest.trees]
+        DataFrame({'first attribute': first_attributes}).write_csv("out/part1_first_attributes.csv")
 
         all_results = pl.concat(all_results, rechunk=True)
 

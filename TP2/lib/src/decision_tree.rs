@@ -31,8 +31,8 @@ impl RootData {
 }
 
 pub struct Node {
-    root_data: Arc<RootData>,
-    variant: NodeType,
+    pub root_data: Arc<RootData>,
+    pub variant: NodeType,
 }
 
 impl Node {
