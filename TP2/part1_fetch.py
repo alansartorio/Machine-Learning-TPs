@@ -46,4 +46,7 @@ creditability, \
     foreign_worker = columns
 
 def get_data() -> pl.DataFrame:
+    return pl.read_csv("out/german_credit.csv", new_columns=columns)
+
+def get_unbalanced_data() -> pl.DataFrame:
     return pl.read_csv("input/german_credit.csv", new_columns=columns)
