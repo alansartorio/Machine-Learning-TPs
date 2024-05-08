@@ -195,7 +195,7 @@ Esto es el llamado Aprendizaje basado en instancias, ya que para cada dato nuevo
 
 ## Implementación
 
-Para implementar el algoritmo KNN ubicaremos las variables en el espacio $\R^n$, donde $n$ es la cantidad de variables presentes en el dataset ($n=4$ en nuestro caso). 
+Para implementar el algoritmo KNN ubicaremos las variables en el espacio $\mathbb{R}^n$, donde $n$ es la cantidad de variables presentes en el dataset ($n=4$ en nuestro caso). 
 
 Luego, para calcular la distancia entre dos puntos tomaremos la distancia Euclídea.
 
@@ -233,27 +233,36 @@ $$
 
 ### Promedio de palabras por valoración
 
-![](./plots/part_2/wordcount_per_star_rating.svg)
+![](./plots/part_2/wordcount_per_star_rating.svg){.r-stretch}
 
 Para el caso de las valoraciones de 1 estrella **la cantidad promedio de palabras es de 12.47**
 
 ---
 
 ### Distribución de datos en el espacio
+
 Para entender un poco mejor la distribución de los datos en el espacio multivariado decidimos reducir la dimensión del dataset a 2 variables para así poder graficar la distribución. 
 
 De esta manera, graficamos los puntos tomando todos los pares de variables posibles. De estos, encontramos que los mejores resultados se dan al relacionar la variable de la cantidad de palabras de una reseña.
 
 ---
+
 ### Distribución de datos en el espacio
 
 Uno de los resultados más interesantes es el de la relación entre la cantidad de palabras y el sentimiento del texto de la reseña
 
+:::{.container .r-stretch}
+::::{.flex-2}
 ![](./plots/part_2/points_wordcount_textSentiment_swarm.svg)
-
+::::
+::::{.flex-1}
 En este caso se utilizó un swarmplot para poder apreciar mejor la distribución de los puntos en cuanto a su 'textSentiment'
+::::
+:::
+
 
 ---
+
 ### Distribución de datos en el espacio
 
 En el gráfico se puede apreciar como, dentro de los comentarios de clasificados con sentimiento positivo, los que terminan teniendo mejor puntaje son los de menor longitud.
@@ -272,6 +281,12 @@ El segundo resultado más relevante es la relación entre la cantidad de palabra
 
 Para elegir el mejor valor de $k$, corrimos el algoritmo de KNN para todas las instancias del dataset de test probando con todos los valores de $k$ posibles. En base a esto calculamos el porcentaje de aciertos para cada valor de $k$ elegido.
 
+:::{.container .r-stretch}
+::::{.flex-2}
 ![](./plots/knn.svg)
-
+::::
+::::{.flex-1}
 En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con $k=9$, con el cuál obtuvimos una precisión de 82.35%
+::::
+:::
+
