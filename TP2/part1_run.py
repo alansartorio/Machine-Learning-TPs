@@ -6,6 +6,8 @@ import json
 from typing import Any, Callable, Dict, Optional, Tuple
 from part1_fetch import get_data, creditability, credit_amount, age, duration_of_credit
 import logging
+from multiprocessing import Pool
+from tqdm import tqdm
 
 FORMAT = '%(levelname)s %(name)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -36,11 +38,11 @@ class Forest:
 
 def train_model(df: pl.DataFrame,value_mapping: Dict[str, Dict[int, str]], subset_size: Optional[int] = None, tree_count: int = 1, max_depth: Optional[int] = None) -> Forest:
     print_unique_ns(df)
-    print(json.dumps(value_mapping, indent=4))
-    print(df)
+    # print(json.dumps(value_mapping, indent=4))
+    # print(df)
 
     forest = Forest()
-    print('Len', len(df))
+    # print('Len', len(df))
     if subset_size is None:
         subset_chooser = lambda _:df
     else:
@@ -60,6 +62,14 @@ def evaluate_model(df: DataFrame, forest: Forest) -> DataFrame:
     results = DataFrame(results)
     return results
     # results.write_csv("out/part1_results.csv")
+
+def train(arg):
+    # print(arg)
+    training, value_mapping, tree_count, subset_size, tree_depth = arg
+    # print(f'Training with tree count = {tree_count}, subset_size = {subset_size}, tree depth = {tree_depth}')
+    return train_model(training, value_mapping, subset_size=subset_size, tree_count=tree_count, max_depth=tree_depth)
+# train = lambda (tree_count, subset_size, tree_depth): train_model(training, value_mapping, subset_size=subset_size, tree_count=tree_count, max_depth=tree_depth)
+        
 
 if __name__ == '__main__':
     df = get_data()
@@ -102,7 +112,7 @@ if __name__ == '__main__':
 
         all_results.write_csv("out/part1_single_tree_results.csv")
 
-    single_tree()
+    # single_tree()
 
     def single_tree_for_graph():
         forest = train_model(training, value_mapping, subset_size=None, tree_count=1, max_depth=2)
@@ -115,23 +125,48 @@ if __name__ == '__main__':
 
     # single_tree_for_graph()
 
+    tree_counts = (1, 2, 4, 8, 16, 32)
+    subset_sizes = (32, 64, 128, 256, 512, 1024)
+    tree_depths = tuple(range(1, 11))
+
+    best_tree_count = 8
+    best_subset_size = 256
+    best_tree_depth = 5
 
     def forest():
         all_results = []
-        for tree_depth in range(1, 10):
-            print(f'Training with tree depth = {tree_depth}')
-            forest = train_model(training, value_mapping, subset_size=400, tree_count=20, max_depth=tree_depth)
-            print()
+        configs = set()
+        for tree_count in tree_counts:
+            configs.add((tree_count, best_subset_size, best_tree_depth))
+        for subset_size in subset_sizes:
+            configs.add((best_tree_count, subset_size, best_tree_depth))
+        for tree_depth in tree_depths:
+            configs.add((best_tree_count, best_subset_size, tree_depth))
+        configs = list(configs)
+
+        complete_configs = list((training.clone(), value_mapping.copy(), *config) for config in configs)
+        # print(complete_configs)
+
+        # with Pool(12) as pool:
+        for forest, (tree_count, subset_size, tree_depth) in tqdm(zip(map(train, complete_configs), configs), total=len(configs)):
+            # forest = train_model(training, value_mapping, subset_size=subset_size, tree_count=tree_count, max_depth=tree_depth)
+            # print()
             evaluation_results = evaluate_model(evaluation, forest).with_columns(pl.lit("evaluation").alias("data split"))
             training_results = evaluate_model(training, forest).with_columns(pl.lit("training").alias("data split"))
-            results = pl.concat([evaluation_results, training_results]).with_columns(pl.lit(tree_depth).alias("max depth"))
+            results = pl \
+                .concat([evaluation_results, training_results]) \
+                .with_columns([
+                    pl.lit(tree_depth).alias("max depth"),
+                    pl.lit(tree_count).alias("tree count"),
+                    pl.lit(subset_size).alias("bag size")
+                ])
             all_results.append(results)
 
         all_results = pl.concat(all_results, rechunk=True)
 
         all_results.write_csv("out/part1_results.csv")
         
-    # forest()
+    forest()
     
     # # print('Tree count', len(forest.trees))
     # with open("out/single_tree.dot", 'w') as graph_file:

@@ -92,10 +92,13 @@ plot_confusion(
 
 
 forest = pl.read_csv("out/part1_results.csv")
+print(forest)
 plot_confusion(
     forest \
-        .filter(pl.col('data split').eq('evaluation')) \
-        .filter(pl.col('max depth').eq(4)),
+        .filter(pl.col('data split').eq('evaluation'))
+        .filter(pl.col('max depth').eq(5))
+        .filter(pl.col('tree count').eq(8))
+        .filter(pl.col('bag size').eq(256)),
     'part1_forest_confusion'
 )
 
