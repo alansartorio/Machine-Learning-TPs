@@ -245,6 +245,7 @@ Para entender un poco mejor la distribución de los datos en el espacio multivar
 De esta manera, graficamos los puntos tomando todos los pares de variables posibles. De estos, encontramos que los mejores resultados se dan al relacionar la variable de la cantidad de palabras de una reseña.
 
 ---
+
 ### Distribución de datos en el espacio
 
 Uno de los resultados más interesantes es el de la relación entre la cantidad de palabras y el sentimiento del texto de la reseña
@@ -254,6 +255,7 @@ Uno de los resultados más interesantes es el de la relación entre la cantidad 
 En este caso se utilizó un swarmplot para poder apreciar mejor la distribución de los puntos en cuanto a su 'textSentiment'
 
 ---
+
 ### Distribución de datos en el espacio
 
 En el gráfico se puede apreciar como, dentro de los comentarios de clasificados con sentimiento positivo, los que terminan teniendo mejor puntaje son los de menor longitud.
@@ -275,3 +277,21 @@ Para elegir el mejor valor de $k$, corrimos el algoritmo de KNN para todas las i
 ![](./plots/knn.svg)
 
 En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con $k=9$, con el cuál obtuvimos una precisión de 82.35%
+
+---
+
+## Resultados
+
+<!-- Get plots from part2_result_analysis.py -->
+
+### Matriz de Confusión
+
+![](./plots/part_2/confusion_matrix.svg)
+
+---
+
+## Resultados
+
+### Métricas
+
+![](./plots/part_2/metrics.svg)
