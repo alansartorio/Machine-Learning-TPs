@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
         all_results.write_csv("out/part1_single_tree_results.csv")
 
-    # single_tree()
+    single_tree()
 
     def single_tree_for_graph():
         forest = train_model(training, value_mapping, subset_size=None, tree_count=1, max_depth=2)
@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
         all_results.write_csv("out/part1_results.csv")
         
-    forest()
+    # forest()
     
     # # print('Tree count', len(forest.trees))
     # with open("out/single_tree.dot", 'w') as graph_file:
