@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use decision_tree::{Node, RootData, Value};
+use decision_tree::{Node, NodeType, RootData, Value};
 use pyo3::{prelude::*, types::PyDict};
 use pyo3_polars::PyDataFrame;
 use train::train;
@@ -31,6 +31,15 @@ impl Tree {
                 .map(|(attr, &value)| (attr.as_str(), value))
                 .collect(),
         )
+    }
+
+    pub fn get_first_split(&self) -> Option<String> {
+        match self.root.variant {
+            NodeType::Split { attribute, .. } => {
+                Some(self.root.root_data.attribute_names[attribute].clone())
+            }
+            _ => None,
+        }
     }
 }
 

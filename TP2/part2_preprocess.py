@@ -22,6 +22,7 @@ df[title_sentiment] = df[title_sentiment].apply(lambda x:(-1, 1)[x=='positive'])
 
 def split_training_and_evaluation(df: DataFrame, training_frac: float) -> Tuple[DataFrame, DataFrame]:
     training, evaluation = DataFrame(), DataFrame()
+    np.random.seed(11241241)
     training_mask =  np.random.rand(len(df)) < training_frac
     training = pd.concat((training, df[training_mask]))
     evaluation = pd.concat((evaluation, df[~training_mask]))

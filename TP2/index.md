@@ -29,60 +29,6 @@ Entre otras.
 
 ---
 
-## Analisis del conjunto de datos
-
-### Distribución de variables
-
-Para tratar de entender de antemano la relevancia de cada variable, graficamos la distribución de cada una de ellas en cuanto a los valores existentes y también según la clase a la que pertenecen.
-
-<!-- Estos gráficos se consiguen al correr part1_analysis.py -->
----
-
-<!-- Opcional -->
-### Distribución de variables
-
-Primero, obtuvimos una vista general de la distribución de todas las variables.
-
-![](./plots/part_1/distribution_overview.svg)
-
----
-
-### Distribución de variables
-
-Estos son los resultados más relevantes.
-
----
-
-### Distribución de variables - Edad
-
-![](./plots/part_1/age_distribution.svg)
-
----
-
-### Distribución de variables - Balance de cuenta
-
-![](./plots/part_1/account_balance_distribution.svg)
-
----
-
-### Distribución de variables - Tamaño del crédito
-
-![](./plots/part_1/credit_distribution.svg)
-
----
-
-### Distribución de variables - Duración del crédito
-
-![](./plots/part_1/duration_of_credit_distribution.svg)
-
----
-
-### Distribución de variables - Activo más valioso
-
-![](./plots/part_1/most_valuable_asset_distribution.svg)
-
----
-
 ### Que queremos saber?
 
 Queremos poder determinar si una persona devolvera un credito que pide o no.
@@ -109,6 +55,80 @@ Antes de realizar el analisis fino, podemos tener en cuenta que las siguientes v
 - Svalue.savings.stocks: dinero ahorrado, toma valores de 1 a 5, 1 = nada, 2, ≤100, 3, (100,500], 4 (500, 1000].
 
 Por que? Ya que todas dan a entender la situacion financiera del cliente tomando un credito y si este podria ser embargado de no devolver el credito.
+
+---
+
+## Analisis del conjunto de datos
+
+---
+
+### Distribución de clases
+
+![](./plots/part_1/creditability_distribution.svg){.r-stretch}
+
+---
+
+### Balanceo
+
+Dada la diferencia en cantidad de cada clase, balanceamos el dataset muestreandolo para que hayan 300 registros en cada una.
+
+---
+
+### Distribución de variables
+
+Para tratar de entender de antemano la relevancia de cada variable, graficamos la distribución de cada una de ellas en cuanto a los valores existentes y también según la clase a la que pertenecen.
+
+<!-- Estos gráficos se consiguen al correr part1_analysis.py -->
+---
+
+<!-- Opcional -->
+### Distribución de variables
+
+Primero, obtuvimos una vista general de la distribución de todas las variables.
+
+![](./plots/part_1/distribution_overview.svg){.r-stretch}
+
+---
+
+### Distribución de variables
+
+Estos son los resultados más relevantes.
+
+---
+
+### Distribución de variables - Edad
+
+![](./plots/part_1/age_distribution.svg){.r-stretch}
+
+Se puede observar como la proporcion de gente que devuelve los creditos aumenta con la edad.
+
+---
+
+### Proporción de Creditabilidad por Edad
+
+![](./plots/part_1/creditability_percentage_by_age.svg){.r-stretch}
+
+Ahora al graficar la proporción de devolución de creditos en función de la edad se puede observar una tendencia positiva.
+
+---
+
+### Distribución de variables - Balance de cuenta
+
+![](./plots/part_1/account_balance_distribution.svg){.r-stretch}
+
+En este grafico es mas facil observar una tendencia positiva en función con el balance de la cuenta.
+
+---
+
+### Distribución de variables - Tamaño del crédito
+
+![](./plots/part_1/credit_distribution.svg)
+
+---
+
+### Proporción de Creditabilidad por Tamaño del crédito
+
+![](./plots/part_1/creditability_percentage_by_credit_amount.svg){.r-stretch}
 
 ---
 
@@ -175,6 +195,14 @@ Una vez implementado, obtuvimos este arbol de decision:
 
 Ademas de probarlo con un solo arbol, tambien observamos que resultado obteniamos al utilizar 16 arboles y elegir la categoria mas frecuente.
 
+Despues vamos a explorar sobre la cantidad de arboles en el forest.
+
+---
+
+## Atributo con Mayor Ganancia de Información
+
+En los 16 arboles del forest el atributo que consiguió la mayor reducción de la entropia sobre los datos fue el "Account Balance". Esto lo encontramos al consultar el nodo raiz de cada arbol.
+
 ---
 
 ## Analisis del modelo
@@ -184,18 +212,21 @@ Finalmente para saber que tan bueno es el modelo entrenado, se realizó:
 - La matriz de confusion para un arbol y para el random forest.
 - Grafico de curvas de precision del arbol teniendo en cuenta la cantidad de nodos, donde en nuestro caso, usamos la altura del arbol.
 
-
 ---
 
 ### Presición variando Cantidad de arboles
 
-![](./plots/part1_precision_over_tree count.svg)
+![](./plots/part1_precision_over_tree count.svg){.r-stretch}
+
+Se puede ver que a partir de 4 arboles, la presición del forest no mejora con el conjunto de testing y a partir de 16 no hay notables mejoras del conjunto de training.
 
 ---
 
 ### Presición variando Tamaño de bolsa
 
-![](./plots/part1_precision_over_bag size.svg)
+![](./plots/part1_precision_over_bag size.svg){.r-stretch}
+
+Se puede ver que el tamaño del bag para cada arbol no produce mejoras en la presición.
 
 ---
 
@@ -213,9 +244,9 @@ Finalmente para saber que tan bueno es el modelo entrenado, se realizó:
 
 ### Curvas de precision
 
-![](./plots/part1_single_vs_forest_precision_over_max depth.svg)
+![](./plots/part1_single_vs_forest_precision_over_max depth.svg){.r-stretch}
 
-
+Se puede notar una considerable mejora en la presición sobre el conjunto de evaluación para el random forest comparandolo con el del arbol simple.
 
 # Ejercicio 2
 
@@ -261,7 +292,7 @@ Esto es el llamado Aprendizaje basado en instancias, ya que para cada dato nuevo
 
 ## Implementación
 
-Para implementar el algoritmo KNN ubicaremos las variables en el espacio $\mathbb{R}^n$, donde $n$ es la cantidad de variables presentes en el dataset ($n=4$ en nuestro caso). 
+Para implementar el algoritmo KNN ubicaremos las variables en el espacio $\mathbb{R}^n$, donde $n$ es la cantidad de variables presentes en el dataset ($n=3$ en nuestro caso). 
 
 Luego, para calcular la distancia entre dos puntos tomaremos la distancia Euclídea.
 
@@ -348,15 +379,13 @@ El segundo resultado más relevante es la relación entre la cantidad de palabra
 Para elegir el mejor valor de $k$, corrimos el algoritmo de KNN para todas las instancias del dataset de test probando con todos los valores de $k$ posibles. En base a esto calculamos el porcentaje de aciertos para cada valor de $k$ elegido.
 
 :::{.container .r-stretch}
-::::{.flex-2}
+::::{.flex-1}
 ![](./plots/knn.svg)
 ::::
 ::::{.flex-1}
-En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con $k=9$, con el cuál obtuvimos una precisión de 82.35%
+En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con $k=3$, con el cuál obtuvimos una precisión de 67.3%
 ::::
 :::
-
-En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con $k=9$, con el cuál obtuvimos una precisión de 82.35%
 
 ---
 
@@ -366,7 +395,7 @@ En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con
 
 ### Matriz de Confusión
 
-![](./plots/part_2/confusion_matrix.svg)
+![](./plots/part_2/confusion_matrix.svg){.r-stretch}
 
 ---
 
@@ -374,5 +403,6 @@ En base a los resultados obtenidos, el mayor grado de efectividad se obtiene con
 
 ### Métricas
 
-![](./plots/part_2/metrics.svg)
+![](./plots/part_2/metrics.svg){.r-stretch}
+
 # GRACIAS
