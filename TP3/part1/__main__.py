@@ -98,8 +98,77 @@ def plot_dataset(df: DataFrame, line_angle: int, margin: float, space_size:Tuple
     ax.axline((math.sin(line_angle)*margin,-margin*math.cos(line_angle)), slope=slope, color='#A9A9A9', linestyle='dashed')
     plt.show()
 
+
+# print(df)
+
+
+class SVM2d:
+
+    def __init__(self, df: DataFrame, margin: float, C: float , k: float = 1.0):
+        self.df = df
+        self.margin = margin
+        self.C = C
+        self.ws = np.zeros(len(df.get_columns()) - 1)
+        self.b = 0
+        self.k = k
+
+        self.r = 1
+
+        self.max_iter = 10000
+
+    def train(self):
+
+        iteration = 0
+        has_wrong_class = True
+        while iteration <= self.max_iter and has_wrong_class:
+
+
+            has_wrong_class = False
+            # decresing k
+            learning_rate = self.k * np.exp(-iteration / self.max_iter)
+
+            data_batch = self.df.sample(fraction=1)
+
+
+            for row in data_batch.to_numpy():
+
+                x = np.array(row[:-1])
+                y = row[-1]
+
+                # print(f'x: {x}, y: {y}, ws: {self.ws}, b: {self.b}')
+
+                if y * (np.dot(self.ws, x) + self.b) < 1:
+                    self.ws = self.ws - learning_rate * (self.ws - self.C * y * x)
+                    self.b = self.b + learning_rate * self.C * y
+
+                    has_wrong_class = True
+
+                else :
+                    self.ws = self.ws - learning_rate * self.ws
+
+
+            if iteration % 100 == 0:
+                print(f'Iter {iteration} - w: {self.ws}, b: {self.b}, k: {learning_rate}')
+        
+            iteration += 1
+
+        self.r = 1 / np.linalg.norm(self.ws)
+        print(f'w: {self.ws}, b: {self.b}, r: {self.r}, k: {learning_rate}')
+
+
+    def plot(self):
+        line_angle = math.atan(self.ws[1])
+        plot_dataset(self.df, line_angle, self.r)
+
+
+    def execute(self, df: DataFrame, margin: float, C: float, k: float = 1.0):
+        test = SVM2d(df, margin=margin, C=C, k=k)
+        test.train()
+        test.plot()
+
+    def __repr__(self) -> str:
+        return f'SimpleSVM(margin={self.margin}, C={self.C}, bs={self.bs})'
+
 line_angle=math.pi/4
 margin=0.5
-
 df = create_dataset(margin=margin,line_angle=line_angle,points_per_class=100)
-plot_dataset(df, line_angle, margin)
