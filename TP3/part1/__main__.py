@@ -49,6 +49,10 @@ class Collection(Generic[T]):
 def sign(n: float) -> int:
     return 1 if n >= 0 else -1
 
+def point_line_distance(a, b, c, x, y) -> float:
+    return abs(a*x + b*y + c) / math.sqrt(a*a + b*b)
+
+
 def create_dataset(
         rand_seed=None,
         line_angle:float=0,
@@ -70,10 +74,13 @@ def create_dataset(
         x = random_range(-space_size[0],space_size[0])
         y = random_range(-space_size[1],space_size[1])
         
+        distance = point_line_distance(math.tan(line_angle), -1, 0, x, y)
+
+        if distance < margin:
+            continue
+
         point = np.array([x,y])
         proj = point.dot(normal)
-        if abs(proj) < margin:
-            continue
 
         class_ = sign(proj)
         if class_ == 1:
