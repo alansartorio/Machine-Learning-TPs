@@ -124,6 +124,13 @@ class Network(ABC):
         m.randomize_weights()
         return m
 
+    def copy(self):
+        return Network(
+            tuple(layer.weights.copy() for layer in self.layers),
+            self.layers[0].activation_function,
+            self.layers[0].derivated_activation_function
+        )
+
 
 
 class AutoEncoder(ABC):

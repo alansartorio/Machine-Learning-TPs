@@ -24,8 +24,9 @@ class Plot:
         self.fig.canvas.restore_region(self.axbackground)
 
         C, A, B = self.model.layers[0].weights[0]
+        C = -C
         X = [-5, 5]
-        Y = [-(A/B)*x+C/B for x in X]
+        Y = [-(A/B)*x-C/B for x in X]
         self.line.set_xdata(X)
         self.line.set_ydata(Y)
         self.ax.draw_artist(self.line)
