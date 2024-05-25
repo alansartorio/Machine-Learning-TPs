@@ -105,9 +105,8 @@ def plot_dataset(df: DataFrame, line_angle: int, margin: float, space_size:Tuple
 
 class SVM2d:
 
-    def __init__(self, df: DataFrame, margin: float, C: float , k: float = 1.0):
+    def __init__(self, df: DataFrame, C: float , k: float = 1.0):
         self.df = df
-        self.margin = margin
         self.C = C
         self.ws = np.zeros(len(df.get_columns()) - 1)
         self.b = 0
@@ -115,42 +114,43 @@ class SVM2d:
 
         self.r = 1
 
+        self.percentage_of_data = 0.5
+
         self.max_iter = 10000
 
     def train(self):
 
         iteration = 0
-        has_wrong_class = True
-        while iteration <= self.max_iter and has_wrong_class:
 
 
-            has_wrong_class = False
+        prev_ws = self.ws
+        prev_b = self.b
+
+        while iteration <= self.max_iter:
             # decresing k
             learning_rate = self.k * np.exp(-iteration / self.max_iter)
 
-            data_batch = self.df.sample(fraction=1)
-
+            data_batch = self.df.sample(fraction=self.percentage_of_data, seed=iteration)
 
             for row in data_batch.to_numpy():
 
                 x = np.array(row[:-1])
                 y = row[-1]
 
-                # print(f'x: {x}, y: {y}, ws: {self.ws}, b: {self.b}')
-
                 if y * (np.dot(self.ws, x) + self.b) < 1:
                     self.ws = self.ws - learning_rate * (self.ws - self.C * y * x)
                     self.b = self.b + learning_rate * self.C * y
-
-                    has_wrong_class = True
 
                 else :
                     self.ws = self.ws - learning_rate * self.ws
 
 
-            if iteration % 100 == 0:
+            if iteration % 1000 == 0:
                 print(f'Iter {iteration} - w: {self.ws}, b: {self.b}, k: {learning_rate}')
         
+            if np.linalg.norm(self.ws - prev_ws) < 1e-4 and abs(self.b - prev_b) < 1e-4:
+                break
+
             iteration += 1
 
         self.r = 1 / np.linalg.norm(self.ws)
@@ -158,19 +158,22 @@ class SVM2d:
 
 
     def plot(self):
-        line_angle = math.atan(self.ws[1])
+
+
+        hyperplane = np.array([-self.ws[1], self.ws[0]])
+
+        line_angle = math.atan2(hyperplane[1], hyperplane[0])
         plot_dataset(self.df, line_angle, self.r)
 
-
-    def execute(self, df: DataFrame, margin: float, C: float, k: float = 1.0):
-        test = SVM2d(df, margin=margin, C=C, k=k)
+    def execute(self):
+        test = SVM2d(df, C=self.C, k=self.k)
         test.train()
         test.plot()
 
     def __repr__(self) -> str:
         return f'SimpleSVM(margin={self.margin}, C={self.C}, bs={self.bs})'
 
-line_angle=math.pi/4
+line_angle=math.pi/2
 margin=0.5
 df = create_dataset(margin=margin,line_angle=line_angle,points_per_class=100)
 print(df)
@@ -224,4 +227,6 @@ def ej1():
 
     # print(single_neuron.evaluate(np.array([1])))
 
-ej1()
+# ej1()
+
+svm = SVM2d(df, C=0.1, k=0.01).execute()
