@@ -177,50 +177,51 @@ print(df)
 
 # plot_dataset(df, line_angle, margin)
 
-from part1.single_data import SingleData
 
-# exit(1)
-data = [SingleData(np.array([x, y]), np.array([clazz])) for x, y, clazz in df.iter_rows()]
+def ej1():
+    from part1.single_data import SingleData
 
-from .activation_functions import step_func
-from . import network
-from .plot_line import Plot
-import numpy as np
-from matplotlib.animation import PillowWriter
+    data = [SingleData(np.array([x, y]), np.array([clazz])) for x, y, clazz in df.iter_rows()]
 
-model = network.Network.with_random_weights(2, (1,), step_func)
-# ej1_xor_data = (SingleData(np.array([-1, 1]), np.array([1])),
-                # SingleData(np.array([-1, -1]), np.array([-1])),
-                # SingleData(np.array([1, -1]), np.array([1])),
-                # SingleData(np.array([1, 1]), np.array([-1])))
+    from .activation_functions import step_func
+    from . import network
+    from .plot_line import Plot
+    from matplotlib.animation import PillowWriter
 
-# data = ej1_xor_data
+    model = network.Network.with_random_weights(2, (1,), step_func)
+    # ej1_xor_data = (SingleData(np.array([-1, 1]), np.array([1])),
+                    # SingleData(np.array([-1, -1]), np.array([-1])),
+                    # SingleData(np.array([1, -1]), np.array([1])),
+                    # SingleData(np.array([1, 1]), np.array([-1])))
 
-plot = Plot([d.inputs for d in data], [d.outputs for d in data], model)
+    # data = ej1_xor_data
 
-writer = PillowWriter(fps = 10)
-writer.setup(plot.fig, 'plots/ej1.gif', dpi=200)
+    plot = Plot([d.inputs for d in data], [d.outputs for d in data], model)
 
-# print(model.layers[0].weights.flatten())
-# print(model.error(ej1_data))
-try:
-    while model.error(data) > 0:
-        model.train(0.00001, data)
-        print(model.layers[0].weights.flatten(), model.error(data))
-        # print(model.layers[0].weights.flatten(), model.error(ej1_data))
-        # for single_data in data:
-            # print(single_data.inputs, single_data.outputs, model.evaluate(single_data.inputs), end=' | ')
-        # print()
-        plot.update()
+    writer = PillowWriter(fps = 10)
+    writer.setup(plot.fig, 'plots/ej1.gif', dpi=200)
+
+    # print(model.layers[0].weights.flatten())
+    # print(model.error(ej1_data))
+    try:
+        while model.error(data) > 0:
+            model.train(0.00001, data)
+            print(model.layers[0].weights.flatten(), model.error(data))
+            # print(model.layers[0].weights.flatten(), model.error(ej1_data))
+            # for single_data in data:
+                # print(single_data.inputs, single_data.outputs, model.evaluate(single_data.inputs), end=' | ')
+            # print()
+            plot.update()
+            writer.grab_frame()
+    except KeyboardInterrupt:
+        pass
+    for _ in range(10):
         writer.grab_frame()
-except KeyboardInterrupt:
-    pass
-for _ in range(10):
-    writer.grab_frame()
-# single_neuron = Network.with_random_weights(1, (2, 3), step_func)
-writer.finish()
+    # single_neuron = Network.with_random_weights(1, (2, 3), step_func)
+    writer.finish()
 
-plt.show()
+    plt.show()
 
-# print(single_neuron.evaluate(np.array([1])))
+    # print(single_neuron.evaluate(np.array([1])))
 
+ej1()
