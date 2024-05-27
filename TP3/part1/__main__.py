@@ -11,6 +11,7 @@ import math
 from dataclasses import dataclass
 
 from part1.network import Network
+from part1.single_data import SingleData
 
 
 sns.set_theme()
@@ -95,6 +96,53 @@ def create_dataset(
             continue
 
         class_ = sign(point_line_vertical_diff(math.tan(line_angle), -1, 0, x, y))
+        if class_ == 1:
+            class1_points.add((x, y))
+        else:
+            class2_points.add((x, y))
+
+        x_values.append(x)
+        y_values.append(y)
+        class_values.append(class_)
+
+    return DataFrame(
+        [
+            Series("x", x_values, pl.Float32),
+            Series("y", y_values, pl.Float32),
+            Series("class", class_values, pl.Int8),
+        ]
+    )
+
+
+def add_bad_points(
+    rand_seed=None,
+    line_angle: float = 0,
+    margin: float = 1,
+    points_per_class=100,
+    space_size: Tuple[float, float] = (5, 5),
+) -> DataFrame:
+    if rand_seed is not None:
+        seed(rand_seed)
+
+    class1_points: Collection[Tuple[float, float]] = Collection()
+    class2_points: Collection[Tuple[float, float]] = Collection()
+    x_values = []
+    y_values = []
+    class_values = []
+    while (
+        class1_points.size < points_per_class and class2_points.size < points_per_class
+    ):
+        normal = np.array([-math.sin(line_angle), math.cos(line_angle)])
+
+        x = random_range(-space_size[0], space_size[0])
+        y = random_range(-space_size[1], space_size[1])
+
+        distance = point_line_distance(math.tan(line_angle), -1, 0, x, y)
+
+        if distance > margin:
+            continue
+
+        class_ = -sign(point_line_vertical_diff(math.tan(line_angle), -1, 0, x, y))
         if class_ == 1:
             class1_points.add((x, y))
         else:
@@ -223,13 +271,15 @@ class SVM2d:
 line_angle = 13.131
 margin = 0.5
 df = create_dataset(margin=margin, line_angle=line_angle, points_per_class=100)
+bad_points = add_bad_points(margin=margin, line_angle=line_angle, points_per_class=10)
+df_bad = pl.concat((df, bad_points))
 print(df)
 # print(*df.iter_rows(), sep='\n')
 
 # plot_dataset(df, line_angle, margin)
 
 
-def ej1():
+def ej1(df):
     from part1.single_data import SingleData
 
     data = [
@@ -262,8 +312,11 @@ def ej1():
     # print(model.error(ej1_data))
     try:
         error = model.error(data)
-        while error > 0:
-            model.train(0.00001, data)
+        i = 0
+        max_iter = 100
+        while error > 0 and i < max_iter:
+            learning_rate = 0.01 * np.exp(-i / max_iter)
+            model.train(learning_rate, data)
             print(model.layers[0].weights.flatten(), model.error(data))
             # print(model.layers[0].weights.flatten(), model.error(ej1_data))
             # for single_data in data:
@@ -277,6 +330,7 @@ def ej1():
             if minimum_error is None or error < minimum_error:
                 minimum_error = error
                 minimum_model = model.copy()
+            i += 1
     except KeyboardInterrupt:
         pass
     for _ in range(10):
@@ -293,71 +347,72 @@ def ej1():
     c, a, b = minimum_model.layers[0].weights[0]
     c = -c
 
-    def post_processing(a, b, c):
-        nonlocal margin
+    return data, minimum_model, a, b, c, minimum_error
 
-        points = sorted(data, key=lambda p: point_line_distance(a, b, c, *p.inputs))
-        partitions = {-1: [], 1: []}
-        for point in points:
-            # class_ = sign(point_line_vertical_diff(a, b, c, *point.inputs))
-            partitions[point.outputs[0]].append(point)
+def post_processing(data, a, b, c):
+    points = sorted(data, key=lambda p: point_line_distance(a, b, c, *p.inputs))
+    partitions = {-1: [], 1: []}
+    for point in points:
+        # class_ = sign(point_line_vertical_diff(a, b, c, *point.inputs))
+        partitions[point.outputs[0]].append(point)
 
-        negative_candidates = partitions[-1][:5]
-        positive_candidates = partitions[1][:5]
+    negative_candidates = partitions[-1][:5]
+    positive_candidates = partitions[1][:5]
 
-        print(negative_candidates, positive_candidates)
+    print(negative_candidates, positive_candidates)
 
-        def get_margin(a, b, c) -> Optional[float]:
-            for point in data:
-                x, y = point.inputs
-                # A point was wrongly classified
-                if sign(point_line_vertical_diff(a, b, c, x, y)) != point.outputs[0]:
-                    return None
+    def get_margin(a, b, c) -> Optional[float]:
+        for point in data:
+            x, y = point.inputs
+            # A point was wrongly classified
+            if sign(point_line_vertical_diff(a, b, c, x, y)) != point.outputs[0]:
+                return None
 
-            return min(map(lambda p: point_line_distance(a, b, c, *p.inputs), data))
+        return min(map(lambda p: point_line_distance(a, b, c, *p.inputs), data))
 
-        def get_middle_line(a, b, point) -> tuple[float, float, float]:
-            ab = b - a
-            ap = point - a
+    def get_middle_line(a, b, point) -> tuple[float, float, float]:
+        ab = b - a
+        ap = point - a
 
-            # Find new line
-            a = a + ap / 2
-            b = a + ab
+        # Find new line
+        a = a + ap / 2
+        b = a + ab
 
-            m = (b[1] - a[1]) / (b[0] - a[0])
-            b = a[1] - m * a[0]
-            return m, -1, b
+        m = (b[1] - a[1]) / (b[0] - a[0])
+        b = a[1] - m * a[0]
+        return m, -1, b
 
-        def find_best_combination(negs: list[SingleData], poss: list[SingleData]):
-            max_margin = None
-            max_margin_line = None
-            for (a, b), point in chain(
-                product(combinations(negs, 2), poss),
-                product(combinations(poss, 2), negs),
-            ):
-                line = get_middle_line(a.inputs, b.inputs, point.inputs)
-                margin = get_margin(*line)
-                if max_margin is None or (margin is not None and margin > max_margin):
-                    max_margin = margin
-                    max_margin_line = line
+    def find_best_combination(negs: list[SingleData], poss: list[SingleData]):
+        max_margin = None
+        max_margin_line = None
+        for (a, b), point in chain(
+            product(combinations(negs, 2), poss),
+            product(combinations(poss, 2), negs),
+        ):
+            line = get_middle_line(a.inputs, b.inputs, point.inputs)
+            margin = get_margin(*line)
+            if max_margin is None or (margin is not None and margin > max_margin):
+                max_margin = margin
+                max_margin_line = line
 
-            if max_margin_line is None or max_margin is None:
-                raise Exception
-            return max_margin_line, max_margin
+        if max_margin_line is None or max_margin is None:
+            raise Exception
+        return max_margin_line, max_margin
 
-        margin_line, margin = find_best_combination(
-            negative_candidates, positive_candidates
-        )
+    margin_line, margin = find_best_combination(
+        negative_candidates, positive_candidates
+    )
 
-        return *margin_line, margin
+    return *margin_line, margin
 
-    a, b, c, margin = post_processing(a, b, c)
-    plot_dataset(df, (a, b, c), margin)
+data, model, a, b, c, error = ej1(df)
+print("Error: ", error)
+a, b, c, margin = post_processing(data, a, b, c)
 
-    print(a, b, c)
+plot_dataset(df, (a, b, c), margin)
 
-    # print(single_neuron.evaluate(np.array([1])))
+print(a, b, c)
 
-# ej1()
+ej1(df_bad)
 
 svm = SVM2d(df, C=0.1, k=0.01).execute()
