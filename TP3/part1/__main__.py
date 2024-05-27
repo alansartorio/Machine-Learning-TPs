@@ -1,6 +1,6 @@
 import itertools
 from itertools import chain, combinations, product
-from random import seed, random
+from random import sample, seed, random
 from polars import DataFrame, Series
 import polars as pl
 import numpy as np
@@ -165,6 +165,7 @@ def plot_dataset(
     df: DataFrame,
     line: Union[float, tuple[float, float, float]],
     margin: float,
+    filename: str,
     space_size: Tuple[float, float] = (5, 5),
 ) -> None:
     ax = sns.scatterplot(df, x="x", y="y", hue="class")
@@ -195,6 +196,7 @@ def plot_dataset(
         color="#A9A9A9",
         linestyle="dashed",
     )
+    plt.savefig(filename)
     plt.show()
 
 
@@ -257,7 +259,7 @@ class SVM2d:
         hyperplane = np.array([-self.ws[1], self.ws[0]])
 
         line_angle = math.atan2(hyperplane[1], hyperplane[0])
-        plot_dataset(self.df, line_angle, self.r)
+        plot_dataset(self.df, line_angle, self.r, "ej1.d.svg")
 
     def execute(self):
         test = SVM2d(df, C=self.C, k=self.k)
@@ -279,7 +281,7 @@ print(df)
 # plot_dataset(df, line_angle, margin)
 
 
-def ej1(df):
+def ej1(df, animation_file):
     from part1.single_data import SingleData
 
     data = [
@@ -306,24 +308,26 @@ def ej1(df):
     plot = Plot([d.inputs for d in data], [d.outputs for d in data], model)
 
     writer = PillowWriter(fps=10)
-    writer.setup(plot.fig, "plots/ej1.gif", dpi=200)
+    writer.setup(plot.fig, animation_file, dpi=200)
 
     # print(model.layers[0].weights.flatten())
     # print(model.error(ej1_data))
     try:
         error = model.error(data)
         i = 0
-        max_iter = 100
+        max_iter = 1000
         while error > 0 and i < max_iter:
             learning_rate = 0.01 * np.exp(-i / max_iter)
-            model.train(learning_rate, data)
+            chosen_data = sample(data, 1)[0]
+            model.train_single(learning_rate, chosen_data)
             print(model.layers[0].weights.flatten(), model.error(data))
             # print(model.layers[0].weights.flatten(), model.error(ej1_data))
             # for single_data in data:
             # print(single_data.inputs, single_data.outputs, model.evaluate(single_data.inputs), end=' | ')
             # print()
-            plot.update()
-            writer.grab_frame()
+            if i % 5 == 0:
+                plot.update(f"Iteration N°{i}")
+                writer.grab_frame()
 
             error = model.error(data)
 
@@ -331,11 +335,13 @@ def ej1(df):
                 minimum_error = error
                 minimum_model = model.copy()
             i += 1
+        plot.update(f"Iteration N°{i}")
     except KeyboardInterrupt:
         pass
     for _ in range(10):
         writer.grab_frame()
     # single_neuron = Network.with_random_weights(1, (2, 3), step_func)
+    print("DONE, PRESS 'q'")
     writer.finish()
 
     plt.show()
@@ -348,6 +354,7 @@ def ej1(df):
     c = -c
 
     return data, minimum_model, a, b, c, minimum_error
+
 
 def post_processing(data, a, b, c):
     points = sorted(data, key=lambda p: point_line_distance(a, b, c, *p.inputs))
@@ -405,14 +412,15 @@ def post_processing(data, a, b, c):
 
     return *margin_line, margin
 
-data, model, a, b, c, error = ej1(df)
+
+data, model, a, b, c, error = ej1(df, "plots/ej1.a.gif")
 print("Error: ", error)
 a, b, c, margin = post_processing(data, a, b, c)
 
-plot_dataset(df, (a, b, c), margin)
+plot_dataset(df, (a, b, c), margin, "plots/post_processed.svg")
 
 print(a, b, c)
 
-ej1(df_bad)
+ej1(df_bad, "plots/ej1.c.gif")
 
 svm = SVM2d(df, C=0.1, k=0.01).execute()

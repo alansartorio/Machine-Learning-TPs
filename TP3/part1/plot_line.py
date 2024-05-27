@@ -20,7 +20,9 @@ class Plot:
         plt.show(block=False)
 
 
-    def update(self):
+    def update(self, title=None):
+        if title is not None:
+            self.ax.set_title(title)
         self.fig.canvas.restore_region(self.axbackground)
 
         C, A, B = self.model.layers[0].weights[0]
