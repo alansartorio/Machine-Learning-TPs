@@ -164,7 +164,7 @@ def add_bad_points(
 def plot_dataset(
     df: DataFrame,
     line: Union[float, tuple[float, float, float]],
-    margin: float,
+    margin: Optional[float],
     filename: str,
     space_size: Tuple[float, float] = (5, 5),
 ) -> None:
@@ -183,19 +183,20 @@ def plot_dataset(
         raise Exception(type(line))
     line_angle = math.atan(slope)
     ax.axline((0, y), slope=slope)  # Hiperplane
-    # Margin
-    ax.axline(
-        (-math.sin(line_angle) * margin, margin * math.cos(line_angle) + y),
-        slope=slope,
-        color="#A9A9A9",
-        linestyle="dashed",
-    )
-    ax.axline(
-        (math.sin(line_angle) * margin, -margin * math.cos(line_angle) + y),
-        slope=slope,
-        color="#A9A9A9",
-        linestyle="dashed",
-    )
+    if margin is not None:
+        # Margin
+        ax.axline(
+            (-math.sin(line_angle) * margin, margin * math.cos(line_angle) + y),
+            slope=slope,
+            color="#A9A9A9",
+            linestyle="dashed",
+        )
+        ax.axline(
+            (math.sin(line_angle) * margin, -margin * math.cos(line_angle) + y),
+            slope=slope,
+            color="#A9A9A9",
+            linestyle="dashed",
+        )
     plt.savefig(filename)
     plt.show()
 
@@ -368,6 +369,15 @@ def ej1(df, animation_file, error_file):
 
     return data, minimum_model, a, b, c, minimum_error
 
+def get_margin(data, a, b, c) -> Optional[float]:
+    for point in data:
+        x, y = point.inputs
+        # A point was wrongly classified
+        if sign(point_line_vertical_diff(a, b, c, x, y)) != point.outputs[0]:
+            return None
+
+    return min(map(lambda p: point_line_distance(a, b, c, *p.inputs), data))
+
 
 def post_processing(data, a, b, c):
     points = sorted(data, key=lambda p: point_line_distance(a, b, c, *p.inputs))
@@ -380,15 +390,6 @@ def post_processing(data, a, b, c):
     positive_candidates = partitions[1][:5]
 
     print(negative_candidates, positive_candidates)
-
-    def get_margin(a, b, c) -> Optional[float]:
-        for point in data:
-            x, y = point.inputs
-            # A point was wrongly classified
-            if sign(point_line_vertical_diff(a, b, c, x, y)) != point.outputs[0]:
-                return None
-
-        return min(map(lambda p: point_line_distance(a, b, c, *p.inputs), data))
 
     def get_middle_line(a, b, point) -> tuple[float, float, float]:
         ab = b - a
@@ -410,7 +411,7 @@ def post_processing(data, a, b, c):
             product(combinations(poss, 2), negs),
         ):
             line = get_middle_line(a.inputs, b.inputs, point.inputs)
-            margin = get_margin(*line)
+            margin = get_margin(data, *line)
             if max_margin is None or (margin is not None and margin > max_margin):
                 max_margin = margin
                 max_margin_line = line
@@ -428,6 +429,12 @@ def post_processing(data, a, b, c):
 
 data, model, a, b, c, error = ej1(df, "plots/ej1.a.gif", "plots/ej1.a.error.svg")
 print("Error: ", error)
+
+margin = get_margin(data, a, b, c)
+if margin is None:
+    raise Exception()
+plot_dataset(df, (a, b, c), margin, "plots/ej1.a.svg")
+
 a, b, c, margin = post_processing(data, a, b, c)
 
 plot_dataset(df, (a, b, c), margin, "plots/post_processed.svg")
@@ -436,7 +443,8 @@ print(a, b, c)
 
 plot_dataset(df_bad, line_angle, margin, "plots/tp3-2.svg")
 
-ej1(df_bad, "plots/ej1.c.gif", "plots/ej1.c.error.svg")
+data, model, a, b, c, error = ej1(df_bad, "plots/ej1.c.gif", "plots/ej1.c.error.svg")
+plot_dataset(df_bad, (a, b, c), None, "plots/ej1.c.svg")
 
-svm = SVM2d(df, "ej1.a", C=0.1, k=0.01).execute()
-svm = SVM2d(df_bad, "ej1.c", C=0.1, k=0.01).execute()
+# svm = SVM2d(df, "ej1.a", C=0.1, k=0.01).execute()
+# svm = SVM2d(df_bad, "ej1.c", C=0.1, k=0.01).execute()

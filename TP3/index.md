@@ -107,6 +107,8 @@ Como podemos ver, si bien los datos se separan correctamente, ya que son linealm
 
 <!-- TODO: Mostrar foro que muestre que no es optimo, marcar la distancia entre las clases y mostrar que no es la maxima. -->
 
+![](./plots/ej1.a.svg){.r-stretch}
+
 ---
 
 ### Hiperplano Óptimo
@@ -139,6 +141,12 @@ Al aplicar el postprocesado al resultado del perceptron simple, se consigue un m
 ![](./plots/ej1.c.error.svg)
 ::::
 :::
+
+---
+
+### Resultados perceptron simple
+
+![](./plots/ej1.c.svg)
 
 ---
 
