@@ -117,6 +117,12 @@ Al aplicar el postprocesado al resultado del perceptron simple, se consigue un m
 
 ---
 
+### Resultados SVM
+
+![](./plots/ej1.a.svm.svg){.r-stretch}
+
+---
+
 ## Dataset TP3-2
 
 ![](./plots/tp3-2.svg){.r-stretch}
@@ -138,11 +144,11 @@ Al aplicar el postprocesado al resultado del perceptron simple, se consigue un m
 
 ### Resultados SVM
 
-<!-- TODO: Agregar foto del perceptron --->
+![](./plots/ej1.c.svm.svg){.r-stretch}
 
----
+<!------->
 
-### En que se diferencian?
+<!--### En que se diferencian?-->
 
 <!-- TODO: Esto-->
 

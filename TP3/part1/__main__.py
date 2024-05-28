@@ -204,12 +204,14 @@ def plot_dataset(
 
 
 class SVM2d:
-    def __init__(self, df: DataFrame, C: float, k: float = 1.0):
+    def __init__(self, df: DataFrame, name: str, C: float, k: float = 1.0):
         self.df = df
         self.C = C
         self.ws = np.zeros(len(df.get_columns()) - 1)
         self.b = 0
         self.k = k
+
+        self.name = name
 
         self.r = 1
 
@@ -259,10 +261,10 @@ class SVM2d:
         hyperplane = np.array([-self.ws[1], self.ws[0]])
 
         line_angle = math.atan2(hyperplane[1], hyperplane[0])
-        plot_dataset(self.df, line_angle, self.r, "ej1.d.svg")
+        plot_dataset(self.df, line_angle, self.r, f"plots/{self.name}.svm.svg")
 
     def execute(self):
-        test = SVM2d(df, C=self.C, k=self.k)
+        test = SVM2d(self.df, self.name, C=self.C, k=self.k)
         test.train()
         test.plot()
 
@@ -348,10 +350,13 @@ def ej1(df, animation_file, error_file):
 
     plt.show()
     
-    plt.plot(np.arange(len(errors)), errors)
-    plt.ylabel("Error")
-    plt.xlabel("Iteration")
-    plt.savefig(error_file)
+    fig, ax = plt.subplots(1)
+    ax.plot(np.arange(len(errors)), errors)
+    ax.set_ylim(ymin=0)
+
+    ax.set_ylabel("Error")
+    ax.set_xlabel("Iteration")
+    fig.savefig(error_file)
     plt.show()
 
     if minimum_model is None or minimum_error is None:
@@ -433,4 +438,5 @@ plot_dataset(df_bad, line_angle, margin, "plots/tp3-2.svg")
 
 ej1(df_bad, "plots/ej1.c.gif", "plots/ej1.c.error.svg")
 
-svm = SVM2d(df, C=0.1, k=0.01).execute()
+svm = SVM2d(df, "ej1.a", C=0.1, k=0.01).execute()
+svm = SVM2d(df_bad, "ej1.c", C=0.1, k=0.01).execute()
