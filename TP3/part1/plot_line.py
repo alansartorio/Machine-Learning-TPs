@@ -8,7 +8,7 @@ class Plot:
         ax = fig.add_subplot()
         ax.set_xlim(-5, 5)
         ax.set_ylim(-5, 5)
-        scatter = ax.scatter(*zip(*inputs), c=outputs, cmap="viridis")
+        scatter = ax.scatter(*zip(*inputs), c=outputs, cmap="RdBu")
         fig.canvas.draw()
 
         self.axbackground = fig.canvas.copy_from_bbox(ax.bbox)

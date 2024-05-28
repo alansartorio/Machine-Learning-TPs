@@ -168,7 +168,7 @@ def plot_dataset(
     filename: str,
     space_size: Tuple[float, float] = (5, 5),
 ) -> None:
-    ax = sns.scatterplot(df, x="x", y="y", hue="class")
+    ax = sns.scatterplot(df, x="x", y="y", hue="class", palette="RdBu")
     ax.set_xbound(-space_size[0], space_size[0])
     ax.set_ybound(-space_size[1], space_size[1])
 
@@ -278,10 +278,10 @@ df_bad = pl.concat((df, bad_points))
 print(df)
 # print(*df.iter_rows(), sep='\n')
 
-# plot_dataset(df, line_angle, margin)
+plot_dataset(df, line_angle, margin, "plots/tp3-1.svg")
 
 
-def ej1(df, animation_file):
+def ej1(df, animation_file, error_file):
     from part1.single_data import SingleData
 
     data = [
@@ -310,6 +310,7 @@ def ej1(df, animation_file):
     writer = PillowWriter(fps=10)
     writer.setup(plot.fig, animation_file, dpi=200)
 
+    errors = []
     # print(model.layers[0].weights.flatten())
     # print(model.error(ej1_data))
     try:
@@ -330,6 +331,7 @@ def ej1(df, animation_file):
                 writer.grab_frame()
 
             error = model.error(data)
+            errors.append(error)
 
             if minimum_error is None or error < minimum_error:
                 minimum_error = error
@@ -344,6 +346,12 @@ def ej1(df, animation_file):
     print("DONE, PRESS 'q'")
     writer.finish()
 
+    plt.show()
+    
+    plt.plot(np.arange(len(errors)), errors)
+    plt.ylabel("Error")
+    plt.xlabel("Iteration")
+    plt.savefig(error_file)
     plt.show()
 
     if minimum_model is None or minimum_error is None:
@@ -413,7 +421,7 @@ def post_processing(data, a, b, c):
     return *margin_line, margin
 
 
-data, model, a, b, c, error = ej1(df, "plots/ej1.a.gif")
+data, model, a, b, c, error = ej1(df, "plots/ej1.a.gif", "plots/ej1.a.error.svg")
 print("Error: ", error)
 a, b, c, margin = post_processing(data, a, b, c)
 
@@ -421,6 +429,8 @@ plot_dataset(df, (a, b, c), margin, "plots/post_processed.svg")
 
 print(a, b, c)
 
-ej1(df_bad, "plots/ej1.c.gif")
+plot_dataset(df_bad, line_angle, margin, "plots/tp3-2.svg")
+
+ej1(df_bad, "plots/ej1.c.gif", "plots/ej1.c.error.svg")
 
 svm = SVM2d(df, C=0.1, k=0.01).execute()
