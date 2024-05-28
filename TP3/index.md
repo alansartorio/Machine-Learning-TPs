@@ -138,6 +138,122 @@ Como podemos ver, si bien los datos se separan correctamente, ya que son linealm
 
 # Ejercicio 2
 
+Dadas las imagenes provistas, entrenar un SVM para clasificacion de los pixeles en 3 clase utilizando limites de decision no lineales.
+
+---
+
+## Por que no funciona el SVM?
+
+En este caso, no tenemos una separacion lineal de las clases. No existe hiperplano capaz de separar las clases correctamente.
+
+---
+
+## Que podemos hacer?
+
+Para solucionar este problema, podemos utilizar un kernel que nos permita mapear los datos a un espacio de mayor dimension, donde si exista una separacion lineal.
+
+---
+
+## Kernel
+
+Un kernel es una funcion que nos permite mapear los datos a un espacio de mayor dimension, donde si exista una separacion lineal.
+
+Se aplica a la funcion de decision de la siguiente manera:
+
+$$
+f(x) = \sum_{i=1}^{n} \alpha_i K(x_i, x) + b_0
+$$
+
+---
+
+### Tipos de kernel
+
+- Lineal
+  $$ K(x, x') = x \cdot x' $$
+- Polinomial
+  $$ K(x*i, x') = (1+\sum^{p}*{j+1}x\_{ij} \cdot x_j)^d $$
+- Radial
+  $$ K(x*i, x') = e^{-\gamma \sum^{p}*{j+1}||x\_{ij} - x_j||^2} $$
+
+---
+
+### Como haremos la comparacion?
+
+Como sabemos los SVMs solo pueden compara 1 vs 1 y en este caso tenemos 3 clases.
+Para solucionarlo utilizamos ....
+
+<!-- TODO: AGREGAR COMO HACEMOS LA COMPARACION -->
+
+---
+
+## Datos
+
+<!-- TODO: Imagenes de los datos -->
+
+---
+
+### Conversion de las imagenes a vectores
+
+<!-- TODO: Explicar -->
+
+---
+
+### Division en training y test
+
+<!-- TODO: Explicar -->
+
+---
+
+## Resultados
+
+---
+
+### Resultados con kernel lineal
+
+<!-- TODO: Matriz de confusion -->
+
+---
+
+### Resultados con kernel polinomial
+
+<!-- TODO: Matriz de confusion -->
+
+---
+
+### Resultados con kernel radial
+
+<!-- TODO: Matriz de confusion -->
+
+---
+
+### Cual da mejores resultados?
+
+<!-- TODO:  -->
+
+---
+
+## Analisis de resultados
+
+Veremos como funicona el SVM con las imagenes dadas.
+
+---
+
+### Imagen cow.jpg
+
+<!-- TODO: Agregar imagen -->
+
+---
+
+### imagen vaca.jpg
+
+<!-- TODO: Agregar imagen -->
+
+---
+
+### NO SE A QUE SE REFIERE EL h)
+
+---
+
 ---
 
 # GRACIAS
