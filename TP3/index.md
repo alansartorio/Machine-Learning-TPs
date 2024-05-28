@@ -160,8 +160,6 @@ Al aplicar el postprocesado al resultado del perceptron simple, se consigue un m
 
 <!-- TODO: Esto-->
 
----
-
 # Ejercicio 2
 
 Dadas las imagenes provistas, entrenar un SVM para clasificacion de los pixeles en 3 clase utilizando limites de decision no lineales.
@@ -274,12 +272,10 @@ Veremos como funicona el SVM con las imagenes dadas.
 
 <!-- TODO: Agregar imagen -->
 
----
+<!------->
 
-### NO SE A QUE SE REFIERE EL h)
+<!--### NO SE A QUE SE REFIERE EL h)-->
 
----
-
----
+<!------->
 
 # GRACIAS
