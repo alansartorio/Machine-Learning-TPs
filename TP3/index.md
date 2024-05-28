@@ -18,17 +18,19 @@ Utilizar los metodos de SVM y perceptron simple para clasificacion de un dataset
 
 ## Perceptron simple
 
-Algortimo de aprendizaje supervisado que se utiliza para clasificar un conjunto de datos en dos categorías, utilizando la función de activación de la función escalón unitario.
+Algoritmo de aprendizaje supervisado que se utiliza para clasificar un conjunto de datos en dos categorías, utilizando la función de activación de la función escalón unitario.
 
 ---
 
 ### Implementacion
 
-<!-- TODO: Agregar informacion sobre la funcion de activacion --->
+Se utilizó la siguiente función escalón:
 
----
+![](./plots/step_function.svg){.r-stretch}
 
-### Entrenamiento
+<!------->
+
+<!--### Entrenamiento-->
 
  <!-- TODO: Agregar informacion sobre los parametros, la funcion de error, como hace para aprender --->
 
@@ -82,19 +84,20 @@ Tomando una cantidad de puntos aleatorios en cada iteracion, mas concretamente u
 
 ## Dataset TP3-1
 
-<!-- FOTO DEL DATASET -->
+![](./plots/tp3-1.svg){.r-stretch}
 
 ---
 
 ### Resultados perceptron simple
 
-<!-- TODO: Agregar foto del perceptron --->
-
----
-
-### Resultados SVM
-
-<!-- TODO: Agregar foto del perceptron --->
+:::{.container .r-stretch}
+::::{.flex-1}
+![](./plots/ej1.a.gif)
+::::
+::::{.flex-1}
+![](./plots/ej1.a.error.svg)
+::::
+:::
 
 ---
 
@@ -106,21 +109,30 @@ Como podemos ver, si bien los datos se separan correctamente, ya que son linealm
 
 ---
 
-### En que se diferencian?
+### Hiperplano Óptimo
 
-<!-- TODO: Esto-->
+Al aplicar el postprocesado al resultado del perceptron simple, se consigue un mejor margen:
+
+![](./plots/post_processed.svg){.r-stretch}
 
 ---
 
 ## Dataset TP3-2
 
-<!-- FOTO DEL DATASET -->
+![](./plots/tp3-2.svg){.r-stretch}
 
 ---
 
 ### Resultados perceptron simple
 
-<!-- TODO: Agregar foto del perceptron --->
+:::{.container .r-stretch}
+::::{.flex-1}
+![](./plots/ej1.c.gif)
+::::
+::::{.flex-1}
+![](./plots/ej1.c.error.svg)
+::::
+:::
 
 ---
 
