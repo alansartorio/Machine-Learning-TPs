@@ -347,6 +347,38 @@ test_values(['sigmoid'], [0.1])
 BEST_KERNEL = 'rbf'
 BEST_C = 1.0
 
+
+from part1.activation_functions import step_func
+from part1.network import Network
+from part1.single_data import SingleData
+data = [
+        SingleData(np.array([r, g, b]), np.array([clazz]))
+        for r, g, b, clazz in train.with_columns(pl.when(pl.col("class") == 0).then(1).when(pl.col("class") == 1).then(1).otherwise(-1).alias("class")).iter_rows()
+    ]
+
+model = Network.with_random_weights(3, (1,), step_func)
+
+model.train(0.01, data)
+
+x_values = load_image(input_file('cow.jpg'), lambda x,y,r,g,b:0).drop('class')
+y_pred = model.evaluate([np.array([r, g, b]) for r,g,b in x_values.iter_rows()])
+COLORS = {
+    'red':[255,0,0],
+    'green':[0,255,0],
+    'blue':[0,0,255]
+}
+paint_image(
+    input_file('cow.jpg'),
+    y_pred,
+    {
+        CLASSES['vaca']:COLORS['red'],
+        CLASSES['cielo']:COLORS['blue'],
+        CLASSES['pasto']:COLORS['green']
+    },
+    plot_file('manual_classification.jpg'),
+    True
+)
+
 model, _ = train_model(BEST_C,BEST_KERNEL,RBFParams(gamma='scale'))
 
 classify_image(model,input_file('cow.jpg'),plot_file('classified_cow.jpg'),False)

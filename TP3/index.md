@@ -12,7 +12,7 @@ author:
 
 # Ejercicio 1
 
-Utilizar los metodos de SVM y perceptron simple para clasificacion de un dataset preparado por nosotros.
+Utilizar los metodos de SVM y perceptron simple para la clasificacion de un dataset preparado por nosotros.
 
 ---
 
@@ -22,7 +22,43 @@ Algoritmo de aprendizaje supervisado que se utiliza para clasificar un conjunto 
 
 ---
 
-### Implementacion
+## Implementación del perceptrón
+
+$$y = \sum_{i=0}^{n-1} w_i \cdot x_i + b$$
+
+* $w_i$ es el peso de la i-ésima entrada
+* $x_i$ es el valor de i-ésima entrada
+* $b$ es el bias o término constante
+* $n$ es el número de entradas
+
+---
+
+## Entrenamiento de un Perceptrón
+
+1. Inicializa pesos y bias con valores aleatorios:
+
+    $$w_i = \text{valor\_aleatorio}$$
+
+2. Calcular el output para $x$: 
+
+    $$y = \theta(\sum_{i=1}^{n} w_i \cdot x_i + b)$$
+donde $\theta$ es la función de activación
+
+---
+
+## Entrenamiento de un Perceptrón
+
+3. Compara output con salida deseada $t$: 
+
+	* Si $y = t$, el perceptrón está correcto, así que no hace nada.
+	* Si $y \ne t$, el perceptrón está incorrecto, así que actualiza pesos y bias utilizando la regla de aprendizaje: $$w_i = w_i + \eta (t - y) x_i$$
+donde $\eta$ es el coeficiente de aprendizaje, que controla cuán rápidamente se actualizan los pesos.
+
+4. Repite los pasos 2-3 hasta convergencia o número máximo de iteraciones.
+
+---
+
+### Función activación
 
 Se utilizó la siguiente función escalón:
 
@@ -54,11 +90,13 @@ Se calcula la distancia de cada punto al hiperplano y se actualizan los pesos y 
 Si esta mal clasificado se corrije con:
 
 $$
-\vec{w}^{nuevo} = \vec{w}^{viejo} - k (\vec{w}^{viejo} - Cx_iy_i)\\
-b^{nuevo} = b^{viejo} - k (- Cy_i)
+\begin{align}
+\vec{w}^{nuevo} &= \vec{w}^{viejo} - k (\vec{w}^{viejo} - Cx_iy_i)\\
+b^{nuevo} &= b^{viejo} - k (- Cy_i)
+\end{align}
 $$
 
-Si esta bien clasificado cambia menos:
+Y si esta bien clasificado:
 
 $$
 \vec{w}^{nuevo} = \vec{w}^{viejo} - k \vec{w}^{viejo}
@@ -103,7 +141,7 @@ Tomando una cantidad de puntos aleatorios en cada iteracion, mas concretamente u
 
 ### Es un hiperplano optimo?
 
-Como podemos ver, si bien los datos se separan correctamente, ya que son linealmente separables, el hiperplano no es optimo, ya que no es el que maximiza la distancia entre las dos clases.
+Como podemos ver, si bien los datos se separan correctamente, ya que son linealmente separables, el hiperplano no es optimo, ya que no es el que maximiza el margen.
 
 <!-- TODO: Mostrar foro que muestre que no es optimo, marcar la distancia entre las clases y mostrar que no es la maxima. -->
 
@@ -116,6 +154,8 @@ Como podemos ver, si bien los datos se separan correctamente, ya que son linealm
 Al aplicar el postprocesado al resultado del perceptron simple, se consigue un mejor margen:
 
 ![](./plots/post_processed.svg){.r-stretch}
+
+Pero... es optimo?
 
 ---
 
@@ -152,7 +192,31 @@ Al aplicar el postprocesado al resultado del perceptron simple, se consigue un m
 
 ### Resultados SVM
 
-![](./plots/ej1.c.svm.svg){.r-stretch}
+:::{.container .r-stretch}
+::::{.flex-1}
+$c=0.1$
+![](./plots/ej1.c.100.svm.svg)
+::::
+::::{.flex-1}
+$c=1$
+![](./plots/ej1.c.10.svm.svg)
+::::
+:::
+
+---
+
+### Resultados SVM
+
+:::{.container .r-stretch}
+::::{.flex-1}
+$c=10$
+![](./plots/ej1.c.1.svm.svg)
+::::
+::::{.flex-1}
+$c=100$
+![](./plots/ej1.c.0.1.svm.svg)
+::::
+:::
 
 <!------->
 
@@ -444,6 +508,14 @@ Para pintar las imágenes se utilizaron colores por clase:
 ### Otras imágenes
 
 ![](./plots/classified_vacas_3.jpg){.r-stretch}
+
+---
+
+## Clasificación con nuestro modelo
+
+Ahora usamos el modelo que implementamos nosotros para clasificar la imagen de la vaca. Dado que tenemos 3 clases distintas y SVM solo permite comparar uno contra uno, usamos una estrategia de uno contra todos en donde seleccionamos una clase y las demas las fusionamos.
+
+![](./plots/part2/manual_classification.jpg){.r-stretch}
 
 <!------->
 
