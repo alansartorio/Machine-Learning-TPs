@@ -40,6 +40,10 @@ def load_image(filepath: Path, get_class: Callable[[int,int,int,int,int],UInt8])
 
 MAX_POINTS=3000
 
+def reset_figsize():
+    plt.close()
+    plt.rcParams["figure.figsize"] = plt.rcParamsDefault["figure.figsize"]
+
 def plot_rgb_projections(df: DataFrame, title: str, show:bool=True, save_path:Optional[Path]=None):
     data = df.sample(MAX_POINTS).drop(['class']).to_numpy()
 
@@ -79,6 +83,7 @@ def plot_rgb_projections(df: DataFrame, title: str, show:bool=True, save_path:Op
         plt.show()
     
     plt.clf()
+    reset_figsize()
 
 def plot_rgb_cube(df: DataFrame, title: str, show:bool=True, save_path:Optional[Path]=None):
     ax = plt.axes(projection='3d')
@@ -111,6 +116,7 @@ def plot_rgb_cube(df: DataFrame, title: str, show:bool=True, save_path:Optional[
     if show:
         plt.show()
     plt.clf()
+    reset_figsize()
 
 def plot_confusion_matrix(confusion_matrix: NDArray[Any], labels, title: str, show:bool=True, save_path:Optional[Path]=None):
     plt.figure(figsize=(8, 6))
@@ -125,6 +131,7 @@ def plot_confusion_matrix(confusion_matrix: NDArray[Any], labels, title: str, sh
     if show:
         plt.show()
     plt.clf()
+    reset_figsize()
 
 def plot_metrics(
         metrics: List[float], 
@@ -154,6 +161,7 @@ def plot_metrics(
     if show:
         plt.show()
     plt.clf()
+    reset_figsize()
 
 def paint_image(
         image_path: Path, 

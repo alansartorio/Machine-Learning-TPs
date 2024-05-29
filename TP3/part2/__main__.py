@@ -28,20 +28,20 @@ config: Dict[str,Any] = dict(
     plots_path=Path('./plots/part2')
 )
 
-# CLASSES = {
-#     'None': 3,
-#     'vaca': -1,
-#     'pasto': 0,
-#     'cielo': 1,
-# }
-
-# Old classes
 CLASSES = {
-    'None': 0,
-    'vaca': 1,
-    'pasto': 2,
-    'cielo': 3, 
+    'None': 3,
+    'vaca': -1,
+    'pasto': 0,
+    'cielo': 1,
 }
+
+# # Old classes
+# CLASSES = {
+    # 'None': 0,
+    # 'vaca': 1,
+    # 'pasto': 2,
+    # 'cielo': 3, 
+# }
 
 @dataclass
 class PolyParams:
@@ -306,10 +306,11 @@ print("Test", test)
 print("Test split classes:")
 print_class_sizes(test)
 
-KERNELS = ['linear', 'poly','rbf', 'sigmoid']
+KERNELS = ['linear', 'poly','rbf']
 C_VALUES = [1.0, 0.75, 0.5, 0.25, 0.1]
 
 test_values(KERNELS, C_VALUES)
+test_values(['sigmoid'], [0.1])
 
 # # Test with specific parameters for kernel
 # for gamma in ['scale', 0.001, 0.005, 0.01]:

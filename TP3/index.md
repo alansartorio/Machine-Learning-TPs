@@ -164,13 +164,14 @@ Al aplicar el postprocesado al resultado del perceptron simple, se consigue un m
 
 Utilizar un modelo SVM para clasificar una imagen.
 
-![](./plots/cow.jpg)
+![](./plots/cow.jpg){.r-stretch}
 
 ---
 
 ## Datos
 
 Tomando como refencia la imagen principal cow.jpg, se nos provee con las imágenes de muestra
+
 - vaca.jpg
 - cielo.jpg
 - pasto.jpg
@@ -181,7 +182,7 @@ Que son representativas para las clases "vaca", "cielo" y "pasto" respectivament
 
 ## Dataset
 
-Para construír el dataset que se utilizará en el entrenamiento del modelo, se tomará cada una de las imágenes de muestra y por cada píxel se generará un documento en el dataset con los valores RGB del mismo. Además, se clasificará al documento en base a la imagen de la que proviene dicho píxel. 
+Para construír el dataset que se utilizará en el entrenamiento del modelo, se tomará cada una de las imágenes de muestra y por cada píxel se generará un documento en el dataset con los valores RGB del mismo. Además, se clasificará al documento en base a la imagen de la que proviene dicho píxel.
 
 Es decir, que nuestro dataset estará compuesto por documentos con tres variables (r, g y b) con valores entre 0 y 255 y una clasificación que estará entre "vaca", "past" y "cielo", representada por un valor del conjunto $\{-1,0,1\}$ respectivamente.
 
@@ -201,11 +202,17 @@ Para entender mejor las características de los datos, se realizó esta represen
 
 ### Representación por clase
 
+:::{.container .r-stretch}
+::::{.flex-1}
 ![](./plots/part2/vaca_rgb.svg)
-
+::::
+::::{.flex-1}
 ![](./plots/part2/cielo_rgb.svg)
-
+::::
+::::{.flex-1}
 ![](./plots/part2/pasto_rgb.svg)
+::::
+:::
 
 ---
 
@@ -223,37 +230,43 @@ Adicionalmente, para ilustrar mejor la distribución de los datos, se graficaron
 
 ### Representación por clase
 
-![](./plots/part2/vaca_rgb_projections.svg)
+![](./plots/part2/vaca_rgb_projections.svg){.r-stretch}
 
-![](./plots/part2/cielo_rgb_projections.svg)
+---
 
-![](./plots/part2/pasto_rgb_projections.svg)
+### Representación por clase
+
+![](./plots/part2/cielo_rgb_projections.svg){.r-stretch}
+
+---
+
+### Representación por clase
+
+![](./plots/part2/pasto_rgb_projections.svg){.r-stretch}
 
 ---
 
 ### Representación de la imagen original
 
-![](./plots/part2/cow_rgb_projections.svg)
+![](./plots/part2/cow_rgb_projections.svg){.r-stretch}
 
 ---
 
-## Por que no funciona el SVM?
-
-En este caso, no tenemos una separacion lineal de las clases. No existe hiperplano capaz de separar las clases correctamente.
+## Es el SVM lineal el mejor clasificador?
 
 ---
 
 ## Que podemos hacer?
 
-Para solucionar este problema, podemos utilizar un kernel que nos permita mapear los datos a un espacio de mayor dimension, donde si exista una separacion lineal.
+Para responder esta pregunta, podemos utilizar un kernel que nos permita mapear los datos a un espacio de mayor dimensión.
 
 ---
 
 ## Kernel
 
-Un kernel es una funcion que nos permite mapear los datos a un espacio de mayor dimension, donde si exista una separacion lineal.
+Un kernel es una función que nos permite mapear los datos a un espacio de mayor dimensión.
 
-Se aplica a la funcion de decision de la siguiente manera:
+Se aplica a la funcion de decisión de la siguiente manera:
 
 $$
 f(x) = \sum_{i=1}^{n} \alpha_i K(x_i, x) + b_0
@@ -266,9 +279,9 @@ $$
 - Lineal
   $$ K(x, x') = x \cdot x' $$
 - Polinomial
-  $$ K(x_i, x') = (1+\sum^{p}x_{ij} \cdot x_j)^d $$
+  $$ K(x*i, x') = (1+\sum^{p}x*{ij} \cdot x_j)^d $$
 - Radial
-  $$ K(x_i, x') = e^{-\gamma \sum^{p}||x_{ij} - x_j||^2} $$
+  $$ K(x*i, x') = e^{-\gamma \sum^{p}||x*{ij} - x_j||^2} $$
 
 ---
 
@@ -276,9 +289,13 @@ $$
 
 Para poder utilizar kernels no lineales, se empleará la librería scikit learn que ofrece un módulo para la clasificación con modelos SVM. Para la misma se puede elegir entre los tipos de kernel ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, donde las primeras tres se corresponden con las funciones ya mencionadas, y el kernel sigmoideo se define por la siguiente función:
 
-$$ K(x_i, x') = \tanh(-\gamma x_{ij} x_j+r) $$
+$$ K(x*i, x') = \tanh(-\gamma x*{ij} x_j+r) $$
 
-Para la configuración del modelo, además del kernel se pueden modificar otros parámetros de los cuáles el principal es el *parámetro de regularización* $C$, el cuál afecta al cálculo del error dentro del entrenamiento del modelo, donde el mismo se calcula cómo:
+---
+
+### Configuración
+
+Para la configuración del modelo, además del kernel se pueden modificar otros parámetros de los cuáles el principal es el _parámetro de regularización_ $C$, el cuál afecta al cálculo del error dentro del entrenamiento del modelo, donde el mismo se calcula cómo:
 
 $$
 C\sum_{i=1,n}\mathcal{L}(f(x_i),y_i)+\Omega (w)
@@ -303,26 +320,28 @@ Para la división del dataset entre training y test se realizó un muestreo alea
 ### Division en training y test
 
 **División 70% training**
-|Kernel | C | accuracy|
-|-|-|-|
-|rbf|1|98.96%|
-|rbf | 0.75| 98.96%|
-...
-|sigmoid | 0.5| 13.01%|
-|sigmoid | 1| 12.95%|
+
+| Kernel  | C    | accuracy |
+| ------- | ---- | -------- |
+| rbf     | 1    | 98.96%   |
+| rbf     | 0.75 | 98.96%   |
+| ...     | ...  | ...      |
+| sigmoid | 0.5  | 13.01%   |
+| sigmoid | 1    | 12.95%   |
 
 ---
 
 ### Division en training y test
 
 **División 80% training**
-|Kernel | C | accuracy|
-|-|-|-|
-|rbf|1|98.78%|
-|rbf | 0.75| 98.77%|
-...
-|sigmoid | 0.75| 0.118%|
-|sigmoid | 1| 0.118%|
+
+| Kernel  | C    | accuracy |
+| ------- | ---- | -------- |
+| rbf     | 1    | 98.78%   |
+| rbf     | 0.75 | 98.77%   |
+| ...     | ...  | ...      |
+| sigmoid | 0.75 | 0.118%   |
+| sigmoid | 1    | 0.118%   |
 
 ---
 
@@ -342,25 +361,25 @@ En cada caso se calculó la matriz de confusión y las métricas de precisión, 
 
 ### Resultados con kernel lineal
 
-![](./plots/part2/confusion_matrix_linear_1_0.svg)
+![](./plots/part2/confusion_matrix_linear_1_0.svg){.r-stretch}
 
 ---
 
 ### Resultados con kernel polinomial
 
-![](./plots/part2/confusion_matrix_poly_1_0.svg)
+![](./plots/part2/confusion_matrix_poly_1_0.svg){.r-stretch}
 
 ---
 
 ### Resultados con kernel radial
 
-![](./plots/part2/confusion_matrix_rbf_1_0.svg)
+![](./plots/part2/confusion_matrix_rbf_1_0.svg){.r-stretch}
 
 ---
 
 ### Resultados con kernel sigmoideo
 
-![](./plots/part2/confusion_matrix_sigmoid_0_1.svg)
+![](./plots/part2/confusion_matrix_sigmoid_0_1.svg){.r-stretch}
 
 ---
 
@@ -368,17 +387,18 @@ En cada caso se calculó la matriz de confusión y las métricas de precisión, 
 
 En general la variación de los resultados fue mínima al variar el valor de $C$, pero en todos los casos los mejores resultados se obtuviero al utilizar $C=1$.
 
-Esto es verdad también para la variación de los parámetros del kernel. En general, todos los tipos de kernel obtuvieron resultados bastante buenos. 
+Esto es verdad también para la variación de los parámetros del kernel. En general, todos los tipos de kernel obtuvieron resultados bastante buenos.
 
-La excepción a todo esto fue el kernel sigmoideo, que además de dar peores resultados que el resto, la mejor clasificación se obtuvo con $C=1$
+La excepción a todo esto fue el kernel sigmoideo, que además de dar peores resultados que el resto, la mejor clasificación se obtuvo con $C=0.1$
 
 ---
 
-## Analisis de resultados
+## Clasificación
 
 Veremos como funicona el SVM con las imagenes dadas.
 
 Para pintar las imágenes se utilizaron colores por clase:
+
 - vaca: Rojo
 - cielo: Azul
 - pasto: Verde
@@ -387,46 +407,44 @@ Para pintar las imágenes se utilizaron colores por clase:
 
 ### Imagen cow.jpg
 
-![](./plots/classified_cow.jpg)
-
-
----
-
-### Otras imágenes
-
-![](./plots/vacas_1.jpg)
+![](./plots/classified_cow.jpg){.r-stretch}
 
 ---
 
 ### Otras imágenes
 
-![](./plots/classified_vacas_1.jpg)
+![](./plots/vacas_1.jpg){.r-stretch}
 
 ---
 
 ### Otras imágenes
 
-![](./plots/vacas_2.jpg)
+![](./plots/classified_vacas_1.jpg){.r-stretch}
 
 ---
 
 ### Otras imágenes
 
-![](./plots/classified_vacas_2.jpg)
+![](./plots/vacas_2.jpg){.r-stretch}
 
 ---
 
 ### Otras imágenes
 
-![](./plots/vacas_3.jpg)
+![](./plots/classified_vacas_2.jpg){.r-stretch}
 
 ---
 
 ### Otras imágenes
 
-![](./plots/classified_vacas_3.jpg)
+![](./plots/vacas_3.jpg){.r-stretch}
 
 ---
+
+### Otras imágenes
+
+![](./plots/classified_vacas_3.jpg){.r-stretch}
+
 <!------->
 
 <!--### NO SE A QUE SE REFIERE EL h)-->
@@ -434,5 +452,3 @@ Para pintar las imágenes se utilizaron colores por clase:
 <!------->
 
 # GRACIAS
-
----
