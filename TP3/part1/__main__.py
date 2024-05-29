@@ -214,7 +214,7 @@ class SVM2d:
 
         self.name = name
 
-        self.r = 1
+        self.r: np.floating = 1
 
         self.percentage_of_data = 0.5
 
@@ -268,9 +268,6 @@ class SVM2d:
         test = SVM2d(self.df, self.name, C=self.C, k=self.k)
         test.train()
         test.plot()
-
-    def __repr__(self) -> str:
-        return f"SimpleSVM(margin={self.margin}, C={self.C}, bs={self.bs})"
 
 
 line_angle = 13.131
