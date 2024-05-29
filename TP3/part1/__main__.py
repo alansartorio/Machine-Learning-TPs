@@ -255,7 +255,11 @@ class SVM2d:
 
             iteration += 1
 
-        self.r = 1 / np.linalg.norm(self.ws)
+        norm = np.linalg.norm(self.ws)
+        if norm != 0:
+            self.r = 1 / norm
+        else:
+            self.r = 0
         print(f"w: {self.ws}, b: {self.b}, r: {self.r}, k: {learning_rate}")
 
     def plot(self):
@@ -272,10 +276,16 @@ class SVM2d:
 
 line_angle = 13.131
 margin = 0.5
-df = create_dataset(margin=margin, line_angle=line_angle, points_per_class=100)
-bad_points = add_bad_points(margin=margin, line_angle=line_angle, points_per_class=10)
-df_bad = pl.concat((df, bad_points))
+# df = create_dataset(margin=margin, line_angle=line_angle, points_per_class=100)
+# df.write_csv("df.csv")
+df = pl.read_csv("df.csv")
 print(df)
+
+# bad_points = add_bad_points(margin=margin, line_angle=line_angle, points_per_class=10)
+# bad_points.write_csv("bad_points.csv")
+bad_points = pl.read_csv("bad_points.csv")
+
+df_bad = pl.concat((df, bad_points))
 # print(*df.iter_rows(), sep='\n')
 
 plot_dataset(df, line_angle, margin, "plots/tp3-1.svg")
@@ -316,7 +326,7 @@ def ej1(df, animation_file, error_file):
     try:
         error = model.error(data)
         i = 0
-        max_iter = 1000
+        max_iter = 500
         while error > 0 and i < max_iter:
             learning_rate = 0.01 * np.exp(-i / max_iter)
             chosen_data = sample(data, 1)[0]
@@ -443,5 +453,6 @@ plot_dataset(df_bad, line_angle, margin, "plots/tp3-2.svg")
 data, model, a, b, c, error = ej1(df_bad, "plots/ej1.c.gif", "plots/ej1.c.error.svg")
 plot_dataset(df_bad, (a, b, c), None, "plots/ej1.c.svg")
 
-# svm = SVM2d(df, "ej1.a", C=0.1, k=0.01).execute()
-# svm = SVM2d(df_bad, "ej1.c", C=0.1, k=0.01).execute()
+svm = SVM2d(df, "ej1.a", C=10000, k=0.01).execute()
+for c in [100, 10, 1, 0.1]:
+    svm = SVM2d(df_bad, f"ej1.c.{c}", C=c, k=0.01).execute()
