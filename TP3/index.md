@@ -162,7 +162,78 @@ Al aplicar el postprocesado al resultado del perceptron simple, se consigue un m
 
 # Ejercicio 2
 
-Dadas las imagenes provistas, entrenar un SVM para clasificacion de los pixeles en 3 clase utilizando limites de decision no lineales.
+Utilizar un modelo SVM para clasificar una imagen.
+
+![](./plots/cow.jpg)
+
+---
+
+## Datos
+
+Tomando como refencia la imagen principal cow.jpg, se nos provee con las imágenes de muestra
+- vaca.jpg
+- cielo.jpg
+- pasto.jpg
+
+Que son representativas para las clases "vaca", "cielo" y "pasto" respectivamente.
+
+---
+
+## Dataset
+
+Para construír el dataset que se utilizará en el entrenamiento del modelo, se tomará cada una de las imágenes de muestra y por cada píxel se generará un documento en el dataset con los valores RGB del mismo. Además, se clasificará al documento en base a la imagen de la que proviene dicho píxel. 
+
+Es decir, que nuestro dataset estará compuesto por documentos con tres variables (r, g y b) con valores entre 0 y 255 y una clasificación que estará entre "vaca", "past" y "cielo", representada por un valor del conjunto $\{-1,0,1\}$ respectivamente.
+
+$$
+D=\{x_i\ /\ x_i=\{(r_i,g_i,b_i),y_i\}\land r_i,g_i,b_i\in [0,\dots,255]\land y_i\{-1,0,1\}\}
+$$
+
+---
+
+## Dataset
+
+Para entender mejor el dataset resultante se buscó tomaron ejemplos al azar del mismo y se los ubicó en un espacio tridimensional según los valores de sus atributos. En otras palabras, se buscó realizar una "representación dentro de un cubo RGB" de los datos.
+
+Para entender mejor las características de los datos, se realizó esta representación por separado para cada una de las clases.
+
+---
+
+### Representación por clase
+
+![](./plots/part2/vaca_rgb.svg)
+
+![](./plots/part2/cielo_rgb.svg)
+
+![](./plots/part2/pasto_rgb.svg)
+
+---
+
+### Representación de la imagen original
+
+![](./plots/part2/cow_rgb.svg)
+
+---
+
+## Dataset
+
+Adicionalmente, para ilustrar mejor la distribución de los datos, se graficaron proyecciones de los cubos.
+
+---
+
+### Representación por clase
+
+![](./plots/part2/vaca_rgb_projections.svg)
+
+![](./plots/part2/cielo_rgb_projections.svg)
+
+![](./plots/part2/pasto_rgb_projections.svg)
+
+---
+
+### Representación de la imagen original
+
+![](./plots/part2/cow_rgb_projections.svg)
 
 ---
 
@@ -195,64 +266,111 @@ $$
 - Lineal
   $$ K(x, x') = x \cdot x' $$
 - Polinomial
-  $$ K(x*i, x') = (1+\sum^{p}*{j+1}x\_{ij} \cdot x_j)^d $$
+  $$ K(x_i, x') = (1+\sum^{p}x_{ij} \cdot x_j)^d $$
 - Radial
-  $$ K(x*i, x') = e^{-\gamma \sum^{p}*{j+1}||x\_{ij} - x_j||^2} $$
+  $$ K(x_i, x') = e^{-\gamma \sum^{p}||x_{ij} - x_j||^2} $$
 
 ---
 
-### Como haremos la comparacion?
+### Modelo
 
-Como sabemos los SVMs solo pueden compara 1 vs 1 y en este caso tenemos 3 clases.
-Para solucionarlo utilizamos ....
+Para poder utilizar kernels no lineales, se empleará la librería scikit learn que ofrece un módulo para la clasificación con modelos SVM. Para la misma se puede elegir entre los tipos de kernel ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, donde las primeras tres se corresponden con las funciones ya mencionadas, y el kernel sigmoideo se define por la siguiente función:
 
-<!-- TODO: AGREGAR COMO HACEMOS LA COMPARACION -->
+$$ K(x_i, x') = \tanh(-\gamma x_{ij} x_j+r) $$
+
+Para la configuración del modelo, además del kernel se pueden modificar otros parámetros de los cuáles el principal es el *parámetro de regularización* $C$, el cuál afecta al cálculo del error dentro del entrenamiento del modelo, donde el mismo se calcula cómo:
+
+$$
+C\sum_{i=1,n}\mathcal{L}(f(x_i),y_i)+\Omega (w)
+$$
+
+Donde $\mathcal{L}$ es la función de pérdida y $\Omega$ una función de penalización.
+
+Adicionalmente, es posible configurar los parámetros de cada función de kernel que se utilice.
 
 ---
 
-## Datos
-
-<!-- TODO: Imagenes de los datos -->
-
----
-
-### Conversion de las imagenes a vectores
-
-<!-- TODO: Explicar -->
+## Entrenamiento
 
 ---
 
 ### Division en training y test
 
-<!-- TODO: Explicar -->
+Para la división del dataset entre training y test se realizó un muestreo aleatorio de los datos para cada una de las clases. Para determinar el porcentaje de los datos que se usarán para cada conjunto (tomando como referencia al de entrenamiento) se entrenaron y evaluaron modelos con todos los tipos de kernel y varios valores de $C$, tanto para una división de 70% de datos de entrenamiento, como luego para una división de 80% de datos de entrenamiento. En base a esto se calculó la accuracy de los resultados obtenidos en la evaluación y en base a ésta se determinó que división era más óptima.
+
+---
+
+### Division en training y test
+
+**División 70% training**
+|Kernel | C | accuracy|
+|-|-|-|
+|rbf|1|98.96%|
+|rbf | 0.75| 98.96%|
+...
+|sigmoid | 0.5| 13.01%|
+|sigmoid | 1| 12.95%|
+
+---
+
+### Division en training y test
+
+**División 80% training**
+|Kernel | C | accuracy|
+|-|-|-|
+|rbf|1|98.78%|
+|rbf | 0.75| 98.77%|
+...
+|sigmoid | 0.75| 0.118%|
+|sigmoid | 1| 0.118%|
+
+---
+
+### Division en training y test
+
+En base a estos resultados obtenidos, se optó por utilizar una división el 70% de datos para el conjunto de training.
 
 ---
 
 ## Resultados
 
+Se entrenó y evaluó el modelo con los diferentes tipos de funciones de kernel y con los siguientes valores para el parámetro $C$: $\{0.1,0.25,0.5,0.75,1.0\}$
+
+En cada caso se calculó la matriz de confusión y las métricas de precisión, recall y f1-score por clase, junto con un valor de accuracy para el resultado general.
+
 ---
 
 ### Resultados con kernel lineal
 
-<!-- TODO: Matriz de confusion -->
+![](./plots/part2/split_0_7/confusion_matrix_linear_1_0.svg)
 
 ---
 
 ### Resultados con kernel polinomial
 
-<!-- TODO: Matriz de confusion -->
+![](./plots/part2/split_0_7/confusion_matrix_poly_1_0.svg)
 
 ---
 
 ### Resultados con kernel radial
 
-<!-- TODO: Matriz de confusion -->
+![](./plots/part2/split_0_7/confusion_matrix_rbf_1_0.svg)
 
 ---
 
-### Cual da mejores resultados?
+### Resultados con kernel sigmoideo
 
-<!-- TODO:  -->
+![](./plots/part2/split_0_7/confusion_matrix_sigmoid_0_1.svg)
+
+---
+
+## Resultados
+
+En general la variación de los resultados fue mínima al variar el valor de $C$, pero en todos los casos los mejores resultados se obtuviero al utilizar $C=1$.
+
+Esto es verdad también para la variación de los parámetros del kernel. En general, todos los tipos de kernel obtuvieron resultados bastante buenos. 
+
+La excepción a todo esto fue el kernel sigmoideo, que además de dar peores resultados que el resto, la mejor clasificación se obtuvo con $C=1$
 
 ---
 
@@ -260,18 +378,55 @@ Para solucionarlo utilizamos ....
 
 Veremos como funicona el SVM con las imagenes dadas.
 
+Para pintar las imágenes se utilizaron colores por clase:
+- vaca: Rojo
+- cielo: Azul
+- pasto: Verde
+
 ---
 
 ### Imagen cow.jpg
 
-<!-- TODO: Agregar imagen -->
+![](./plots/classified_cow.jpg)
+
 
 ---
 
-### imagen vaca.jpg
+### Otras imágenes
 
-<!-- TODO: Agregar imagen -->
+![](./plots/vacas_1.jpg)
 
+---
+
+### Otras imágenes
+
+![](./plots/classified_vacas_1.jpg)
+
+---
+
+### Otras imágenes
+
+![](./plots/vacas_2.jpg)
+
+---
+
+### Otras imágenes
+
+![](./plots/classified_vacas_2.jpg)
+
+---
+
+### Otras imágenes
+
+![](./plots/vacas_3.jpg)
+
+---
+
+### Otras imágenes
+
+![](./plots/classified_vacas_3.jpg)
+
+---
 <!------->
 
 <!--### NO SE A QUE SE REFIERE EL h)-->
@@ -279,3 +434,5 @@ Veremos como funicona el SVM con las imagenes dadas.
 <!------->
 
 # GRACIAS
+
+---
