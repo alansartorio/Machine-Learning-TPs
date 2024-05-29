@@ -293,22 +293,23 @@ def classify_image(model: SVC, image_path: Path, output_path: Path, show_result=
         show_result
     )
 
-# load_datasets()
-# adapt_datasets()
-# print_sizes()
-# train, test = generate_train_test(0.7)
+load_datasets()
+adapt_datasets()
+print_sizes()
+generate_rgb_cubes()
+train, test = generate_train_test(0.7)
 
-# print("Train", train)
-# print("Train split classes:")
-# print_class_sizes(train)
-# print("Test", test)
-# print("Test split classes:")
-# print_class_sizes(test)
+print("Train", train)
+print("Train split classes:")
+print_class_sizes(train)
+print("Test", test)
+print("Test split classes:")
+print_class_sizes(test)
 
 KERNELS = ['linear', 'poly','rbf', 'sigmoid']
 C_VALUES = [1.0, 0.75, 0.5, 0.25, 0.1]
 
-# test_values(KERNELS, C_VALUES)
+test_values(KERNELS, C_VALUES)
 
 # # Test with specific parameters for kernel
 # for gamma in ['scale', 0.001, 0.005, 0.01]:
@@ -330,24 +331,24 @@ C_VALUES = [1.0, 0.75, 0.5, 0.25, 0.1]
 # for a in accuracies:
 #     print(a['file'],f"{a['value']:.3%}")
 
-# Print all results
-for f in  Path('./out/part2/split_0_7').iterdir():
-    data = load_result(f)
-    print(f"Labels: {get_class_labels(data.y_true)}")
-    print(f"""Results for model. Kernel={data.kernel}, C={data.C}:
-- precision: {data.precision}
-- recall: {data.recall}
-- f1-score: {data.f1_score}
-- accuracy: {data.accuracy}        
-        """)
+# # Print all results
+# for f in  Path('./out/part2/split_0_7').iterdir():
+#     data = load_result(f)
+#     print(f"Labels: {get_class_labels(data.y_true)}")
+#     print(f"""Results for model. Kernel={data.kernel}, C={data.C}:
+# - precision: {data.precision}
+# - recall: {data.recall}
+# - f1-score: {data.f1_score}
+# - accuracy: {data.accuracy}        
+#         """)
 
-# # Classify images
-# BEST_KERNEL = 'rbf'
-# BEST_C = 1.0
+# Classify images
+BEST_KERNEL = 'rbf'
+BEST_C = 1.0
 
-# model, _ = train_model(BEST_C,BEST_KERNEL,RBFParams(gamma='scale'))
+model, _ = train_model(BEST_C,BEST_KERNEL,RBFParams(gamma='scale'))
 
-# classify_image(model,input_file('cow.jpg'),output_file('classified_cow.jpg'),True)
-# classify_image(model,input_file('vacas_1.jpg'),output_file('classified_vacas_1.jpg'),True)
-# classify_image(model,input_file('vacas_2.jpg'),output_file('classified_vacas_2.jpg'),True)
-# classify_image(model,input_file('vacas_3.jpg'),output_file('classified_vacas_3.jpg'),True)
+classify_image(model,input_file('cow.jpg'),plot_file('classified_cow.jpg'),False)
+classify_image(model,input_file('vacas_1.jpg'),plot_file('classified_vacas_1.jpg'),False)
+classify_image(model,input_file('vacas_2.jpg'),plot_file('classified_vacas_2.jpg'),False)
+classify_image(model,input_file('vacas_3.jpg'),plot_file('classified_vacas_3.jpg'),False)

@@ -342,25 +342,25 @@ En cada caso se calculó la matriz de confusión y las métricas de precisión, 
 
 ### Resultados con kernel lineal
 
-![](./plots/part2/split_0_7/confusion_matrix_linear_1_0.svg)
+![](./plots/part2/confusion_matrix_linear_1_0.svg)
 
 ---
 
 ### Resultados con kernel polinomial
 
-![](./plots/part2/split_0_7/confusion_matrix_poly_1_0.svg)
+![](./plots/part2/confusion_matrix_poly_1_0.svg)
 
 ---
 
 ### Resultados con kernel radial
 
-![](./plots/part2/split_0_7/confusion_matrix_rbf_1_0.svg)
+![](./plots/part2/confusion_matrix_rbf_1_0.svg)
 
 ---
 
 ### Resultados con kernel sigmoideo
 
-![](./plots/part2/split_0_7/confusion_matrix_sigmoid_0_1.svg)
+![](./plots/part2/confusion_matrix_sigmoid_0_1.svg)
 
 ---
 
