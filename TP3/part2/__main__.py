@@ -347,6 +347,13 @@ test_values(['sigmoid'], [0.1])
 BEST_KERNEL = 'rbf'
 BEST_C = 1.0
 
+model, _ = train_model(BEST_C,BEST_KERNEL,RBFParams(gamma='scale'))
+
+classify_image(model,input_file('cow.jpg'),plot_file('classified_cow.jpg'),False)
+classify_image(model,input_file('vacas_1.jpg'),plot_file('classified_vacas_1.jpg'),False)
+classify_image(model,input_file('vacas_2.jpg'),plot_file('classified_vacas_2.jpg'),False)
+classify_image(model,input_file('vacas_3.jpg'),plot_file('classified_vacas_3.jpg'),False)
+
 
 from part1.activation_functions import step_func
 from part1.network import Network
@@ -379,9 +386,4 @@ paint_image(
     True
 )
 
-model, _ = train_model(BEST_C,BEST_KERNEL,RBFParams(gamma='scale'))
 
-classify_image(model,input_file('cow.jpg'),plot_file('classified_cow.jpg'),False)
-classify_image(model,input_file('vacas_1.jpg'),plot_file('classified_vacas_1.jpg'),False)
-classify_image(model,input_file('vacas_2.jpg'),plot_file('classified_vacas_2.jpg'),False)
-classify_image(model,input_file('vacas_3.jpg'),plot_file('classified_vacas_3.jpg'),False)
