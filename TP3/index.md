@@ -343,9 +343,9 @@ $$
 - Lineal
   $$ K(x, x') = x \cdot x' $$
 - Polinomial
-  $$ K(x*i, x') = (1+\sum^{p}x*{ij} \cdot x_j)^d $$
+  $$ K(x_i, x') = (1+\sum^{p}x_{ij} \cdot x_j)^d $$
 - Radial
-  $$ K(x*i, x') = e^{-\gamma \sum^{p}||x*{ij} - x_j||^2} $$
+  $$ K(x_i, x') = e^{-\gamma \sum^{p}||x_{ij} - x_j||^2} $$
 
 ---
 
@@ -353,7 +353,7 @@ $$
 
 Para poder utilizar kernels no lineales, se empleará la librería scikit learn que ofrece un módulo para la clasificación con modelos SVM. Para la misma se puede elegir entre los tipos de kernel ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, donde las primeras tres se corresponden con las funciones ya mencionadas, y el kernel sigmoideo se define por la siguiente función:
 
-$$ K(x*i, x') = \tanh(-\gamma x*{ij} x_j+r) $$
+$$ K(x_i, x') = \tanh(-\gamma x_{ij} x_j+r) $$
 
 ---
 
@@ -372,8 +372,6 @@ Adicionalmente, es posible configurar los parámetros de cada función de kernel
 ---
 
 ## Entrenamiento
-
----
 
 ### Division en training y test
 
