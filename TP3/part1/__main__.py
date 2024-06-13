@@ -357,7 +357,7 @@ def ej1(df, animation_file, error_file):
     writer.finish()
 
     plt.show()
-    
+
     fig, ax = plt.subplots(1)
     ax.plot(np.arange(len(errors)), errors)
     ax.set_ylim(ymin=0)
@@ -375,6 +375,7 @@ def ej1(df, animation_file, error_file):
     c = -c
 
     return data, minimum_model, a, b, c, minimum_error
+
 
 def get_margin(data, a, b, c) -> Optional[float]:
     for point in data:

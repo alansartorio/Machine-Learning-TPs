@@ -1,10 +1,27 @@
-from dataset import load_dataset, budget, genres, imdb_id, original_title, overview, popularity, production_companies, production_countries, release_date, revenue, runtime, spoken_languages, vote_average, vote_count
+from dataset import (
+    load_dataset,
+    budget,
+    genres,
+    imdb_id,
+    original_title,
+    overview,
+    popularity,
+    production_companies,
+    production_countries,
+    release_date,
+    revenue,
+    runtime,
+    spoken_languages,
+    vote_average,
+    vote_count,
+)
 import matplotlib.pyplot as plt
 import seaborn as sns
 from dataclasses import dataclass
 from typing import Optional
 
 sns.set_theme()
+
 
 @dataclass
 class PlotConfig:
@@ -24,15 +41,18 @@ class PlotConfig:
 dataset = load_dataset()
 
 
-def plot_two_variables(x:str,y:str,type:str='scatterplot',config: PlotConfig = PlotConfig()) -> None:
+def plot_two_variables(
+    x: str, y: str, type: str = "scatterplot", config: PlotConfig = PlotConfig()
+) -> None:
     match type:
-        case 'scatterplot':
-            sns.scatterplot(data=dataset,x=x,y=y)
-        case 'lineplot':
-            sns.lineplot(data=dataset,x=x,y=y)
-        case 'barplot':
-            ax = sns.barplot(data=dataset,x=x,y=y)
-            ax.set_xticklabels(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
+        case "scatterplot":
+            sns.scatterplot(data=dataset, x=x, y=y)
+        case "lineplot":
+            sns.lineplot(data=dataset, x=x, y=y)
+        case "barplot":
+            ax = sns.barplot(data=dataset, x=x, y=y)
+            ax.set_xticklabels(
+                ax.get_xticklabels(), rotation=45, horizontalalignment="right"
+            )
     config.print_plot()
     plt.clf()
-

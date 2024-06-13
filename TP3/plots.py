@@ -18,4 +18,5 @@ def plot_step_function():
     plt.show()
     plt.cla()
 
+
 plot_step_function()
