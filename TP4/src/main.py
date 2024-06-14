@@ -68,7 +68,7 @@ def drop_repeated_values(df: pl.DataFrame):
         # Only add the first row with that ID
         df = pl.concat((df_without_this, group.head(1)))
 
-    return df
+    return df.sort(imdb_id)
 
 
 def fill_null_values(df: pl.DataFrame) -> pl.DataFrame:
