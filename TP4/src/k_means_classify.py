@@ -1,0 +1,67 @@
+from collections import namedtuple
+import sys
+import matplotlib.pyplot as plt
+from scipy.sparse import data
+import seaborn as sns
+import polars as pl
+from dataset import DatasetType, load_dataset
+from k_means import classify, closest_centroid
+import k_means
+import numpy as np
+import dataset
+
+sns.set_theme()
+
+run = 10
+k = 10
+
+centroids = (
+    pl.read_csv("out/k_means_centroids_all_columns.csv")
+    .filter((pl.col("k") == k) & (pl.col("run") == run))
+    .drop("k", "run")
+)
+
+
+df_normalized = load_dataset(DatasetType.NORMALIZED)
+df_numerical = load_dataset(DatasetType.NUMERICAL)
+
+# np.set_printoptions(threshold=sys.maxsize)
+clusters = classify(df_normalized.select(k_means.all_numeric_columns), centroids)
+
+categorized = df_numerical.with_columns(pl.Series(clusters).alias("cluster"))
+
+categorized = categorized.pivot(
+    index=dataset.genres,
+    columns="cluster",
+    values=dataset.imdb_id,
+    aggregate_function=pl.len(),
+    sort_columns=True,
+).fill_null(0)
+
+
+def scale_to_sum_1(values):
+    values = np.array(values)
+    return tuple(values / values.sum() * 100)
+
+
+categorized = categorized.select(
+    dataset.genres,
+    values=pl.concat_list(pl.all().exclude(dataset.genres))
+    .map_elements(scale_to_sum_1, return_dtype=pl.List(pl.Float64))
+    .list.to_struct(fields=str),
+).unnest("values")
+
+ax = sns.heatmap(
+    categorized.to_pandas().set_index(dataset.genres),
+    annot=True,
+    cmap="Blues",
+    fmt="0.1f",
+    vmin=0,
+    vmax=100,
+    yticklabels=True,
+)
+for t in ax.texts:
+    t.set_text(t.get_text() + "%")
+ax.set_ylabel("Genre")
+ax.set_xlabel("Cluster")
+plt.show()

@@ -61,18 +61,38 @@ def plot_clusters(
     plt.show()
 
 
+def closest_centroid(
+    point: npt.NDArray[np.float64],
+    centroids: npt.NDArray[np.float64],
+) -> np.intp:
+    return np.argmin(
+        np.apply_along_axis(
+            lambda centroid: sq_distance(point, centroid),
+            axis=1,
+            arr=centroids,
+        )
+    )
+
+
+def classify(
+    points: npt.NDArray[np.float64] | pl.DataFrame,
+    centroids: npt.NDArray[np.float64] | pl.DataFrame,
+):
+    if isinstance(points, pl.DataFrame):
+        points = points.to_numpy()
+    if isinstance(centroids, pl.DataFrame):
+        centroids = centroids.to_numpy()
+
+    closest_centroid_to_point = lambda point: closest_centroid(point, centroids)
+    return np.apply_along_axis(closest_centroid_to_point, axis=1, arr=points)
+
+
 def k_means_inner(
     df: pl.DataFrame, centroids: pl.DataFrame, variables: list[str]
 ) -> tuple[np.float64, pl.DataFrame]:
     points = df.select(variables)
-    closest_centroid = lambda point: np.argmin(
-        np.apply_along_axis(
-            lambda centroid: sq_distance(point, centroid),
-            axis=1,
-            arr=centroids.select(variables).to_numpy(),
-        )
-    )
-    centroid_indices = np.apply_along_axis(closest_centroid, axis=1, arr=points)
+
+    centroid_indices = classify(points.to_numpy(), centroids.to_numpy())
     # plot_clusters(df, centroid_indices, [budget, revenue], centroids)
 
     grouped = (
@@ -152,6 +172,34 @@ def run_k_means_aggregate(
     )
 
 
+import dataset
+
+all_numeric_columns = (
+    dataset.budget,
+    dataset.original_title_len,
+    dataset.overview_len,
+    dataset.popularity,
+    dataset.production_companies,
+    dataset.production_countries,
+    dataset.revenue,
+    dataset.runtime,
+    dataset.spoken_languages,
+    dataset.vote_average,
+    dataset.vote_count,
+)
+
+just_numeric_columns = (
+    dataset.budget,
+    dataset.popularity,
+    dataset.production_companies,
+    dataset.production_countries,
+    dataset.revenue,
+    dataset.runtime,
+    dataset.spoken_languages,
+    dataset.vote_average,
+    dataset.vote_count,
+)
+
 if __name__ == "__main__":
     from multiprocessing import get_context
     import csv
@@ -159,45 +207,20 @@ if __name__ == "__main__":
 
     import argparse
     from dataset import DatasetType, load_dataset
-    import dataset
 
     parser = argparse.ArgumentParser(prog="k_means")
-    parser.add_argument(
-        "dataset", choices=['numeric-columns', 'all-columns']
-    )
+    parser.add_argument("dataset", choices=["numeric-columns", "all-columns"])
 
     args = parser.parse_args()
 
     df = load_dataset(DatasetType.NORMALIZED)
     match args.dataset:
-        case 'all-columns':
+        case "all-columns":
             # TODO: should we add dataset.release_date?
-            numeric_vars = [
-                dataset.budget,
-                dataset.original_title_len,
-                dataset.overview_len,
-                dataset.popularity,
-                dataset.production_companies,
-                dataset.production_countries,
-                dataset.revenue,
-                dataset.runtime,
-                dataset.spoken_languages,
-                dataset.vote_average,
-                dataset.vote_count,
-            ]
+            numeric_vars = all_numeric_columns
             output_file_variant = "all_columns"
-        case 'numeric-columns':
-            numeric_vars = [
-                dataset.budget,
-                dataset.popularity,
-                dataset.production_companies,
-                dataset.production_countries,
-                dataset.revenue,
-                dataset.runtime,
-                dataset.spoken_languages,
-                dataset.vote_average,
-                dataset.vote_count,
-            ]
+        case "numeric-columns":
+            numeric_vars = just_numeric_columns
             output_file_variant = "numeric_columns"
         case dataset:
             raise Exception(f"Invalid dataset {dataset}")
