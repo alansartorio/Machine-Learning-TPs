@@ -135,7 +135,7 @@ def run_k_means(
             break
         last = error
 
-    return pl.DataFrame(iterations)
+    return centroids, pl.DataFrame(iterations)
 
 
 def run_k_means_aggregate(
@@ -144,8 +144,11 @@ def run_k_means_aggregate(
     df: pl.DataFrame,
     variables: list[str],
 ):
-    return run_k_means(df, centroids, variables).with_columns(
-        pl.lit(centroids.count).alias("k"), pl.lit(run).alias("run")
+    best_centroids, iterations = run_k_means(df, centroids, variables)
+    k_col = pl.lit(centroids.count).alias("k")
+    run_col = pl.lit(run).alias("run")
+    return best_centroids.with_columns(k_col, run_col), iterations.with_columns(
+        k_col, run_col
     )
 
 
@@ -184,7 +187,7 @@ if __name__ == "__main__":
             dataset.vote_average,
             dataset.vote_count,
         ]
-        output_file = "out/k_means_all_columns.csv"
+        output_file_variant = "all_columns"
     else:
         numeric_vars = [
             dataset.budget,
@@ -197,7 +200,9 @@ if __name__ == "__main__":
             dataset.vote_average,
             dataset.vote_count,
         ]
-        output_file = "out/k_means_numeric_columns.csv"
+        output_file_variant = "numeric_columns"
+    output_iterations_file = f"out/k_means_iterations_{output_file_variant}.csv"
+    output_centroids_file = f"out/k_means_centroids_{output_file_variant}.csv"
 
     mins = df.select(numeric_vars).min().to_numpy()
     maxs = df.select(numeric_vars).max().to_numpy()
@@ -205,33 +210,45 @@ if __name__ == "__main__":
 
     runs = 12
 
-    with open(output_file, "w") as outfile:
-        output = csv.writer(outfile)
-        rows = ("k", "run", "iteration", "error")
-        output.writerow(rows)
+    with open(output_iterations_file, "w") as iterations_file, open(
+        output_centroids_file, "w"
+    ) as centroids_file:
+        iterations_output = csv.writer(iterations_file)
+        centroids_output = csv.writer(centroids_file)
+        iteration_rows = ("k", "run", "iteration", "error")
+        iterations_output.writerow(iteration_rows)
+        centroid_rows = ("k", "run", *numeric_vars)
+        centroids_output.writerow(centroid_rows)
 
         try:
             with get_context("forkserver").Pool(12) as p:
                 for k in tqdm.tqdm(tuple(range(1, 21))):
-                    output.writerows(
-                        (
-                            tuple(row[col] for col in rows)
-                            for k_means_run in tqdm.tqdm(
-                                p.imap_unordered(
-                                    partial(
-                                        run_k_means_aggregate,
-                                        centroids=CentroidRandomInfo(
-                                            count=k, mins=mins, spread=spread
-                                        ),
-                                        df=df,
-                                        variables=numeric_vars,
-                                    ),
-                                    range(runs),
+                    results = tqdm.tqdm(
+                        p.imap_unordered(
+                            partial(
+                                run_k_means_aggregate,
+                                centroids=CentroidRandomInfo(
+                                    count=k, mins=mins, spread=spread
                                 ),
-                                total=runs,
-                            )
-                            for row in k_means_run.iter_rows(named=True)
-                        )
+                                df=df,
+                                variables=numeric_vars,
+                            ),
+                            range(runs),
+                        ),
+                        total=runs,
                     )
+
+                    for centroids, iterations in results:
+                        centroids_output.writerows(
+                            tuple(row[col] for col in centroid_rows)
+                            for row in centroids.iter_rows(named=True)
+                        )
+                        centroids_file.flush()
+
+                        iterations_output.writerows(
+                            tuple(row[col] for col in iteration_rows)
+                            for row in iterations.iter_rows(named=True)
+                        )
+                        iterations_file.flush()
         except KeyboardInterrupt:
             pass
