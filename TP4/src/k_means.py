@@ -4,6 +4,7 @@ import numpy.typing as npt
 from functools import partial
 import polars as pl
 from dataset import (
+    DatasetType,
     load_dataset,
     budget,
     production_companies,
@@ -127,7 +128,7 @@ def run_k_means(
 
     for i in count(1):
         error = wcss_total(df, centroids, variables)
-        print("ITERATION: ", i, " | WCSS: ", error)
+        # print("ITERATION: ", i, " | WCSS: ", error)
         centroids = k_means_inner(df, centroids, variables)
         iterations["iteration"].append(i)
         iterations["error"].append(error)
@@ -135,7 +136,7 @@ def run_k_means(
             iterations_since_last_improvement = 0
         else:
             iterations_since_last_improvement += 1
-        if iterations_since_last_improvement > 10:
+        if iterations_since_last_improvement > 2:
             break
         last = error
 
@@ -144,20 +145,21 @@ def run_k_means(
 
 def run_k_means_aggregate(
     run: int,
-    centroids: pl.DataFrame | CentroidRandomInfo,
+    centroids: CentroidRandomInfo,
     df: pl.DataFrame,
     variables: list[str],
 ):
     return run_k_means(df, centroids, variables).with_columns(
-        pl.lit(k).alias("k"), pl.lit(run).alias("run")
+        pl.lit(centroids.count).alias("k"), pl.lit(run).alias("run")
     )
 
 
-from multiprocessing import get_context
-
 if __name__ == "__main__":
-    # TODO: DONT DROP NULLS
-    df = load_dataset().drop_nulls()
+    from multiprocessing import get_context
+    import csv
+    import tqdm
+
+    df = load_dataset(DatasetType.NULL_FILLED)
     numeric_vars = [
         budget,
         popularity,
@@ -174,25 +176,35 @@ if __name__ == "__main__":
     maxs = df.select(numeric_vars).max().to_numpy()
     spread = maxs - mins
 
-    results = []
+    runs = 100
 
-    try:
-        with get_context("forkserver").Pool(12) as p:
-            for k in range(1, 10):
-                results.extend(
-                    p.imap_unordered(
-                        partial(
-                            run_k_means_aggregate,
-                            centroids=CentroidRandomInfo(
-                                count=k, mins=mins, spread=spread
-                            ),
-                            df=df,
-                            variables=numeric_vars,
-                        ),
-                        range(12),
+    with open("out/iterations.csv", "w") as outfile:
+        output = csv.writer(outfile)
+        rows = ("k", "run", "iteration", "error")
+        output.writerow(rows)
+
+        try:
+            with get_context("forkserver").Pool(12) as p:
+                for k in tqdm.tqdm(tuple(range(1, 21))):
+                    output.writerows(
+                        (
+                            tuple(row[col] for col in rows)
+                            for k_means_run in tqdm.tqdm(
+                                p.imap_unordered(
+                                    partial(
+                                        run_k_means_aggregate,
+                                        centroids=CentroidRandomInfo(
+                                            count=k, mins=mins, spread=spread
+                                        ),
+                                        df=df,
+                                        variables=numeric_vars,
+                                    ),
+                                    range(runs),
+                                ),
+                                total=runs,
+                            )
+                            for row in k_means_run.iter_rows(named=True)
+                        )
                     )
-                )
-    except KeyboardInterrupt:
-        pass
-
-    pl.concat(results).write_csv("out/iterations.csv")
+        except KeyboardInterrupt:
+            pass
