@@ -52,18 +52,24 @@ def cast_raw_dataset():
     save_dataset(default_dataset, DatasetType.UNIQUE_ROWS)
 
 
+    default_dataset = convert_to_numerical(default_dataset)
+
+    save_dataset(default_dataset, DatasetType.NUMERICAL)
+
+
 def drop_repeated_values(df: pl.DataFrame):
     repeated_ids = df.group_by(dataset.imdb_id).len("count").filter(pl.col("count") > 1)
     # repeated_lines = df.group_by(pl.all()).len("count").filter(pl.col("count") > 1)
 
     for id in repeated_ids.get_column(dataset.imdb_id):
         group = df.filter(pl.col(dataset.imdb_id) == id)
-        
+
         df_without_this = df.filter(pl.col(dataset.imdb_id) != id)
         # Only add the first row with that ID
         df = pl.concat((df_without_this, group.head(1)))
 
     return df
+
 
 def fill_null_values(df: pl.DataFrame) -> pl.DataFrame:
     rows = df.to_dicts()
@@ -81,6 +87,15 @@ def fill_null_values(df: pl.DataFrame) -> pl.DataFrame:
 
     filled_df = pl.DataFrame(rows)
     return filled_df
+
+
+def convert_to_numerical(df: pl.DataFrame) -> pl.DataFrame:
+    str_len = lambda col: pl.col(col).map_elements(len, return_dtype=pl.Int64)
+    df = df.with_columns(
+        str_len(dataset.original_title).alias(dataset.original_title_len),
+        str_len(dataset.overview).alias(dataset.overview_len),
+    )
+    return df
 
 
 cast_raw_dataset()
