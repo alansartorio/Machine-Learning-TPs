@@ -76,7 +76,7 @@ def plot_clusters(
 
 def k_means_inner(
     df: pl.DataFrame, centroids: pl.DataFrame, variables: list[str]
-) -> pl.DataFrame:
+) -> tuple[np.float64, pl.DataFrame]:
     points = df.select(variables)
     closest_centroid = lambda point: np.argmin(
         np.apply_along_axis(
@@ -88,16 +88,23 @@ def k_means_inner(
     centroid_indices = np.apply_along_axis(closest_centroid, axis=1, arr=points)
     # plot_clusters(df, centroid_indices, [budget, revenue], centroids)
 
-    new_centroids = (
+    grouped = (
         df.select(variables)
         .with_columns(pl.Series(centroid_indices).alias("centroid"))
         .group_by("centroid")
-        .mean()
-        .sort("centroid")
-        .drop("centroid")
     )
 
-    return new_centroids
+    total_error: np.float64 = np.float64(0)
+    for centroid_index, group in grouped:
+        assert type(centroid_index) == int
+        total_error += wcss(
+            group.select(variables).to_numpy(),
+            np.array(centroids.select(variables).row(centroid_index)),
+        )
+
+    new_centroids = grouped.mean().sort("centroid").drop("centroid")
+
+    return total_error, new_centroids
 
 
 from dataclasses import dataclass
@@ -126,10 +133,9 @@ def run_k_means(
     last = None
     iterations_since_last_improvement = 0
 
-    for i in count(1):
-        error = wcss_total(df, centroids, variables)
+    for i in count(0):
         # print("ITERATION: ", i, " | WCSS: ", error)
-        centroids = k_means_inner(df, centroids, variables)
+        error, centroids = k_means_inner(df, centroids, variables)
         iterations["iteration"].append(i)
         iterations["error"].append(error)
         if last is None or error < last:
