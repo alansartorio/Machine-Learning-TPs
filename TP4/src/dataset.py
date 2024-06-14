@@ -149,6 +149,28 @@ class DatasetType(Enum):
             vote_count: pl.UInt16,
         },
     }
+    # NUMERICAL but with all numeric columns normalized between [0, 1]
+    NORMALIZED = {
+        "path": "normalized.csv",
+        "dtypes": {
+            budget: pl.UInt64,
+            genres: pl.Utf8,
+            imdb_id: pl.Utf8,
+            original_title: pl.Utf8,
+            original_title_len: pl.UInt64,
+            overview: pl.Utf8,
+            overview_len: pl.UInt64,
+            popularity: pl.Float32,
+            production_companies: pl.UInt16,
+            production_countries: pl.UInt16,
+            release_date: pl.Date,
+            revenue: pl.UInt64,
+            runtime: pl.UInt32,
+            spoken_languages: pl.UInt8,
+            vote_average: pl.Float32,
+            vote_count: pl.UInt16,
+        },
+    }
     # This can be used to define other datasets to load
 
 

@@ -56,6 +56,10 @@ def cast_raw_dataset():
 
     save_dataset(default_dataset, DatasetType.NUMERICAL)
 
+    default_dataset = normalize_numbers(default_dataset)
+
+    save_dataset(default_dataset, DatasetType.NORMALIZED)
+
 
 def drop_repeated_values(df: pl.DataFrame):
     repeated_ids = df.group_by(dataset.imdb_id).len("count").filter(pl.col("count") > 1)
@@ -95,6 +99,26 @@ def convert_to_numerical(df: pl.DataFrame) -> pl.DataFrame:
         str_len(dataset.original_title).alias(dataset.original_title_len),
         str_len(dataset.overview).alias(dataset.overview_len),
     )
+    return df
+
+
+def normalize_numbers(df: pl.DataFrame) -> pl.DataFrame:
+    columns = df.get_columns()
+    numeric_columns = [
+        column.name for column in columns if column.dtype in pl.NUMERIC_DTYPES
+    ]
+    all_columns = [column.name for column in columns]
+
+    mins = df.select(numeric_columns).min().to_numpy()[0, :]
+    maxs = df.select(numeric_columns).max().to_numpy()[0, :]
+    spreads = maxs - mins
+
+    for column_name, min, spread in zip(numeric_columns, mins, spreads):
+        df = df.with_columns((pl.col(column_name) - min) / spread)
+
+    # sort columns to match original df
+    df = df.select(all_columns)
+
     return df
 
 
