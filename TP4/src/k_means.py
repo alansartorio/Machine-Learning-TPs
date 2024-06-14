@@ -99,34 +99,36 @@ def k_means_inner(
     return new_centroids
 
 
-# TODO: DONT DROP NULLS
-df = load_dataset().drop_nulls()
-numeric_vars = [
-    budget,
-    popularity,
-    production_companies,
-    production_countries,
-    revenue,
-    runtime,
-    spoken_languages,
-    vote_average,
-    vote_count,
-]
-
-mins = df.select(numeric_vars).min().to_numpy()
-maxs = df.select(numeric_vars).max().to_numpy()
-spread = maxs - mins
+from dataclasses import dataclass
 
 
-def run_k_means(centroids: pl.DataFrame):
+@dataclass
+class CentroidRandomInfo:
+    count: int
+    mins: npt.NDArray[np.float64]
+    spread: npt.NDArray[np.float64]
+
+
+def run_k_means(
+    df: pl.DataFrame, centroids: pl.DataFrame | CentroidRandomInfo, variables: list[str]
+):
+    if type(centroids) is CentroidRandomInfo:
+        centroids = pl.from_numpy(
+            np.random.rand(centroids.count, len(variables)) * centroids.spread
+            + centroids.mins,
+            schema=variables,
+        )
+
+    assert isinstance(centroids, pl.DataFrame)
+
     iterations = {"iteration": [], "error": []}
     last = None
     iterations_since_last_improvement = 0
 
     for i in count(1):
-        error = wcss_total(df, centroids, numeric_vars)
+        error = wcss_total(df, centroids, variables)
         print("ITERATION: ", i, " | WCSS: ", error)
-        centroids = k_means_inner(df, centroids, numeric_vars)
+        centroids = k_means_inner(df, centroids, variables)
         iterations["iteration"].append(i)
         iterations["error"].append(error)
         if last is None or error < last:
@@ -140,22 +142,57 @@ def run_k_means(centroids: pl.DataFrame):
     return pl.DataFrame(iterations)
 
 
-results = []
+def run_k_means_aggregate(
+    run: int,
+    centroids: pl.DataFrame | CentroidRandomInfo,
+    df: pl.DataFrame,
+    variables: list[str],
+):
+    return run_k_means(df, centroids, variables).with_columns(
+        pl.lit(k).alias("k"), pl.lit(run).alias("run")
+    )
 
-try:
-    for k in range(1, 10):
-        for run in range(12):
-            centroids = pl.from_numpy(
-                np.random.rand(k, len(numeric_vars)) * spread + mins,
-                schema=numeric_vars,
-            )
 
-            results.append(
-                run_k_means(centroids).with_columns(
-                    pl.lit(k).alias("k"), pl.lit(run).alias("run")
+from multiprocessing import get_context
+
+if __name__ == "__main__":
+    # TODO: DONT DROP NULLS
+    df = load_dataset().drop_nulls()
+    numeric_vars = [
+        budget,
+        popularity,
+        production_companies,
+        production_countries,
+        revenue,
+        runtime,
+        spoken_languages,
+        vote_average,
+        vote_count,
+    ]
+
+    mins = df.select(numeric_vars).min().to_numpy()
+    maxs = df.select(numeric_vars).max().to_numpy()
+    spread = maxs - mins
+
+    results = []
+
+    try:
+        with get_context("forkserver").Pool(12) as p:
+            for k in range(1, 10):
+                results.extend(
+                    p.imap_unordered(
+                        partial(
+                            run_k_means_aggregate,
+                            centroids=CentroidRandomInfo(
+                                count=k, mins=mins, spread=spread
+                            ),
+                            df=df,
+                            variables=numeric_vars,
+                        ),
+                        range(12),
+                    )
                 )
-            )
-except KeyboardInterrupt:
-    pass
+    except KeyboardInterrupt:
+        pass
 
-pl.concat(results).write_csv("out/iterations.csv")
+    pl.concat(results).write_csv("out/iterations.csv")
