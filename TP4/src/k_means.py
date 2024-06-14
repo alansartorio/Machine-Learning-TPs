@@ -3,19 +3,6 @@ import numpy as np
 import numpy.typing as npt
 from functools import partial
 import polars as pl
-from dataset import (
-    DatasetType,
-    load_dataset,
-    budget,
-    production_companies,
-    production_countries,
-    popularity,
-    revenue,
-    runtime,
-    spoken_languages,
-    vote_average,
-    vote_count,
-)
 
 
 def sq_distance(
@@ -165,26 +152,58 @@ if __name__ == "__main__":
     import csv
     import tqdm
 
+    import argparse
+    from dataset import DatasetType, load_dataset
+    import dataset
+
+    parser = argparse.ArgumentParser(prog="k_means")
+    parser.add_argument(
+        "--transform-strings", action=argparse.BooleanOptionalAction, default=False
+    )
+
+    args = parser.parse_args()
+
     df = load_dataset(DatasetType.NULL_FILLED)
-    numeric_vars = [
-        budget,
-        popularity,
-        production_companies,
-        production_countries,
-        revenue,
-        runtime,
-        spoken_languages,
-        vote_average,
-        vote_count,
-    ]
+    if args.transform_strings:
+        str_len = lambda col: pl.col(col).map_elements(len, return_dtype=pl.Int64)
+        df = df.with_columns(str_len(dataset.original_title), str_len(dataset.overview))
+
+        # TODO: should we add dataset.release_date?
+        numeric_vars = [
+            dataset.budget,
+            dataset.original_title,
+            dataset.overview,
+            dataset.popularity,
+            dataset.production_companies,
+            dataset.production_countries,
+            dataset.revenue,
+            dataset.runtime,
+            dataset.spoken_languages,
+            dataset.vote_average,
+            dataset.vote_count,
+        ]
+        output_file = "out/k_means_all_columns.csv"
+    else:
+        numeric_vars = [
+            dataset.budget,
+            dataset.popularity,
+            dataset.production_companies,
+            dataset.production_countries,
+            dataset.revenue,
+            dataset.runtime,
+            dataset.spoken_languages,
+            dataset.vote_average,
+            dataset.vote_count,
+        ]
+        output_file = "out/k_means_numeric_columns.csv"
 
     mins = df.select(numeric_vars).min().to_numpy()
     maxs = df.select(numeric_vars).max().to_numpy()
     spread = maxs - mins
 
-    runs = 100
+    runs = 12
 
-    with open("out/iterations.csv", "w") as outfile:
+    with open(output_file, "w") as outfile:
         output = csv.writer(outfile)
         rows = ("k", "run", "iteration", "error")
         output.writerow(rows)
