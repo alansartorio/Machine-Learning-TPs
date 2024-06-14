@@ -163,44 +163,44 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="k_means")
     parser.add_argument(
-        "--transform-strings", action=argparse.BooleanOptionalAction, default=False
+        "dataset", choices=['numeric-columns', 'all-columns']
     )
 
     args = parser.parse_args()
 
-    df = load_dataset(DatasetType.NULL_FILLED)
-    if args.transform_strings:
-        str_len = lambda col: pl.col(col).map_elements(len, return_dtype=pl.Int64)
-        df = df.with_columns(str_len(dataset.original_title), str_len(dataset.overview))
-
-        # TODO: should we add dataset.release_date?
-        numeric_vars = [
-            dataset.budget,
-            dataset.original_title,
-            dataset.overview,
-            dataset.popularity,
-            dataset.production_companies,
-            dataset.production_countries,
-            dataset.revenue,
-            dataset.runtime,
-            dataset.spoken_languages,
-            dataset.vote_average,
-            dataset.vote_count,
-        ]
-        output_file_variant = "all_columns"
-    else:
-        numeric_vars = [
-            dataset.budget,
-            dataset.popularity,
-            dataset.production_companies,
-            dataset.production_countries,
-            dataset.revenue,
-            dataset.runtime,
-            dataset.spoken_languages,
-            dataset.vote_average,
-            dataset.vote_count,
-        ]
-        output_file_variant = "numeric_columns"
+    df = load_dataset(DatasetType.NORMALIZED)
+    match args.dataset:
+        case 'all-columns':
+            # TODO: should we add dataset.release_date?
+            numeric_vars = [
+                dataset.budget,
+                dataset.original_title_len,
+                dataset.overview_len,
+                dataset.popularity,
+                dataset.production_companies,
+                dataset.production_countries,
+                dataset.revenue,
+                dataset.runtime,
+                dataset.spoken_languages,
+                dataset.vote_average,
+                dataset.vote_count,
+            ]
+            output_file_variant = "all_columns"
+        case 'numeric-columns':
+            numeric_vars = [
+                dataset.budget,
+                dataset.popularity,
+                dataset.production_companies,
+                dataset.production_countries,
+                dataset.revenue,
+                dataset.runtime,
+                dataset.spoken_languages,
+                dataset.vote_average,
+                dataset.vote_count,
+            ]
+            output_file_variant = "numeric_columns"
+        case dataset:
+            raise Exception(f"Invalid dataset {dataset}")
     output_iterations_file = f"out/k_means_iterations_{output_file_variant}.csv"
     output_centroids_file = f"out/k_means_centroids_{output_file_variant}.csv"
 
