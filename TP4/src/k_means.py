@@ -116,6 +116,8 @@ def run_k_means(
 
     assert isinstance(centroids, pl.DataFrame)
 
+    minimum_error_delta = 1e9
+
     iterations = {"iteration": [], "error": []}
     last = None
     iterations_since_last_improvement = 0
@@ -125,7 +127,7 @@ def run_k_means(
         error, centroids = k_means_inner(df, centroids, variables)
         iterations["iteration"].append(i)
         iterations["error"].append(error)
-        if last is None or error < last:
+        if last is None or error < last - minimum_error_delta:
             iterations_since_last_improvement = 0
         else:
             iterations_since_last_improvement += 1
