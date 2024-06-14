@@ -13,6 +13,7 @@ from dataset import (
     imdb_id,
     original_title,
 )
+import dataset
 import polars as pl
 from pathlib import Path
 from dotenv import load_dotenv
@@ -33,19 +34,41 @@ def cast_raw_dataset():
         pl.col(spoken_languages).cast(pl.UInt8, strict=True),
         pl.col(vote_count).cast(pl.UInt16, strict=True),
     )
-    default_dataset = default_dataset.drop_nulls([imdb_id]) # 45 values out of 5.505
+    default_dataset = default_dataset.drop_nulls([imdb_id])  # 45 values out of 5.505
     # This takes a lot of time to execute
-    default_dataset = fill_null_values(default_dataset) 
+    try:
+        default_dataset = load_dataset(DatasetType.NULL_FILLED)
+    except FileNotFoundError:
+        default_dataset = fill_null_values(default_dataset)
 
-    print("Nulls filled. Null count")
-    print(default_dataset.null_count())
-    save_dataset(default_dataset, DatasetType.NULL_FILLED)
+        print("Nulls filled. Null count")
+        print(default_dataset.null_count())
+        save_dataset(default_dataset, DatasetType.NULL_FILLED)
 
+    default_dataset = drop_repeated_values(default_dataset)
+
+    print("Unique rows")
+    print("Repeated IMDB ids:", len(default_dataset) - default_dataset.n_unique(imdb_id))
+    save_dataset(default_dataset, DatasetType.UNIQUE_ROWS)
+
+
+def drop_repeated_values(df: pl.DataFrame):
+    repeated_ids = df.group_by(dataset.imdb_id).len("count").filter(pl.col("count") > 1)
+    # repeated_lines = df.group_by(pl.all()).len("count").filter(pl.col("count") > 1)
+
+    for id in repeated_ids.get_column(dataset.imdb_id):
+        group = df.filter(pl.col(dataset.imdb_id) == id)
+        
+        df_without_this = df.filter(pl.col(dataset.imdb_id) != id)
+        # Only add the first row with that ID
+        df = pl.concat((df_without_this, group.head(1)))
+
+    return df
 
 def fill_null_values(df: pl.DataFrame) -> pl.DataFrame:
     rows = df.to_dicts()
-    
-    for idx, row in tqdm(enumerate(rows),total=len(rows),desc="Filling null values"):
+
+    for idx, row in tqdm(enumerate(rows), total=len(rows), desc="Filling null values"):
         if len([v for v in row.values() if v is None]) == 0:
             continue
         imdb_id = row["imdb_id"]
@@ -58,6 +81,7 @@ def fill_null_values(df: pl.DataFrame) -> pl.DataFrame:
 
     filled_df = pl.DataFrame(rows)
     return filled_df
+
 
 cast_raw_dataset()
 
