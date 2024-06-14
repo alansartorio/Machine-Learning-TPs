@@ -56,3 +56,6 @@ def plot_two_variables(
             )
     config.print_plot()
     plt.clf()
+
+print("Popularity")
+print(dataset[popularity].describe())

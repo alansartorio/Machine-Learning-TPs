@@ -42,6 +42,7 @@ columns = (
 
 
 class DatasetType(Enum):
+    # Original dataset
     RAW = {
         "path": "raw.csv",
         "dtypes": {
@@ -61,8 +62,31 @@ class DatasetType(Enum):
             vote_count: pl.Float32,
         },
     }
+    # Default dataset to use for training the algorithms
+    #   Datatypes were casted to the most appropriate ones
     DEFAULT = {
         "path": "default.csv",
+        "dtypes": {
+            budget: pl.UInt64,
+            genres: pl.Utf8,
+            imdb_id: pl.Utf8,
+            original_title: pl.Utf8,
+            overview: pl.Utf8,
+            popularity: pl.Float32,
+            production_companies: pl.UInt16,
+            production_countries: pl.UInt16,
+            release_date: pl.Date,
+            revenue: pl.UInt64,
+            runtime: pl.UInt32,
+            spoken_languages: pl.UInt8,
+            vote_average: pl.Float32,
+            vote_count: pl.UInt16,
+        },
+    }
+    # Dataset with values casted and null values filled with the TMDB API
+    #   The rows without an imdb_id were dropped (45 rows out of 5.505)
+    NULL_FILLED = {
+        "path": "null_filled.csv",
         "dtypes": {
             budget: pl.UInt64,
             genres: pl.Utf8,
