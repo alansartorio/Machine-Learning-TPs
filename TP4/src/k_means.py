@@ -99,7 +99,7 @@ def k_means_inner(
     return new_centroids
 
 
-# TODO: CHECK
+# TODO: DONT DROP NULLS
 df = load_dataset().drop_nulls()
 numeric_vars = [
     budget,
@@ -117,20 +117,45 @@ mins = df.select(numeric_vars).min().to_numpy()
 maxs = df.select(numeric_vars).max().to_numpy()
 spread = maxs - mins
 
-centroids = pl.from_numpy(
-    np.random.rand(5, len(numeric_vars)) * spread + mins, schema=numeric_vars
-)
 
-iterations = {"iteration": [], "error": []}
+def run_k_means(centroids: pl.DataFrame):
+    iterations = {"iteration": [], "error": []}
+    last = None
+    iterations_since_last_improvement = 0
 
-try:
     for i in count(1):
         error = wcss_total(df, centroids, numeric_vars)
         print("ITERATION: ", i, " | WCSS: ", error)
         centroids = k_means_inner(df, centroids, numeric_vars)
         iterations["iteration"].append(i)
         iterations["error"].append(error)
+        if last is None or error < last:
+            iterations_since_last_improvement = 0
+        else:
+            iterations_since_last_improvement += 1
+        if iterations_since_last_improvement > 10:
+            break
+        last = error
+
+    return pl.DataFrame(iterations)
+
+
+results = []
+
+try:
+    for k in range(1, 10):
+        for run in range(12):
+            centroids = pl.from_numpy(
+                np.random.rand(k, len(numeric_vars)) * spread + mins,
+                schema=numeric_vars,
+            )
+
+            results.append(
+                run_k_means(centroids).with_columns(
+                    pl.lit(k).alias("k"), pl.lit(run).alias("run")
+                )
+            )
 except KeyboardInterrupt:
     pass
 
-pl.DataFrame(iterations).write_csv('out/iterations.csv')
+pl.concat(results).write_csv("out/iterations.csv")
