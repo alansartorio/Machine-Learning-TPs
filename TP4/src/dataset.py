@@ -41,6 +41,23 @@ columns = (
 ) = columns
 
 
+DEFAULT_DTYPES = {
+            budget: pl.UInt64,
+            genres: pl.Utf8,
+            imdb_id: pl.Utf8,
+            original_title: pl.Utf8,
+            overview: pl.Utf8,
+            popularity: pl.Float32,
+            production_companies: pl.UInt16,
+            production_countries: pl.UInt16,
+            release_date: pl.Date,
+            revenue: pl.UInt64,
+            runtime: pl.UInt32,
+            spoken_languages: pl.UInt8,
+            vote_average: pl.Float32,
+            vote_count: pl.UInt16,
+        }
+
 class DatasetType(Enum):
     # Original dataset
     RAW = {
@@ -66,43 +83,21 @@ class DatasetType(Enum):
     #   Datatypes were casted to the most appropriate ones
     DEFAULT = {
         "path": "default.csv",
-        "dtypes": {
-            budget: pl.UInt64,
-            genres: pl.Utf8,
-            imdb_id: pl.Utf8,
-            original_title: pl.Utf8,
-            overview: pl.Utf8,
-            popularity: pl.Float32,
-            production_companies: pl.UInt16,
-            production_countries: pl.UInt16,
-            release_date: pl.Date,
-            revenue: pl.UInt64,
-            runtime: pl.UInt32,
-            spoken_languages: pl.UInt8,
-            vote_average: pl.Float32,
-            vote_count: pl.UInt16,
-        },
+        "dtypes": DEFAULT_DTYPES,
     }
     # Dataset with values casted and null values filled with the TMDB API
     #   The rows without an imdb_id were dropped (45 rows out of 5.505)
     NULL_FILLED = {
         "path": "null_filled.csv",
-        "dtypes": {
-            budget: pl.UInt64,
-            genres: pl.Utf8,
-            imdb_id: pl.Utf8,
-            original_title: pl.Utf8,
-            overview: pl.Utf8,
-            popularity: pl.Float32,
-            production_companies: pl.UInt16,
-            production_countries: pl.UInt16,
-            release_date: pl.Date,
-            revenue: pl.UInt64,
-            runtime: pl.UInt32,
-            spoken_languages: pl.UInt8,
-            vote_average: pl.Float32,
-            vote_count: pl.UInt16,
-        },
+        "dtypes": DEFAULT_DTYPES,
+    }
+    # Dataset with values casted and null values filled with the TMDB API
+    #   The rows without an imdb_id were dropped (45 rows out of 5.505)
+    #   The repeated imdb_id values were dropped and fully filled with api data as 
+    #       a single source of truth
+    API_FILLED = {
+        "path": "api_filled.csv",
+        "dtypes": DEFAULT_DTYPES,
     }
     # This can be used to define other datasets to load
 

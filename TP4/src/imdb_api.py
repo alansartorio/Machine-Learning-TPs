@@ -97,7 +97,7 @@ class TMDB_API(ApiAdapter):
         )
         return Movie(
             budget=response.budget,
-            genres=len(response.genres),
+            genres=response.genres[0].get('name', None),
             imdb_id=response.imdb_id,
             original_title=response.original_title,
             overview=response.overview,
