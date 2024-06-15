@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from itertools import count
 import numpy as np
 import numpy.typing as npt
@@ -118,19 +119,36 @@ from dataclasses import dataclass
 
 
 @dataclass
-class CentroidRandomInfo:
+class CentroidGenerator(ABC):
     count: int
+
+    @abstractmethod
+    def generate(self) -> npt.NDArray[np.float64]: ...
+
+
+@dataclass
+class UniformCentroidGenerator(CentroidGenerator):
     mins: npt.NDArray[np.float64]
     spread: npt.NDArray[np.float64]
 
+    def generate(self) -> npt.NDArray[np.float64]:
+        return np.random.rand(self.count, len(self.mins)) * self.spread + self.mins
+
+
+@dataclass
+class SamplerCentroidGenerator(CentroidGenerator):
+    points: npt.NDArray[np.float64]
+
+    def generate(self) -> npt.NDArray[np.float64]:
+        return np.random.default_rng().choice(self.points, self.count, replace=False)
+
 
 def run_k_means(
-    df: pl.DataFrame, centroids: pl.DataFrame | CentroidRandomInfo, variables: list[str]
+    df: pl.DataFrame, centroids: pl.DataFrame | CentroidGenerator, variables: list[str]
 ):
-    if type(centroids) is CentroidRandomInfo:
+    if isinstance(centroids, CentroidGenerator):
         centroids = pl.from_numpy(
-            np.random.rand(centroids.count, len(variables)) * centroids.spread
-            + centroids.mins,
+            centroids.generate(),
             schema=variables,
         )
 
@@ -160,7 +178,7 @@ def run_k_means(
 
 def run_k_means_aggregate(
     run: int,
-    centroids: CentroidRandomInfo,
+    centroids: CentroidGenerator,
     df: pl.DataFrame,
     variables: list[str],
 ):
@@ -250,9 +268,12 @@ if __name__ == "__main__":
                         p.imap_unordered(
                             partial(
                                 run_k_means_aggregate,
-                                centroids=CentroidRandomInfo(
-                                    count=k, mins=mins, spread=spread
+                                centroids=SamplerCentroidGenerator(
+                                    count=k, points=df.select(numeric_vars).to_numpy()
                                 ),
+                                # centroids=UniformCentroidGenerator(
+                                # count=k, mins=mins, spread=spread
+                                # ),
                                 df=df,
                                 variables=numeric_vars,
                             ),
