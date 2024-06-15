@@ -14,7 +14,15 @@ author:
 
 ## Image
 
-![](./plots/.svg){.r-stretch}
+![](./plots/k_means/error_by_k.svg){.r-stretch}
+
+---
+
+![](./plots/k_means/silhouette.svg){.r-stretch}
+
+---
+
+![](./plots/k_means/classification.svg){.r-stretch}
 
 ---
 
