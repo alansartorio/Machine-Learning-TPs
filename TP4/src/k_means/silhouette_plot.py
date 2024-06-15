@@ -20,6 +20,7 @@ OUTPUT = "plots/k_means/silhouette.svg"
 
 df = pl.read_csv(INPUT)
 
-sns.lineplot(data=df, x="k", y="silhouette")
+ax = sns.lineplot(data=df, x="k", y="silhouette")
+ax.set_xticks(df["k"].unique())
 plt.savefig(OUTPUT)
 plt.show()

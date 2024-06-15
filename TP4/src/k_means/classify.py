@@ -14,8 +14,10 @@ import numpy as np
 
 sns.set_theme()
 
+OUTPUT="plots/k_means/classification.svg"
+
 run = 10
-k = 10
+k = 5
 
 centroids = (
     pl.read_csv("out/k_means/centroids_all_columns.csv")
@@ -69,4 +71,5 @@ for t in ax.texts:
 ax.set_ylabel("Genre")
 ax.set_xlabel("Cluster")
 plt.tight_layout()
+plt.savefig(OUTPUT)
 plt.show()

@@ -4,13 +4,14 @@ import polars as pl
 
 sns.set_theme()
 
-df = pl.read_csv('out/k_means/iterations_all_columns.csv')
-# df = pl.read_csv()
+OUTPUT = "plots/k_means/error_by_k.svg"
 
-df = df.group_by(['run', 'k']).last()
+df = pl.read_csv("out/k_means/iterations_all_columns.csv")
+
+df = df.group_by(["run", "k"]).last()
 print(df)
 
-sns.lineplot(data = df, x = 'k', y = df['error'] / df['k'])
-plt.show()
+sns.lineplot(data=df, x="k", y=df["error"] / df["k"])
 
-# print(df)
+plt.savefig(OUTPUT)
+plt.show()
