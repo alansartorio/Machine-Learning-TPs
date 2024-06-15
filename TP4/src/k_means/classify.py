@@ -1,14 +1,16 @@
-from collections import namedtuple
-import sys
+if __name__ == "__main__":
+    import sys
+    from os import path
+    sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
+
 import matplotlib.pyplot as plt
-from scipy.sparse import data
 import seaborn as sns
 import polars as pl
+import dataset
 from dataset import DatasetType, load_dataset
-from k_means import classify, closest_centroid
+from k_means import classify
 import k_means
 import numpy as np
-import dataset
 
 sns.set_theme()
 
