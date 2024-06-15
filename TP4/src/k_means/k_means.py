@@ -14,6 +14,14 @@ import polars as pl
 FloatArray = npt.NDArray[np.float64]
 
 
+def w_pbar(pbar, func):
+    def foo(*args, **kwargs):
+        pbar.update(1)
+        return func(*args, **kwargs)
+
+    return foo
+
+
 def sq_distance(point: FloatArray, centroid: FloatArray) -> np.float64:
     # print(centroid, point)
     return np.linalg.norm(centroid - point, ord=2)
@@ -243,14 +251,14 @@ if __name__ == "__main__":
             output_file_variant = "numeric_columns"
         case dataset:
             raise Exception(f"Invalid dataset {dataset}")
-    output_iterations_file = f"out/k_means_iterations_{output_file_variant}.csv"
-    output_centroids_file = f"out/k_means_centroids_{output_file_variant}.csv"
+    output_iterations_file = f"out/k_means/iterations_{output_file_variant}.csv"
+    output_centroids_file = f"out/k_means/centroids_{output_file_variant}.csv"
 
     mins = df.select(numeric_vars).min().to_numpy()
     maxs = df.select(numeric_vars).max().to_numpy()
     spread = maxs - mins
 
-    runs = 12
+    runs = 100
 
     with open(output_iterations_file, "w") as iterations_file, open(
         output_centroids_file, "w"
@@ -264,7 +272,7 @@ if __name__ == "__main__":
 
         try:
             with get_context("forkserver").Pool(12) as p:
-                for k in tqdm.tqdm(tuple(range(1, 21))):
+                for k in tqdm.tqdm(tuple(range(1, 20))):
                     results = tqdm.tqdm(
                         p.imap_unordered(
                             partial(

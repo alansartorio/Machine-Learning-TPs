@@ -4,8 +4,8 @@ import polars as pl
 
 sns.set_theme()
 
-# df = pl.read_csv('out/k_means_iterations_all_columns.csv')
-df = pl.read_csv('out/k_means_iterations_numeric_columns.csv')
+df = pl.read_csv('out/k_means/iterations_all_columns.csv')
+# df = pl.read_csv()
 
 df = df.group_by(['run', 'k']).last()
 print(df)

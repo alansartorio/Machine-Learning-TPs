@@ -18,7 +18,7 @@ run = 10
 k = 10
 
 centroids = (
-    pl.read_csv("out/k_means_centroids_all_columns.csv")
+    pl.read_csv("out/k_means/centroids_all_columns.csv")
     .filter((pl.col("k") == k) & (pl.col("run") == run))
     .drop("k", "run")
 )
