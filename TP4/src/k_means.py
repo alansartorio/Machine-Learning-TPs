@@ -6,16 +6,15 @@ from functools import partial
 import polars as pl
 
 
-def sq_distance(
-    point: npt.NDArray[np.float64], centroid: npt.NDArray[np.float64]
-) -> np.float64:
+FloatArray = npt.NDArray[np.float64]
+
+
+def sq_distance(point: FloatArray, centroid: FloatArray) -> np.float64:
     # print(centroid, point)
     return np.linalg.norm(centroid - point, ord=2)
 
 
-def wcss(
-    points: npt.NDArray[np.float64], centroid: npt.NDArray[np.float64]
-) -> np.float64:
+def wcss(points: FloatArray, centroid: FloatArray) -> np.float64:
     point_dists = np.apply_along_axis(
         partial(sq_distance, centroid=centroid), axis=1, arr=points
     )
@@ -63,8 +62,8 @@ def plot_clusters(
 
 
 def closest_centroid(
-    point: npt.NDArray[np.float64],
-    centroids: npt.NDArray[np.float64],
+    point: FloatArray,
+    centroids: FloatArray,
 ) -> np.intp:
     return np.argmin(
         np.apply_along_axis(
@@ -76,8 +75,8 @@ def closest_centroid(
 
 
 def classify(
-    points: npt.NDArray[np.float64] | pl.DataFrame,
-    centroids: npt.NDArray[np.float64] | pl.DataFrame,
+    points: FloatArray | pl.DataFrame,
+    centroids: FloatArray | pl.DataFrame,
 ):
     if isinstance(points, pl.DataFrame):
         points = points.to_numpy()
@@ -89,28 +88,28 @@ def classify(
 
 
 def k_means_inner(
-    df: pl.DataFrame, centroids: pl.DataFrame, variables: list[str]
-) -> tuple[np.float64, pl.DataFrame]:
+    df: pl.DataFrame, centroids: FloatArray, variables: list[str]
+) -> tuple[np.float64, FloatArray]:
     points = df.select(variables)
 
-    centroid_indices = classify(points.to_numpy(), centroids.to_numpy())
+    centroid_indices = classify(points.to_numpy(), centroids)
     # plot_clusters(df, centroid_indices, [budget, revenue], centroids)
 
     grouped = (
         df.select(variables)
         .with_columns(pl.Series(centroid_indices).alias("centroid"))
-        .group_by("centroid")
+        .group_by(["centroid"])
     )
 
     total_error: np.float64 = np.float64(0)
-    for centroid_index, group in grouped:
+    for (centroid_index,), group in grouped:
         assert type(centroid_index) == int
         total_error += wcss(
             group.select(variables).to_numpy(),
-            np.array(centroids.select(variables).row(centroid_index)),
+            np.array(centroids[centroid_index, :]),
         )
 
-    new_centroids = grouped.mean().sort("centroid").drop("centroid")
+    new_centroids = grouped.mean().sort("centroid").drop("centroid").to_numpy()
 
     return total_error, new_centroids
 
@@ -123,36 +122,33 @@ class CentroidGenerator(ABC):
     count: int
 
     @abstractmethod
-    def generate(self) -> npt.NDArray[np.float64]: ...
+    def generate(self) -> FloatArray: ...
 
 
 @dataclass
 class UniformCentroidGenerator(CentroidGenerator):
-    mins: npt.NDArray[np.float64]
-    spread: npt.NDArray[np.float64]
+    mins: FloatArray
+    spread: FloatArray
 
-    def generate(self) -> npt.NDArray[np.float64]:
+    def generate(self) -> FloatArray:
         return np.random.rand(self.count, len(self.mins)) * self.spread + self.mins
 
 
 @dataclass
 class SamplerCentroidGenerator(CentroidGenerator):
-    points: npt.NDArray[np.float64]
+    points: FloatArray
 
-    def generate(self) -> npt.NDArray[np.float64]:
+    def generate(self) -> FloatArray:
         return np.random.default_rng().choice(self.points, self.count, replace=False)
 
 
 def run_k_means(
-    df: pl.DataFrame, centroids: pl.DataFrame | CentroidGenerator, variables: list[str]
+    df: pl.DataFrame, centroids: FloatArray | CentroidGenerator, variables: list[str]
 ):
     if isinstance(centroids, CentroidGenerator):
-        centroids = pl.from_numpy(
-            centroids.generate(),
-            schema=variables,
-        )
+        centroids = centroids.generate()
 
-    assert isinstance(centroids, pl.DataFrame)
+    assert isinstance(centroids, np.ndarray)
 
     minimum_error_delta = 1e9
 
@@ -173,7 +169,7 @@ def run_k_means(
             break
         last = error
 
-    return centroids, pl.DataFrame(iterations)
+    return pl.from_numpy(centroids, variables), pl.DataFrame(iterations)
 
 
 def run_k_means_aggregate(
