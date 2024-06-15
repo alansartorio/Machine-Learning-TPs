@@ -28,7 +28,9 @@ df_numerical = load_dataset(DatasetType.NUMERICAL)
 # np.set_printoptions(threshold=sys.maxsize)
 clusters = classify(df_normalized.select(k_means.all_numeric_columns), centroids)
 
-categorized = df_numerical.with_columns(pl.Series(clusters).alias("cluster"))
+categorized = df_numerical.with_columns(pl.Series(clusters).alias("cluster")).filter(
+    pl.col(dataset.genres).is_in(("Action", "Comedy", "Drama"))
+)
 
 categorized = categorized.pivot(
     index=dataset.genres,
@@ -64,4 +66,5 @@ for t in ax.texts:
     t.set_text(t.get_text() + "%")
 ax.set_ylabel("Genre")
 ax.set_xlabel("Cluster")
+plt.tight_layout()
 plt.show()
