@@ -21,7 +21,7 @@ $(ITERATIONS_NUMERIC_COLUMNS) $(CENTROIDS_NUMERIC_COLUMNS): src/k_means/k_means.
 out/k_means/silhouette.csv: src/k_means/silhouette.py input/normalized.csv out/k_means/centroids_all_columns.csv
 plots/k_means/silhouette.svg: src/k_means/silhouette_plot.py out/k_means/silhouette.csv
 plots/k_means/error_by_k.svg: src/k_means/plots.py out/k_means/iterations_all_columns.csv
-plots/k_means/classification.svg: src/k_means/classify.py out/k_means/centroids_all_columns.csv input/normalized.csv input/numerical.csv
+plots/k_means/confusion.svg plots/k_means/classification.svg: src/k_means/classify.py out/k_means/centroids_all_columns.csv input/normalized.csv input/numerical.csv
 
 out/k_means/silhouette.csv plots/k_means/silhouette.svg plots/k_means/error_by_k.svg plots/k_means/classification.svg: %:
 	mkdir -p $(dir $@)

@@ -4,7 +4,9 @@ if __name__ == "__main__":
 
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
+from typing import Iterable, Optional
 import polars as pl
+from tqdm import tqdm
 from k_means import classify
 import k_means
 import numpy as np
@@ -16,16 +18,24 @@ def classify_in_column(
 ):
     clusters = classify(df_normalized.select(k_means.all_numeric_columns), centroids)
 
-    categorized = df_numerical.with_columns(
-        pl.Series(clusters).alias("cluster")
-    ).filter(pl.col(dataset.genres).is_in(("Action", "Comedy", "Drama")))
+    categorized = df_numerical.with_columns(pl.Series(clusters).alias("cluster"))
     return categorized
 
 
-def plot_classification(categorized: pl.DataFrame):
+def pivot(
+    categorized: pl.DataFrame,
+    cluster_order: Optional[Iterable[int]] = None,
+    normalize=False,
+    index: Optional[str] = None,
+    column: Optional[str] = None,
+):
+    if index is None:
+        index = dataset.genres
+    if column is None:
+        column = "cluster"
     categorized = categorized.pivot(
-        index=dataset.genres,
-        columns="cluster",
+        index=index,
+        columns=column,
         values=dataset.imdb_id,
         aggregate_function=pl.len(),
         sort_columns=True,
@@ -35,15 +45,35 @@ def plot_classification(categorized: pl.DataFrame):
         values = np.array(values)
         return tuple(values / values.sum() * 100)
 
-    categorized = categorized.select(
-        dataset.genres,
-        values=pl.concat_list(pl.all().exclude(dataset.genres))
-        .map_elements(scale_to_sum_1, return_dtype=pl.List(pl.Float64))
-        .list.to_struct(fields=str),
-    ).unnest("values")
+    if normalize:
+        columns = [col for col in categorized.columns if col != index]
+        categorized = categorized.select(
+            index,
+            values=pl.concat_list(pl.all().exclude(index))
+            .map_elements(scale_to_sum_1, return_dtype=pl.List(pl.Float64))
+            .list.to_struct(fields=columns.__getitem__),
+        ).unnest("values")
+
+    if cluster_order is not None:
+        categorized = categorized.select(index, *map(str, cluster_order))
+    return categorized
+
+
+def plot_confusion(
+    categorized: pl.DataFrame,
+    cluster_order: Optional[Iterable[int]] = None,
+    xlabel: Optional[str] = None,
+    ylabel: Optional[str] = None,
+    filename: Optional[str] = None,
+    actual: Optional[str] = None,
+    predicted: Optional[str] = None,
+):
+    categorized = pivot(
+        categorized, cluster_order, normalize=True, index=actual, column=predicted
+    )
 
     ax = sns.heatmap(
-        categorized.to_pandas().set_index(dataset.genres),
+        categorized.to_pandas().set_index(actual),
         annot=True,
         cmap="Blues",
         fmt="0.1f",
@@ -53,11 +83,28 @@ def plot_classification(categorized: pl.DataFrame):
     )
     for t in ax.texts:
         t.set_text(t.get_text() + "%")
-    ax.set_ylabel("Genre")
-    ax.set_xlabel("Cluster")
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel)
     plt.tight_layout()
-    plt.savefig(OUTPUT)
+    if filename is not None:
+        plt.savefig(OUTPUT_CLUSTERS)
     plt.show()
+
+
+def plot_classification(
+    categorized: pl.DataFrame, cluster_order: Optional[Iterable[int]] = None
+):
+    plot_confusion(
+        categorized,
+        cluster_order,
+        xlabel="Cluster",
+        ylabel="Genre",
+        filename=OUTPUT_CLUSTERS,
+        actual=dataset.genres,
+        predicted="cluster",
+    )
 
 
 if __name__ == "__main__":
@@ -68,20 +115,94 @@ if __name__ == "__main__":
 
     sns.set_theme()
 
-    OUTPUT = "plots/k_means/classification.svg"
+    OUTPUT_CLUSTERS = "plots/k_means/classification.svg"
+    OUTPUT_CONFUSION = "plots/k_means/confusion.svg"
 
-    run = 10
     k = 5
+    all_centroids = pl.read_csv("out/k_means/centroids_all_columns.csv")
 
-    centroids = (
-        pl.read_csv("out/k_means/centroids_all_columns.csv")
-        .filter((pl.col("k") == k) & (pl.col("run") == run))
-        .drop("k", "run")
+    def filter_genres(df):
+        return df.filter(pl.col(dataset.genres).is_in(("Action", "Comedy", "Drama")))
+
+    df_normalized = filter_genres(load_dataset(DatasetType.NORMALIZED))
+    df_numerical = filter_genres(load_dataset(DatasetType.NUMERICAL))
+
+    def assign_labels_to_clusters(
+        run: int, k: int
+    ) -> tuple[pl.DataFrame, dict[int, str]]:
+        centroids = all_centroids.filter(
+            (pl.col("k") == k) & (pl.col("run") == run)
+        ).drop("k", "run")
+
+        categorized = classify_in_column(df_normalized, df_numerical, centroids)
+
+        pivoted = pivot(categorized, normalize=True)
+
+        assignation = {
+            cluster: pivoted[dataset.genres][pivoted[cluster].arg_max()]
+            for cluster in pivoted.columns[1:]
+        }
+        # print(pivoted)
+        # print(assignation)
+
+        categorized = categorized.with_columns(
+            predicted=pl.col("cluster").replace(assignation, default=None)
+        )
+
+        # Example output
+        return categorized, assignation
+
+    def score_assignation(categorized: pl.DataFrame) -> np.float64:
+        counts = (
+            categorized.select(dataset.genres, "predicted", dataset.imdb_id)
+            .pivot(
+                index=dataset.genres,
+                columns="predicted",
+                values=dataset.imdb_id,
+                aggregate_function=pl.len(),
+                sort_columns=True,
+            )
+            .fill_null(0)
+        )
+
+        # print(counts)
+        raise NotImplementedError()
+
+    # Multiclass accuracy formula
+    # https://scikit-learn.org/stable/modules/model_evaluation.html#accuracy-score
+    def accuracy_score(vals: pl.DataFrame) -> float:
+        return len(vals.filter(pl.col("actual") == pl.col("predicted"))) / len(vals)
+
+    def assign_and_score_run(run: int):
+        categorized, assignation = assign_labels_to_clusters(run, k)
+        return accuracy_score(
+            categorized.select(actual=dataset.genres, predicted="predicted")
+        )
+        # return score_assignation(categorized)
+
+    best_run = max(
+        tqdm(all_centroids.filter(pl.col("k") == k).get_column("run").unique()),
+        key=assign_and_score_run,
     )
 
-    df_normalized = load_dataset(DatasetType.NORMALIZED)
-    df_numerical = load_dataset(DatasetType.NUMERICAL)
+    best_centroids = all_centroids.filter(
+        (pl.col("k") == k) & (pl.col("run") == best_run)
+    ).drop("k", "run")
 
-    categorized = classify_in_column(df_normalized, df_numerical, centroids)
+    plot_classification(
+        classify_in_column(df_normalized, df_numerical, best_centroids), range(5)
+    )
 
-    plot_classification(categorized)
+    categorized, assignations = assign_labels_to_clusters(best_run, k)
+    print(assignations)
+
+    plot_confusion(
+        categorized.select(
+            dataset.imdb_id, actual=dataset.genres, predicted="predicted"
+        ),
+        actual="actual",
+        predicted="predicted",
+        xlabel="predicted",
+        ylabel="actual",
+        filename=OUTPUT_CONFUSION,
+    )
