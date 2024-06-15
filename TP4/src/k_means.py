@@ -106,7 +106,7 @@ def k_means_inner(
         assert type(centroid_index) == int
         total_error += wcss(
             group.select(variables).to_numpy(),
-            np.array(centroids[centroid_index, :]),
+            centroids[centroid_index, :],
         )
 
     new_centroids = grouped.mean().sort("centroid").drop("centroid").to_numpy()
