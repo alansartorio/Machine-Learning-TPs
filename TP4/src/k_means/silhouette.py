@@ -22,7 +22,7 @@ OUTPUT = "out/k_means/silhouette.csv"
 
 def silhouette(df: pl.DataFrame, centroids: pl.DataFrame):
     def avg_dst(point: FloatArray, points: FloatArray):
-        return np.linalg.norm(point - points, axis=0).mean()
+        return np.linalg.norm(point - points, axis=1).mean()
 
     def avg_dst_with_nth_cluster(point, n: int):
         nth_cluster = (

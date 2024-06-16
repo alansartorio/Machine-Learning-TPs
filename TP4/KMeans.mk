@@ -16,6 +16,7 @@ $(ITERATIONS_ALL_COLUMNS) $(CENTROIDS_ALL_COLUMNS): src/k_means/k_means.py input
 ITERATIONS_NUMERIC_COLUMNS = out/k_means/iterations_numeric_columns.csv
 CENTROIDS_NUMERIC_COLUMNS = out/k_means/centroids_numeric_columns.csv
 $(ITERATIONS_NUMERIC_COLUMNS) $(CENTROIDS_NUMERIC_COLUMNS): src/k_means/k_means.py input/normalized.csv
+	mkdir -p $(dir $@)
 	python $< numeric-columns
 
 out/k_means/silhouette.csv: src/k_means/silhouette.py input/normalized.csv out/k_means/centroids_all_columns.csv
