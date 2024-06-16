@@ -1,7 +1,8 @@
 if __name__ == "__main__":
     import sys
     from os import path
-    sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
+
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 from abc import ABC, abstractmethod
 from itertools import count
@@ -48,18 +49,17 @@ def wcss_total(
     )
 
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-sns.set_theme()
-
-
 def plot_clusters(
     df: pl.DataFrame,
     cluster_indices: npt.NDArray[np.int64],
     variables_to_show: list[str],
     centroids: pl.DataFrame,
 ):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    sns.set_theme()
+
     df = df.select(variables_to_show)
     sns.scatterplot(
         data=df, x=variables_to_show[0], y=variables_to_show[1], hue=cluster_indices
