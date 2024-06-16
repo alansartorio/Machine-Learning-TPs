@@ -190,7 +190,7 @@ if __name__ == "__main__":
     ).drop("k", "run")
 
     plot_classification(
-        classify_in_column(df_normalized, df_numerical, best_centroids), range(5)
+        classify_in_column(df_normalized, df_numerical, best_centroids), range(k)
     )
 
     categorized, assignations = assign_labels_to_clusters(best_run, k)
