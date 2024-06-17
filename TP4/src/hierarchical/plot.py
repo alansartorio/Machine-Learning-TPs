@@ -9,6 +9,7 @@ import scipy.cluster.hierarchy as h
 import matplotlib.pyplot as plt
 import sys
 import numpy as np
+import os
 
 import argparse
 from __init__ import all_numeric_columns, just_numeric_columns
@@ -35,7 +36,7 @@ lines = np.loadtxt(INPUT)
 
 # z = h.single(dst)
 sys.setrecursionlimit(10000)
-truncate_cluster_count = 30  # 10
+truncate_cluster_count = 500  # 10
 with plt.rc_context({"lines.linewidth": 0.5}):
     h.dendrogram(
         np.array(lines),
@@ -44,7 +45,9 @@ with plt.rc_context({"lines.linewidth": 0.5}):
         # no_labels=True,
     )
 plt.savefig(OUTPUT)
-plt.show()
+if 'HIDE_PLOTS' not in os.environ:
+    plt.show()
+plt.clf()
 
 # dendo = ff.create_dendrogram(df_np)
 # dendo.write_image("plots/hierarchical/dendogram.svg")

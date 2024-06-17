@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import polars as pl
+import os
 
 sns.set_theme()
 
@@ -14,4 +15,6 @@ print(df)
 sns.lineplot(data=df, x="k", y=df["error"] / df["k"])
 
 plt.savefig(OUTPUT)
-plt.show()
+plt.clf()
+if 'HIDE_PLOTS' not in os.environ:
+    plt.show()

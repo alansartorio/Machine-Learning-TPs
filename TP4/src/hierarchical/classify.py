@@ -4,23 +4,34 @@ if __name__ == "__main__":
 
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-import os
 from typing import Iterable, Optional
 import polars as pl
 from tqdm import tqdm
 from k_means import classify
 import k_means
 import numpy as np
+from k_means.k_means import FloatArray
+import scipy.cluster.hierarchy as h
+import time
+import os
 
 
 # np.set_printoptions(threshold=sys.maxsize)
 def classify_in_column(
-    df_normalized: pl.DataFrame, df_numerical: pl.DataFrame, centroids: pl.DataFrame
-):
-    clusters = classify(df_normalized.select(k_means.all_numeric_columns), centroids)
+    df_normalized: pl.DataFrame,
+    df_numerical: pl.DataFrame,
+    t: float,
+    linkage: FloatArray,
+) -> tuple[int, pl.DataFrame]:
+    # clusters = h.fcluster(linkage, k, criterion="maxclust") - 1
+    clusters = h.fcluster(linkage, t, criterion="distance") - 1
+    clusters = pl.Series(clusters)
+    amount_of_clusters = clusters.n_unique()
+    print("amount of clusters:", amount_of_clusters)
+    print("observations in each cluster:", clusters.value_counts())
 
-    categorized = df_numerical.with_columns(pl.Series(clusters).alias("cluster"))
-    return categorized
+    categorized = df_numerical.with_columns(clusters.alias("cluster"))
+    return amount_of_clusters, categorized
 
 
 def pivot(
@@ -93,7 +104,6 @@ def plot_confusion(
         plt.savefig(filename)
     if 'HIDE_PLOTS' not in os.environ:
         plt.show()
-    plt.clf()
 
 
 def plot_classification(
@@ -118,26 +128,43 @@ if __name__ == "__main__":
 
     sns.set_theme()
 
-    OUTPUT_CLUSTERS = "plots/k_means/classification.svg"
-    OUTPUT_CONFUSION = "plots/k_means/confusion.svg"
+    OUTPUT_CLUSTERS = "plots/hierarchical/classification.svg"
+    OUTPUT_CONFUSION = "plots/hierarchical/confusion.svg"
 
-    k = 5
-    all_centroids = pl.read_csv("out/k_means/centroids_all_columns.csv")
+    import argparse
+    from __init__ import all_numeric_columns, just_numeric_columns
+
+    parser = argparse.ArgumentParser(prog="k_means")
+    parser.add_argument("dataset", choices=["numeric-columns", "all-columns"])
+
+    args = parser.parse_args()
+
+    match args.dataset:
+        case "all-columns":
+            # TODO: should we add dataset.release_date?
+            numeric_vars = all_numeric_columns
+            output_file_variant = "all_columns"
+        case "numeric-columns":
+            numeric_vars = just_numeric_columns
+            output_file_variant = "numeric_columns"
+        case dataset:
+            raise Exception(f"Invalid dataset {dataset}")
+    INPUT = f"out/hierarchical/linkage_{output_file_variant}.csv"
+    OUTPUT = f"plots/hierarchical/dendogram_{output_file_variant}.svg"
+
+    linkage = np.loadtxt(INPUT)
+    cut = len(linkage) + 1
+
+    k = 200
 
     def filter_genres(df):
         return df.filter(pl.col(dataset.genres).is_in(("Action", "Comedy", "Drama")))
 
-    df_normalized = filter_genres(load_dataset(DatasetType.NORMALIZED))
-    df_numerical = filter_genres(load_dataset(DatasetType.NUMERICAL))
+    df_normalized = filter_genres(load_dataset(DatasetType.NORMALIZED)).sample(cut, seed=1346789134)
+    df_numerical = filter_genres(load_dataset(DatasetType.NUMERICAL)).sample(cut, seed=1346789134)
 
-    def assign_labels_to_clusters(
-        run: int, k: int
-    ) -> tuple[pl.DataFrame, dict[int, str]]:
-        centroids = all_centroids.filter(
-            (pl.col("k") == k) & (pl.col("run") == run)
-        ).drop("k", "run")
-
-        categorized = classify_in_column(df_normalized, df_numerical, centroids)
+    def assign_labels_to_clusters(t: float) -> tuple[int, pl.DataFrame, dict[int, str]]:
+        k, categorized = classify_in_column(df_normalized, df_numerical, t, linkage)
 
         pivoted = pivot(categorized, normalize=True)
 
@@ -153,7 +180,7 @@ if __name__ == "__main__":
         )
 
         # Example output
-        return categorized, assignation
+        return k, categorized, assignation
 
     def score_assignation(categorized: pl.DataFrame) -> np.float64:
         counts = (
@@ -176,27 +203,23 @@ if __name__ == "__main__":
     def accuracy_score(vals: pl.DataFrame) -> float:
         return len(vals.filter(pl.col("actual") == pl.col("predicted"))) / len(vals)
 
-    def assign_and_score_run(run: int):
-        categorized, assignation = assign_labels_to_clusters(run, k)
-        return accuracy_score(
-            categorized.select(actual=dataset.genres, predicted="predicted")
+    a, b = 0, 1
+    desired_k = 100
+    k = None
+    while k != desired_k:
+        d = (a + b) / 2
+        k, classified = classify_in_column(
+            df_normalized, df_numerical, t=d, linkage=linkage
         )
-        # return score_assignation(categorized)
+        print(d, k)
+        if k < desired_k:
+            b = d
+        else:
+            a = d
+    print(f"FOUND k={desired_k} for d={d}!")
+    plot_classification(classified, range(k))
 
-    best_run = max(
-        tqdm(all_centroids.filter(pl.col("k") == k).get_column("run").unique()),
-        key=assign_and_score_run,
-    )
-
-    best_centroids = all_centroids.filter(
-        (pl.col("k") == k) & (pl.col("run") == best_run)
-    ).drop("k", "run")
-
-    plot_classification(
-        classify_in_column(df_normalized, df_numerical, best_centroids), range(k)
-    )
-
-    categorized, assignations = assign_labels_to_clusters(best_run, k)
+    k, categorized, assignations = assign_labels_to_clusters(d)
     print(assignations)
 
     plot_confusion(

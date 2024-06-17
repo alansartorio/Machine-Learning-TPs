@@ -4,6 +4,7 @@ if __name__ == "__main__":
 
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
+import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 import polars as pl
@@ -23,4 +24,6 @@ df = pl.read_csv(INPUT)
 ax = sns.lineplot(data=df, x="k", y="silhouette")
 ax.set_xticks(df["k"].unique())
 plt.savefig(OUTPUT)
-plt.show()
+if 'HIDE_PLOTS' not in os.environ:
+    plt.show()
+plt.clf()

@@ -118,7 +118,15 @@ if __name__ == "__main__":
             raise Exception(f"Invalid dataset {dataset}")
     output_file = f"out/hierarchical/linkage_{output_file_variant}.csv"
 
-    df_np = df.select(numeric_vars).to_numpy()[:20, :]
+    df_np = df.select(numeric_vars).sample(1000, seed=1346789134).to_numpy()
+    # df_np = np.array(
+        # [
+            # [0, 0],
+            # [0, 1],
+            # [1, 2],
+            # [1, 2.9],
+        # ]
+    # )
     # df_np = np.array([[0, 0], [0, 1], [0, 3]])
     count, vars = df_np.shape
 
@@ -140,6 +148,18 @@ if __name__ == "__main__":
                 dst[y, y + 1 :] = row_values
         dst = mirror_triangular_matrix(dst)
         return dst
+
+    # print(
+    # cluster_distance_matrix(
+    # clusters=[
+    # np.array([[0, 0], [1, 1]]),
+    # np.array([[1, 2], [3, 3]]),
+    # np.array([[-3, -3], [-1, -2]]),
+    # ],
+    # method=ClusterDistanceMethod.MINIMUM,
+    # )
+    # )
+    # exit()
 
     Node = tuple["Node", "Node", float, int] | int
 
@@ -175,7 +195,7 @@ if __name__ == "__main__":
         # print(list(map(cluster_to_values, map(flatten_cluster, clusters))))
         dst = cluster_distance_matrix(
             list(map(cluster_to_values, map(flatten_cluster, clusters))),
-            ClusterDistanceMethod.MINIMUM,
+            ClusterDistanceMethod.MAXIMUM,
         )
         # print(dst)
         a, b = np.unravel_index(dst.argmin(), dst.shape)
@@ -196,5 +216,11 @@ if __name__ == "__main__":
     print(clusters)
 
     np.savetxt(output_file, np.array(lines))
+
+    # import scipy.cluster.hierarchy as h
+    # from scipy.spatial.distance import pdist
+    # dst = pdist(df_np)
+    # z = h.single(dst)
+    # np.savetxt(output_file, z)
 
     # print(df)

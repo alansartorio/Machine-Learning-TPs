@@ -10,6 +10,7 @@ import numpy as np
 import numpy.typing as npt
 from functools import partial
 import polars as pl
+import os
 
 
 FloatArray = npt.NDArray[np.float64]
@@ -71,7 +72,8 @@ def plot_clusters(
         hue=range(len(centroids)),
         s=100,
     )
-    plt.show()
+    if 'HIDE_PLOTS' not in os.environ:
+        plt.show()
 
 
 def closest_centroid(
@@ -258,7 +260,7 @@ if __name__ == "__main__":
     maxs = df.select(numeric_vars).max().to_numpy()
     spread = maxs - mins
 
-    runs = 100
+    runs = 12*4
 
     with open(output_iterations_file, "w") as iterations_file, open(
         output_centroids_file, "w"
@@ -271,8 +273,8 @@ if __name__ == "__main__":
         centroids_output.writerow(centroid_rows)
 
         try:
-            with get_context("forkserver").Pool(12) as p:
-                for k in tqdm.tqdm(tuple(range(1, 20))):
+            with get_context("forkserver").Pool() as p:
+                for k in tqdm.tqdm(tuple(range(1, 21))):
                     results = tqdm.tqdm(
                         p.imap_unordered(
                             partial(
