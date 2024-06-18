@@ -22,9 +22,14 @@ $(ITERATIONS_NUMERIC_COLUMNS) $(CENTROIDS_NUMERIC_COLUMNS): src/k_means/k_means.
 out/k_means/silhouette.csv: src/k_means/silhouette.py input/normalized.csv out/k_means/centroids_all_columns.csv
 plots/k_means/silhouette.svg: src/k_means/silhouette_plot.py out/k_means/silhouette.csv
 plots/k_means/error_by_k.svg: src/k_means/plots.py out/k_means/iterations_all_columns.csv
-plots/k_means/confusion.svg plots/k_means/classification.svg: src/k_means/classify.py out/k_means/centroids_all_columns.csv input/normalized.csv input/numerical.csv
 
-out/k_means/silhouette.csv plots/k_means/silhouette.svg plots/k_means/error_by_k.svg plots/k_means/classification.svg: %:
+CLASSIFY_PLOTS = plots/k_means/confusion_3.svg plots/k_means/classification_3.svg plots/k_means/confusion_5.svg plots/k_means/classification_5.svg plots/k_means/confusion_11.svg plots/k_means/classification_11.svg
+
+$(CLASSIFY_PLOTS): src/k_means/classify.py out/k_means/centroids_all_columns.csv input/normalized.csv input/numerical.csv
+	mkdir -p $(dir $@)
+	HIDE_PLOTS=1 python $<
+
+out/k_means/silhouette.csv plots/k_means/silhouette.svg plots/k_means/error_by_k.svg: %:
 	mkdir -p $(dir $@)
 	HIDE_PLOTS=1 python $<
 
@@ -33,7 +38,7 @@ out/k_means/silhouette.csv plots/k_means/silhouette.svg plots/k_means/error_by_k
 
 
 
-k_means_plots: plots/k_means/error_by_k.svg plots/k_means/silhouette.svg plots/k_means/classification.svg
+k_means_plots: plots/k_means/error_by_k.svg plots/k_means/silhouette.svg $(CLASSIFY_PLOTS)
 
 all: k_means_plots
 

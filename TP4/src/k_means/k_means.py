@@ -116,6 +116,9 @@ def k_means_inner(
         .group_by(["centroid"])
     )
 
+    if centroids.shape[0] != len(tuple(grouped)):
+        print(centroids.shape[0], len(grouped))
+
     total_error: np.float64 = np.float64(0)
     for (centroid_index,), group in grouped:
         assert type(centroid_index) == int
