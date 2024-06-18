@@ -1,0 +1,12 @@
+{
+    "config": {
+        "neighbours_radius": 3,
+        "epochs": 15000,
+        "grid_size": 4,
+        "learning_rate": 0.5
+    },
+    "dataset": {
+        "name": {
+            "path": "normalized.csv",
+            "dtypes": {
+                "budget": 
