@@ -150,10 +150,20 @@ def covariance_matrix(
     plt.clf()
 
 
-def pairplot(df: pl.DataFrame, title: Optional[str] = None, config=PlotConfig()):
-    sns.pairplot(df.to_pandas())
+def pairplot(
+    df: pl.DataFrame,
+    vars: Optional[List[str]] = None,
+    title: Optional[str] = None,
+    config=PlotConfig(),
+):
+    print("Generating pairplot...")
+    g = (
+        sns.pairplot(df.to_pandas(), vars=vars)
+        if vars is not None
+        else sns.pairplot(df.to_pandas())
+    )
     if title is not None:
-        plt.title(title)
+        g.figure.suptitle(title, y=1.03)
     config.print_plot()
     plt.clf()
 
@@ -161,9 +171,9 @@ def pairplot(df: pl.DataFrame, title: Optional[str] = None, config=PlotConfig())
 def histogram(
     df: pl.DataFrame, var: str, title: Optional[str] = None, config=PlotConfig()
 ) -> None:
-    sns.histplot(data=df, x=var, kde=True)
+    g = sns.histplot(data=df, x=var, kde=True)
     if title is not None:
-        plt.title(title)
+        g.fig.suptitle(title)
     config.print_plot()
     plt.clf()
 
@@ -219,12 +229,19 @@ countplot(
 covariance_matrix(
     dataset.drop(CATEGORICAL_COLS + TEXT_COLS),
     "Matriz de correlación de las variables numéricas",
-    PlotConfig(show=False, save_file="covariance_matrix.svg", tight_layout=True),
+    PlotConfig(show=False, save_file="covariance_matrix.svg", fig_size=(10,8), tight_layout=False),
 )
 pairplot(
     dataset.drop(CATEGORICAL_COLS + TEXT_COLS),
+    None,
     "Relación entre variables numéricas",
-    PlotConfig(show=False, save_file="pairplot.svg", tight_layout=True),
+    PlotConfig(show=False, save_file="pairplot.png", tight_layout=True),
+)
+pairplot(
+    dataset.drop(CATEGORICAL_COLS + TEXT_COLS),
+    [runtime, popularity, vote_average, vote_count, budget],
+    "Relación entre variables numéricas",
+    PlotConfig(show=False, save_file="reduced_pairplot.png", tight_layout=True),
 )
 
 ## Plot distribution of nummerical features acroes the genres category

@@ -38,17 +38,22 @@ Consiste en observaciones de acuerdo a algún criterio con el objetivo de encont
 
 ### Clustering - Métodos
 
-Dentro de los algoritmos de clusterización hay muchos métodos distintos, con diferentes criterios de partición. Dentro de estos, nosotros prestaremos atención a dos de ellos. 
+Dentro de los algoritmos de clusterización hay muchos métodos distintos, con diferentes criterios de partición. Dentro de estos, nosotros prestaremos atención a dos de ellos.
 
 :::{.container .r-stretch}
+
 ::::{.flex-1}
+
 #### Clusters basados en prototipos
 Un cluster es un conjunto de objetos en el cual cada objeto está más cerca (o es más similar) al prototipo que define al cluster, que al prototipo que define cualquier otro cluster.
+
 ::::
 ::::{.flex-1}
+
 #### Agrupamiento jerárquico
 Se organizan los puntos de datos en una jerarquía de
 clústeres basados en su similitud o distancia. En este caso, se definene subgrupos dentro de subgrupos y esta jerarquía se representa en un dendograma.
+
 ::::
 :::
 
@@ -142,7 +147,8 @@ Adicionalmente, se buscó entender la relación entre las variables del conjunto
 
 ### Pairplot
 
-![](./plots/pairplot.svg)
+<!-- ![](./plots/pairplot.png){.r-stretch .w-stretch} -->
+![](./plots/reduced_pairplot.png){.r-stretch .w-stretch}
 
 ---
 
@@ -174,34 +180,69 @@ Adicionalmente, se buscó entender la relación entre las variables del conjunto
 
 ---
 
+### Elección de K
+
+Método del codo
+
+![](./plots/k_means/error_by_k.svg)
+
+---
+
+### Elección de K
+
+Análisis de la silueta
+
+<!-- El análisis de la silueta mide la calidad del agrupamiento o clustering. Mide la distancia de separación entre los clústers. Nos indica como de cerca está cada punto de un clúster a puntos de los clústers vecinos. Esta medida de distancia se encuentra en el rango [-1, 1]. Un valor alto indica un buen clustering.
+
+Los coeficientes de silueta cercanos a +1 indican que la observación se encuentra lejos de los clústers vecinos. Un valor del coeficiente de 0 indica que la observación está muy cerca o en la frontera de decisión entre dos clústers. Valores negativos indican que esas muestras quizás estén asignadas al clúster erróneo.
+
+El método de la silueta calcula la media de los coeficientes de silueta de todas las observaciones para diferentes valores de k. El número óptimo de clústers k es aquel que maximiza la media de los coeficientes de silueta para un rango de valores de k. -->
+
+![](./plots/k_means/silhouette.svg)
+
+---
+
 ## Clasificación
 
 ---
 
-## Image
+### K = 3
 
-![](./plots/k_means/error_by_k.svg){.r-stretch}
-
----
-
-![](./plots/k_means/silhouette.svg){.r-stretch}
+![](./plots/k_means/classification_3.svg)
 
 ---
 
-![](./plots/k_means/classification.svg){.r-stretch}
+### K = 5
+
+![](./plots/k_means/classification_5.svg)
 
 ---
 
-## Side to side
+### K = 10
 
-:::{.container .r-stretch}
-::::{.flex-1}
-![](./plots/.gif)
-::::
-::::{.flex-1}
-![](./plots/.svg)
-::::
-:::
+![](./plots/k_means/classification_10.svg)
+
+---
+
+## Resultados
+
+---
+
+### K = 3
+
+![](./plots/k_means/confusion_3.svg)
+
+---
+
+### K = 5
+
+![](./plots/k_means/confusion_5.svg)
+
+---
+
+### K = 10
+
+![](./plots/k_means/confusion_10.svg)
 
 ---
 
@@ -254,10 +295,114 @@ Donde $d$ es la función de distancia elegida.
 
 ## Kohonen
 
+Las redes de Kohonen son redes capaces de descubrir por sí mismas regularidades en los datos de entrada, sin necesidad de un supervisor externo. Esta técnica sirve para generar una representación bidimensional de un espacio de datos de mayor dimensionalidad, preservando su estructura topológica.
+<!-- Es decir que se preservan las relaciones espaciales entre los elemenots -->
 
+Adicionalmente, tienen la ventaja de que ante datos similares en la entrada, siempre se generan datos similares en la salida.
 
 ---
 
+### Kohonen - Estructura
+
+Una red de Kohonen es un tipo de red neuronal compuesta de una única capa, llamada capa de salida, la cual tiene formato de grilla bidimensional de dimensión $k\times k$.
+
+Cada neurona en esta red está conectada con todas las entradas. Estas conexiones se representan con un vector n-dimensional (donde $n$ es la cantidad de entradas) de pesos (también llamado prototipo). Formalmente, se tiene:
+
+$$
+w=(x_1,x_2,\dots,x_n)
+$$
+
+Adicionalmente, cada una de las neuronas se conecta tanto consigo misma (retroalimentación), como con todas sus neuronas _vecinas_.
+
+---
+
+### Kohonen - Aprendizaje
+
+El método de aprendizaje empleado en una red de Kohonen se denomina **Aprendizaje competitivo**.
+
+Esto se debe a que el sistema produce que algunas neuronas tengan mas activacion que otras en el output. Se define como neurona ganadora a la neurona que tenga vector de pesos mas similar a la entrada, quedando el resto de neuronas con valores de respuesta mínimos.
+
+---
+
+### Kohonen - Vecindario
+
+Sea $(i,j)$ la neurona que se encuentra en la fila $i$, columna $j$ de la red.
+
+Dada la neurona $(i,j)$, se define como **vecindario** de $(i,j)$ a todas las neuronas que están a una distancia menor o igual a una distancia $R$, denominada _radio del vecindario_.
+
+$$
+V_{(i,j)}=\{(i',j')\ /\ d(\ (i,j),(i',j') \le R\ )\}
+$$
+
+---
+
+### Kohonen - Vecindario
+
+La forma de calcular el vecindario de una neurona dependerá tanto del formato de la grilla elegido para la red (rectangular o hexagonal), como de la función de distancia que se utilice (normalmente distancia euclídea, pero puede ser de cualquier otro tipo).
+
+Normalmente, el radio del vecindario se inicializa del tamaño de la red ($R_i=k$) y se va reduciendo en cada iteración hasta llegar a 0.
+
+---
+
+### Kohonen - Entrenamiento
+
+Sea un conjunto de entrenamiento X que tiene P ejemplos, con cada ejemplo de dimensión n
+
+$$
+X=\{x^1,\dots,x^P\}\\ X^p=(x_1^p,x_2^p,\dots,x_n^p)
+$$
+
+Sea una capa de salida formada por $(k\times k)$ neuronas
+
+Para cada neurona de la capa de salida $(i,j)$ habrá un vector de pesos de dimensión n que representa sus conexiones con la entrada
+
+$$
+w^{ij}=(w_1^{ij},w_2^{ij},\dots,w_n^{ij})\ \ \ i,j\in\{1,\dots,k\}
+$$
+
+---
+
+### Kohonen - Entrenamiento
+
+Para cada $X^p$ seleccionaremos una neurona ganadora. Entonces, la neurona $(i,j)$ será la ganadora si el vector de pesos $w^{ij}$ es el más parecido a la entrada $X^p$.
+
+Luego, corregiremos el vector de pesos de la neurona ganadora para aumentar su similitud con el input $X^p$. Además, aplicaremos el mismo tipo de corrección en menor medida a todas las neuronas del vecindario de $(i,j)$, reduciendo la magnitud de la corrección según la distancia de la neurona vecina.
+
+---
+
+### Kohonen - Entrenamiento
+
+De esta forma, las neuronas vecinas se irán asemejando entre sí. Este proceso se denomina **ordenamiento**.
+
+A medida que el radio R va disminuyendo, el ordenamiento va estabilizándose y el entrenamiento irá **convergiendo**.
+
+---
+
+### Kohonen - Actualización de pesos
+
+Luego de cada iteración, se acutalizarán los pesos del vector $w$, tanto para cada neurona como para su vecindario.
+
+Sea $(i,j)$ una neurona, para cada neurona de su vecindario (incluyendo a $(i,j)$) se actualizará su vector de pesos $w_k^i,j$ tal que:
+
+$$
+w_k^{ij}(t+1)=w_k^{ij}(t)+\Delta w_k^{ij}\\
+\Delta w_k^{ij} = V*\eta\ *(x_k^p-w_k^{ij})\\
+V=e^{-{2d / R}},\\ d=\text{distancia con la neurona ganadora}\\
+\eta=\eta_\text{inicial}-\text{cte} * k\\
+R=(\text{max\_ctd\_epocas}-\text{epoca})*{R_\text{inicial}\over\text{max\_ctd\_epocas}}
+$$
+
+---
+
+### Kohonen - Visualización
+
+Para visualizar los resultados de este algoritmo, lo más natural es representarlos en una grilla bidimensional.
+
+Hay dos formas principales de representación: 
+
+- La primera consiste en graficar (en general o por variable) la cantidad de activaciones que tuvo cada neurona en la red
+- En la segunda, llamada Matriz U (Unified Distance Matrix), se grafica para cada neurona el promedio de la distancia euclídea entre el vector $w_{ij}$ de pesos de la neurona, y los vectores de pesos $w_{i'j'}$ de las neuronas vecinas.
+ 
 ---
 
 # GRACIAS
