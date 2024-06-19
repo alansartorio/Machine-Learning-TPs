@@ -136,6 +136,7 @@ def save_result(
     inputs: Input,
     kohonen: KohonenNetwork,
     genre_groups: List[Counter[str]],
+    input_size: int,
 ) -> None:
     output_directory = Path("out", "data")
     os.makedirs(output_directory, exist_ok=True)
@@ -149,7 +150,7 @@ def save_result(
             "config": config.to_json(),
             "dataset": {
                 "name": dataset_type.value.get("path"),
-                "input_size": INPUT_SIZE,
+                "input_size": input_size,
                 "size": len(inputs),
             },
             "groups": genre_groups,
@@ -167,6 +168,7 @@ def plot_u_matrix(kohonen: KohonenNetwork, plot_config: PlotConfig = PlotConfig(
     sns.heatmap(u_matrix, cmap="gray", annot=True)
 
     plot_config.print_plot()
+    plt.clf()
 
 
 def plot_neuron_classification(
@@ -209,6 +211,7 @@ def plot_neuron_classification(
     sns.heatmap(groups, cmap=sns.light_palette("#a275ac", len(genres)), annot=False)
 
     plot_config.print_plot()
+    plt.clf()
 
 
 def plot_activation_per_genre(
@@ -261,6 +264,7 @@ def plot_activation_per_genre(
     sns.heatmap(groups, cmap="viridis", annot=False)
 
     plot_config.print_plot()
+    plt.clf()
 
 
 def plot_activation_matrix(
@@ -289,6 +293,7 @@ def plot_activation_matrix(
     sns.heatmap(groups, cmap="viridis", annot=False)
 
     plot_config.print_plot()
+    plt.clf()
 
 
 def pivot(
@@ -333,9 +338,9 @@ def plot_confusion(
     cluster_order: Optional[Iterable[int]] = None,
     xlabel: Optional[str] = None,
     ylabel: Optional[str] = None,
-    filename: Optional[str] = None,
     actual: Optional[str] = None,
     predicted: Optional[str] = None,
+    plot_config: PlotConfig = PlotConfig(),
 ):
     categorized = pivot(
         categorized, cluster_order, normalize=True, index=actual, column=predicted
@@ -356,52 +361,32 @@ def plot_confusion(
         ax.set_ylabel(ylabel)
     if xlabel is not None:
         ax.set_xlabel(xlabel)
-    # plt.tight_layout()
-    if filename is not None:
-        plt.savefig(filename)
+
+    plot_config.print_plot()
     plt.clf()
-    plt.close()
 
 
-if __name__ == "__main__":
+def get_column(input: Input, column: int):
+    return [input.data[i][column] for i in range(len(input.data))]
+
+
+def make_general_clustering(
+    columns: List[str],
+    dataset_type=dataset.DatasetType.NORMALIZED,
+    base_path=Path("kohonen"),
+    show_plots=False,
+    standarization=ZScore(),
+) -> None:
+    print("Generating clustering for all inputs")
     print("Setting up data...")
     inputs = Input()
-
-    columns = [
-        dataset.budget,
-        dataset.genres,
-        dataset.original_title_len,
-        dataset.overview_len,
-        dataset.popularity,
-        dataset.production_companies,
-        dataset.production_countries,
-        dataset.revenue,
-        dataset.runtime,
-        dataset.spoken_languages,
-        dataset.vote_average,
-        dataset.vote_count,
-        dataset.imdb_id,
-    ]
-
-    genres = ["Action", "Comedy", "Drama"]
-
-    dataset_type = dataset.DatasetType.NORMALIZED
-    full_dataset = (
-        dataset.load_dataset(dataset_type)
-        .drop([c for c in dataset.columns if c not in columns])
-        .filter(pl.col(dataset.genres).is_in(genres))
+    full_dataset = dataset.load_dataset(dataset_type).drop(
+        [c for c in dataset.columns if c not in columns]
     )
-    train, test = dataset.split_dataframe(full_dataset, 0.7)
-    inputs.load_dataset(train.drop(dataset.imdb_id))
+    inputs.load_dataset(full_dataset)
     inputs.clean_input()
-
-    def get_column(input: Input, column: int):
-        return [input.data[i][column] for i in range(len(input.data))]
-
     # Dictionary with the data for each column of the input
-    column_data = {c: get_column(inputs, i) for i, c in enumerate(columns[:-1])}
-
-    standarization = ZScore()
+    column_data = {c: get_column(inputs, i) for i, c in enumerate(columns)}
 
     inputs = np.array(
         [
@@ -444,14 +429,9 @@ if __name__ == "__main__":
     def init_group() -> List[List[float]]:
         return [[] for _ in range(K**2)]
 
-    # This variable will contain the mean of the values of each column for each neuron
-    groups: Dict[str, List[float]] = {
-        c: [0 for _ in range(K**2)] for c in columns[:-1] if c != dataset.genres
-    }
-
     # This variable will contain the list of winner values per neuron, per variable
     neuron_winners_per_column: Dict[str, List[List[Union[float, str]]]] = {
-        c: init_group() for c in columns[:-1]
+        c: init_group() for c in columns
     }
 
     print("Grouping winners...")
@@ -462,36 +442,26 @@ if __name__ == "__main__":
                 column_data[neuron_winners][i]
             )
 
-    for i in range(K**2):
-        for neuron_winners in neuron_winners_per_column:
-            if neuron_winners == dataset.genres:
-                continue
-            groups[neuron_winners][i] = (
-                np.mean(neuron_winners_per_column[neuron_winners][i])
-                if len(neuron_winners_per_column[neuron_winners][i]) > 0
-                else 0
-            )
     # A list with all the genre activations for each neuron in the matrix
     genre_groups: List[Counter[str]] = [
         Counter([g for g in genre_group if g in genres])
         for genre_group in neuron_winners_per_column[dataset.genres]
     ]
 
-    # save_result(config, dataset_type, inputs, kohonen, genre_groups)
-    base_path = Path("kohonen")
-    show_plots = False
     plot_activation_matrix(
         winners,
         config,
         plot_config=PlotConfig(
-            show=show_plots, save_file=base_path.joinpath("activation_matrix.svg")
+            show=show_plots,
+            save_file=base_path.joinpath(f"activation_matrix_k_{K}.svg"),
         ),
     )
     plot_activation_per_genre(
         genre_groups,
         config,
         plot_config=PlotConfig(
-            show=show_plots, save_file=base_path.joinpath("activation_per_genre.svg")
+            show=show_plots,
+            save_file=base_path.joinpath(f"activation_per_genre_k_{K}.svg"),
         ),
     )
     plot_activation_per_genre(
@@ -500,7 +470,7 @@ if __name__ == "__main__":
         "Action",
         plot_config=PlotConfig(
             show=show_plots,
-            save_file=base_path.joinpath("activation_per_genre_action.svg"),
+            save_file=base_path.joinpath(f"activation_per_genre_action_k_{K}.svg"),
         ),
     )
     plot_activation_per_genre(
@@ -509,7 +479,7 @@ if __name__ == "__main__":
         "Comedy",
         plot_config=PlotConfig(
             show=show_plots,
-            save_file=base_path.joinpath("activation_per_genre_comedy.svg"),
+            save_file=base_path.joinpath(f"activation_per_genre_comedy_k_{K}.svg"),
         ),
     )
     plot_activation_per_genre(
@@ -518,7 +488,7 @@ if __name__ == "__main__":
         "Drama",
         plot_config=PlotConfig(
             show=show_plots,
-            save_file=base_path.joinpath("activation_per_genre_drama.svg"),
+            save_file=base_path.joinpath(f"activation_per_genre_drama_k_{K}.svg"),
         ),
     )
     plot_neuron_classification(
@@ -526,13 +496,100 @@ if __name__ == "__main__":
         genres,
         config,
         plot_config=PlotConfig(
-            show=show_plots, save_file=base_path.joinpath("neuron_classification.svg")
+            show=show_plots,
+            save_file=base_path.joinpath(f"neuron_classification_k_{K}.svg"),
         ),
     )
     plot_u_matrix(
         kohonen,
-        plot_config=PlotConfig(show=show_plots, save_file=base_path.joinpath("u_matrix.svg")),
+        plot_config=PlotConfig(
+            show=show_plots, save_file=base_path.joinpath(f"u_matrix_k_{K}.svg")
+        ),
     )
+
+
+def classify_data(
+    columns: List[str],
+    genres: List[str],
+    train_ratio=0.7,
+    dataset_type=dataset.DatasetType.NORMALIZED,
+    base_path=Path("kohonen"),
+    show_plots=False,
+    standarization=ZScore(),
+) -> None:
+    print(f"Generating clustering for genres {', '.join(genres)}")
+    print("Setting up data...")
+    inputs = Input()
+    full_dataset = (
+        dataset.load_dataset(dataset_type)
+        .drop([c for c in dataset.columns if c not in columns + [dataset.imdb_id]])
+        .filter(pl.col(dataset.genres).is_in(genres))
+    )
+    train, test = dataset.split_dataframe(full_dataset, train_ratio)
+    inputs.load_dataset(train.drop(dataset.imdb_id))
+    inputs.clean_input()
+    # Dictionary with the data for each column of the input
+    column_data = {c: get_column(inputs, i) for i, c in enumerate(columns)}
+
+    inputs = np.array(
+        [
+            standarization.standardize(inputs.clear_data[i])
+            for i in range(len(inputs.clear_data))
+        ]
+    )
+
+    input_len = len(inputs)
+
+    config: KohonenConfig = load_config("template.config.json")
+
+    K = config.grid_size
+    R = config.neighbours_radius
+    LEARNING_RATE = config.learning_rate
+    INPUT_SIZE = inputs.shape[1]
+    MAX_EPOCHS = config.epochs
+
+    initial_weights = []
+    for i in range(K**2):
+        initial_weights.extend(inputs[np.random.randint(0, input_len)])
+
+    kohonen = KohonenNetwork(
+        K,
+        R,
+        INPUT_SIZE,
+        LEARNING_RATE,
+        MAX_EPOCHS,
+        initial_input=initial_weights,
+        radius_update=ProgressiveReduction(),
+        similarity=EuclideanSimilarity(),
+    )
+
+    print("Training network...")
+    kohonen.train(inputs)
+    print("Training complete!")
+
+    winners = np.zeros(input_len, dtype=int)
+
+    def init_group() -> List[List[float]]:
+        return [[] for _ in range(K**2)]
+
+    # This variable will contain the list of winner values per neuron, per variable
+    neuron_winners_per_column: Dict[str, List[List[Union[float, str]]]] = {
+        c: init_group() for c in columns
+    }
+
+    print("Grouping winners...")
+    for i in range(input_len):
+        winners[i] = kohonen.get_winner(inputs[i])  # [0, k**2)
+        for neuron_winners in neuron_winners_per_column:
+            neuron_winners_per_column[neuron_winners][int(winners[i])].append(
+                column_data[neuron_winners][i]
+            )
+
+    # A list with all the genre activations for each neuron in the matrix
+    genre_groups: List[Counter[str]] = [
+        Counter([g for g in genre_group if g in genres])
+        for genre_group in neuron_winners_per_column[dataset.genres]
+    ]
 
     print("Classifying test data...")
     classification_matrix = [
@@ -558,5 +615,35 @@ if __name__ == "__main__":
         predicted="predicted",
         xlabel="predicted",
         ylabel="actual",
-        filename="out/kohonen/confusion_matrix.svg",
+        plot_config=PlotConfig(
+            show=show_plots,
+            save_file=base_path.joinpath(f"confusion_matrix_k_{K}.svg"),
+            tight_layout=False,
+        ),
     )
+
+
+if __name__ == "__main__":
+    columns = [
+        dataset.budget,
+        dataset.genres,
+        dataset.original_title_len,
+        dataset.overview_len,
+        dataset.popularity,
+        dataset.production_companies,
+        dataset.production_countries,
+        dataset.revenue,
+        dataset.runtime,
+        dataset.spoken_languages,
+        dataset.vote_average,
+        dataset.vote_count,
+        dataset.imdb_id,
+    ]
+
+    genres = ["Action", "Comedy", "Drama"]
+
+    dataset_type = dataset.DatasetType.NORMALIZED
+
+    make_general_clustering(columns[:-1])
+
+    classify_data(columns[:-1], genres, base_path=Path("kohonen", "classification"))

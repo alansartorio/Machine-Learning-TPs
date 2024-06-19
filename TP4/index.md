@@ -302,7 +302,7 @@ Adicionalmente, tienen la ventaja de que ante datos similares en la entrada, sie
 
 ---
 
-### Kohonen - Estructura
+### Estructura
 
 Una red de Kohonen es un tipo de red neuronal compuesta de una única capa, llamada capa de salida, la cual tiene formato de grilla bidimensional de dimensión $k\times k$.
 
@@ -316,7 +316,7 @@ Adicionalmente, cada una de las neuronas se conecta tanto consigo misma (retroal
 
 ---
 
-### Kohonen - Aprendizaje
+### Aprendizaje
 
 El método de aprendizaje empleado en una red de Kohonen se denomina **Aprendizaje competitivo**.
 
@@ -324,7 +324,7 @@ Esto se debe a que el sistema produce que algunas neuronas tengan mas activacion
 
 ---
 
-### Kohonen - Vecindario
+### Vecindario
 
 Sea $(i,j)$ la neurona que se encuentra en la fila $i$, columna $j$ de la red.
 
@@ -336,7 +336,7 @@ $$
 
 ---
 
-### Kohonen - Vecindario
+### Vecindario
 
 La forma de calcular el vecindario de una neurona dependerá tanto del formato de la grilla elegido para la red (rectangular o hexagonal), como de la función de distancia que se utilice (normalmente distancia euclídea, pero puede ser de cualquier otro tipo).
 
@@ -344,7 +344,7 @@ Normalmente, el radio del vecindario se inicializa del tamaño de la red ($R_i=k
 
 ---
 
-### Kohonen - Entrenamiento
+### Entrenamiento
 
 Sea un conjunto de entrenamiento X que tiene P ejemplos, con cada ejemplo de dimensión n
 
@@ -362,7 +362,7 @@ $$
 
 ---
 
-### Kohonen - Entrenamiento
+### Entrenamiento
 
 Para cada $X^p$ seleccionaremos una neurona ganadora. Entonces, la neurona $(i,j)$ será la ganadora si el vector de pesos $w^{ij}$ es el más parecido a la entrada $X^p$.
 
@@ -370,7 +370,7 @@ Luego, corregiremos el vector de pesos de la neurona ganadora para aumentar su s
 
 ---
 
-### Kohonen - Entrenamiento
+### Entrenamiento
 
 De esta forma, las neuronas vecinas se irán asemejando entre sí. Este proceso se denomina **ordenamiento**.
 
@@ -378,7 +378,7 @@ A medida que el radio R va disminuyendo, el ordenamiento va estabilizándose y e
 
 ---
 
-### Kohonen - Actualización de pesos
+### Actualización de pesos
 
 Luego de cada iteración, se acutalizarán los pesos del vector $w$, tanto para cada neurona como para su vecindario.
 
@@ -394,7 +394,7 @@ $$
 
 ---
 
-### Kohonen - Visualización
+### Visualización
 
 Para visualizar los resultados de este algoritmo, lo más natural es representarlos en una grilla bidimensional.
 
@@ -403,6 +403,54 @@ Hay dos formas principales de representación:
 - La primera consiste en graficar (en general o por variable) la cantidad de activaciones que tuvo cada neurona en la red
 - En la segunda, llamada Matriz U (Unified Distance Matrix), se grafica para cada neurona el promedio de la distancia euclídea entre el vector $w_{ij}$ de pesos de la neurona, y los vectores de pesos $w_{i'j'}$ de las neuronas vecinas.
  
+---
+
+## Clusterización
+
+---
+
+### Activación K = 3
+
+![](./plots/kohonen/activation_matrix_k_3.svg)
+
+---
+
+### Activación por género K = 3
+
+:::{.container .r-stretch}
+::::{.flex-1}
+![](./plots/kohonen/activation_per_genre_action_k_3.svg)
+::::
+::::{.flex-1}
+![](./plots/kohonen/activation_per_genre_action_k_3.svg)
+::::
+::::{.flex-1}
+![](./plots/kohonen/activation_per_genre_action_k_3.svg)
+::::
+:::
+
+---
+
+### Clasificación en géneros K = 3
+
+![](./plots/kohonen/neuron_classification_k_3.svg)
+
+---
+
+### U Matrix K = 3
+
+![](./plots/kohonen/u_matrix_k_3.svg)
+
+---
+
+## Clasificación
+
+---
+
+### Matriz de confusión K = 3
+
+![](./plots/kohonen/classification/confusion_matrix_k_3.svg)
+
 ---
 
 # GRACIAS
