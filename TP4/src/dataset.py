@@ -1,6 +1,8 @@
 import polars as pl
 from enum import Enum
 from pathlib import Path
+from typing import Tuple
+from numpy import random
 
 
 INPUT_PATH = Path("input")
@@ -45,21 +47,22 @@ overview_len = overview + "_len"
 
 
 DEFAULT_DTYPES = {
-            budget: pl.UInt64,
-            genres: pl.Utf8,
-            imdb_id: pl.Utf8,
-            original_title: pl.Utf8,
-            overview: pl.Utf8,
-            popularity: pl.Float32,
-            production_companies: pl.UInt16,
-            production_countries: pl.UInt16,
-            release_date: pl.Date,
-            revenue: pl.UInt64,
-            runtime: pl.UInt32,
-            spoken_languages: pl.UInt8,
-            vote_average: pl.Float32,
-            vote_count: pl.UInt16,
-        }
+    budget: pl.UInt64,
+    genres: pl.Utf8,
+    imdb_id: pl.Utf8,
+    original_title: pl.Utf8,
+    overview: pl.Utf8,
+    popularity: pl.Float32,
+    production_companies: pl.UInt16,
+    production_countries: pl.UInt16,
+    release_date: pl.Date,
+    revenue: pl.UInt64,
+    runtime: pl.UInt32,
+    spoken_languages: pl.UInt8,
+    vote_average: pl.Float32,
+    vote_count: pl.UInt16,
+}
+
 
 class DatasetType(Enum):
     # Original dataset
@@ -96,7 +99,7 @@ class DatasetType(Enum):
     }
     # Dataset with values casted and null values filled with the TMDB API
     #   The rows without an imdb_id were dropped (45 rows out of 5.505)
-    #   The repeated imdb_id values were dropped and fully filled with api data as 
+    #   The repeated imdb_id values were dropped and fully filled with api data as
     #       a single source of truth
     API_FILLED = {
         "path": "api_filled.csv",
@@ -172,6 +175,25 @@ class DatasetType(Enum):
 def load_dataset(type: DatasetType = DatasetType.DEFAULT) -> pl.DataFrame:
     with INPUT_PATH.joinpath(type.value.get("path")) as input_file:
         return pl.read_csv(input_file, separator=";", dtypes=type.value.get("dtypes"))
+
+
+def split_dataframe(
+        df: pl.DataFrame, train_ratio=0.7
+    ) -> Tuple[pl.DataFrame, pl.DataFrame]:  # (train, test)
+        df = df.sample(fraction=1, shuffle=True, with_replacement=True)
+        train, test = (
+            df.with_columns(random=pl.lit(random.rand(df.height)))
+            .with_columns(train=pl.col("random") > train_ratio)
+            .sort(pl.col("train"), descending=False)
+            .partition_by("train")
+        )
+        return train.drop("random").drop("train"), test.drop("random").drop("train")
+
+def load_dataset_split(
+    type: DatasetType = DatasetType.DEFAULT,
+    train_ratio=0.7,
+) -> Tuple[pl.DataFrame, pl.DataFrame]:
+    return split_dataframe(load_dataset(type), train_ratio)
 
 
 def save_dataset(dataset: pl.DataFrame, as_type: DatasetType) -> None:
