@@ -207,83 +207,84 @@ def full_histogram(df: pl.DataFrame, title: Optional[str] = None, config=PlotCon
     plt.clf()
 
 
-### Plot Distribution of features
-## Numerical features
-full_histogram(
-    dataset,
-    "Distribución de variables numéricas",
-    PlotConfig(
-        show=False, save_file="num_hist.svg", tight_layout=False, fig_size=(11, 8)
-    ),
-)
-## Categorical features
-countplot(
-    dataset,
-    genres,
-    "Distribución de géneros",
-    PlotConfig(
-        show=False, save_file="genres_dist.svg", tight_layout=False, fig_size=(9, 6)
-    ),
-)
-## Plot relationships between variables
-covariance_matrix(
-    dataset.drop(CATEGORICAL_COLS + TEXT_COLS),
-    "Matriz de correlación de las variables numéricas",
-    PlotConfig(show=False, save_file="covariance_matrix.svg", fig_size=(10,8), tight_layout=False),
-)
-pairplot(
-    dataset.drop(CATEGORICAL_COLS + TEXT_COLS),
-    None,
-    "Relación entre variables numéricas",
-    PlotConfig(show=False, save_file="pairplot.png", tight_layout=True),
-)
-pairplot(
-    dataset.drop(CATEGORICAL_COLS + TEXT_COLS),
-    [runtime, popularity, vote_average, vote_count, budget],
-    "Relación entre variables numéricas",
-    PlotConfig(show=False, save_file="reduced_pairplot.png", tight_layout=True),
-)
-
-## Plot distribution of nummerical features acroes the genres category
-# Box Plots
-print("Generating box plots for genres...")
-numerical_columns = get_numerical_columns(dataset)
-for col in numerical_columns:
-    plot_categorical_distribution(
+if __name__ == "__main__":
+    ### Plot Distribution of features
+    ## Numerical features
+    full_histogram(
         dataset,
-        col,
-        "box",
-        f"Box Plot of {col} by Category",
+        "Distribución de variables numéricas",
         PlotConfig(
-            show=False,
-            fig_size=(12, 6),
-            tight_layout=True,
-            output_path=Path("out/boxplots"),
-            save_file=f"box_{col}.svg",
+            show=False, save_file="num_hist.svg", tight_layout=False, fig_size=(11, 8)
         ),
     )
-
-    plot_categorical_distribution(
+    ## Categorical features
+    countplot(
         dataset,
-        col,
-        "violin",
-        f"Box Plot of {col} by Category",
+        genres,
+        "Distribución de géneros",
         PlotConfig(
-            show=False,
-            fig_size=(17, 6),
-            tight_layout=True,
-            output_path=Path("out/boxplots"),
-            save_file=f"box_{col}.svg",
+            show=False, save_file="genres_dist.svg", tight_layout=False, fig_size=(9, 6)
         ),
     )
+    ## Plot relationships between variables
+    covariance_matrix(
+        dataset.drop(CATEGORICAL_COLS + TEXT_COLS),
+        "Matriz de correlación de las variables numéricas",
+        PlotConfig(show=False, save_file="covariance_matrix.svg", fig_size=(10,8), tight_layout=False),
+    )
+    pairplot(
+        dataset.drop(CATEGORICAL_COLS + TEXT_COLS),
+        None,
+        "Relación entre variables numéricas",
+        PlotConfig(show=False, save_file="pairplot.png", tight_layout=True),
+    )
+    pairplot(
+        dataset.drop(CATEGORICAL_COLS + TEXT_COLS),
+        [runtime, popularity, vote_average, vote_count, budget],
+        "Relación entre variables numéricas",
+        PlotConfig(show=False, save_file="reduced_pairplot.png", tight_layout=True),
+    )
+
+    ## Plot distribution of nummerical features acroes the genres category
+    # Box Plots
+    print("Generating box plots for genres...")
+    numerical_columns = get_numerical_columns(dataset)
+    for col in numerical_columns:
+        plot_categorical_distribution(
+            dataset,
+            col,
+            "box",
+            f"Box Plot of {col} by Category",
+            PlotConfig(
+                show=False,
+                fig_size=(12, 6),
+                tight_layout=True,
+                output_path=Path("out/boxplots"),
+                save_file=f"box_{col}.svg",
+            ),
+        )
+
+        plot_categorical_distribution(
+            dataset,
+            col,
+            "violin",
+            f"Box Plot of {col} by Category",
+            PlotConfig(
+                show=False,
+                fig_size=(17, 6),
+                tight_layout=True,
+                output_path=Path("out/boxplots"),
+                save_file=f"box_{col}.svg",
+            ),
+        )
 
 
-# histogram(
-#     dataset.with_columns(
-#         pl.col(overview)
-#         .map_elements(lambda s: len(s.split()), int)
-#         .alias("overview_wordcount")
-#     ),
-#     "overview_wordcount",
-#     "Cantidad de palabras en la descripción de las películas",
-# )
+    # histogram(
+    #     dataset.with_columns(
+    #         pl.col(overview)
+    #         .map_elements(lambda s: len(s.split()), int)
+    #         .alias("overview_wordcount")
+    #     ),
+    #     "overview_wordcount",
+    #     "Cantidad de palabras en la descripción de las películas",
+    # )

@@ -2,11 +2,12 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Dict
 import seaborn as sns
 
 import numpy as np
 from matplotlib import pyplot as plt
+from collections import Counter
 
 from config import Input, load_config, KohonenConfig
 from radius_update import IdentityUpdate, ProgressiveReduction, RadiusUpdate
@@ -18,6 +19,7 @@ import sys
 # setting path
 sys.path.append("src")
 import dataset
+from analisys import PlotConfig
 
 
 class KohonenNetwork:
@@ -127,6 +129,94 @@ class KohonenNetwork:
         return [item for row in matrix for item in row]
 
 
+def save_result(
+    config: KohonenConfig,
+    dataset_type: dataset.DatasetType,
+    inputs: Input,
+    kohonen: KohonenNetwork,
+    genre_groups: List[Counter[str]],
+) -> None:
+    output_directory = Path("out", "data")
+    os.makedirs(output_directory, exist_ok=True)
+
+    with open(
+        output_directory.joinpath(f"result-{datetime.now()}.json"),
+        "w",
+        encoding="utf-8",
+    ) as file:
+        result = {
+            "config": config.to_json(),
+            "dataset": {
+                "name": dataset_type.value.get("path"),
+                "input_size": INPUT_SIZE,
+                "size": len(inputs),
+            },
+            "groups": genre_groups,
+            "weights": kohonen.weights.tolist(),
+        }
+        json.dump(result, file, ensure_ascii=False, indent=4)
+
+
+def group_display_name(group: Counter[str]) -> str:
+    return "\n".join(
+        map(
+            lambda x: x[0],
+            sorted(group.items(), key=lambda x: x[1], reverse=True)[:3],
+        )
+    )
+
+
+def plot_activations_matrix(
+    genre_groups: List[Counter[str]],
+    plot_config: PlotConfig = PlotConfig(),
+) -> None:
+    groups_dict = {f"Group {i}": gs for i, gs in enumerate(genre_groups)}
+    ### --- HEATMAP CON NOMBRES -----
+    matrix = np.zeros((K, K), dtype=int)
+
+    # Process the data and fill the matrix
+
+    for group, genres in groups_dict.items():
+        if genres:
+            row, col = divmod(int(group.split()[1]), K)
+            matrix[K - 1 - row, col] = len(genres)
+
+    # Add group names to each cell
+    plt.figure(figsize=(10, 8))
+
+    for i in range(K):
+        for j in range(K):
+            plt.text(
+                j + 0.5,
+                K - 1 - i + 0.5,
+                group_display_name(groups_dict.get(f"Group {i * K + j}", "")),
+                ha="center",
+                va="center",
+                fontsize=10,
+            )
+
+    plt.title(
+        f"Activación de neuronas. Red {K}x{K} con η(0)={str(LEARNING_RATE)}, R={str(R)} y {MAX_EPOCHS} epochs"
+    )
+
+    groups = np.array(list(map(lambda x: len(x), genre_groups))).reshape((K, K))
+    groups = np.flip(groups, axis=0)
+
+    sns.heatmap(groups, cmap="viridis", annot=False)
+
+    plot_config.print_plot()
+
+
+def plot_u_matrix(kohonen: KohonenNetwork, plot_config: PlotConfig = PlotConfig()):
+    u_matrix = kohonen.get_unified_distance_matrix()
+    u_matrix = np.flip(u_matrix, axis=0)
+
+    plt.title("Unified Distance Matrix Heatmap")
+
+    sns.heatmap(u_matrix, cmap="gray", annot=True)
+
+    plot_config.print_plot()
+
 if __name__ == "__main__":
     print("Setting up data...")
     inputs = Input()
@@ -216,71 +306,15 @@ if __name__ == "__main__":
                 np.mean(groups[group][i]) if len(groups[group][i]) > 0 else 0
             )
 
-    genre_groups: List[List[str]] = [
-        list(set(genre_group)) for genre_group in groups[dataset.genres]
+    # A list with all the genre activations for each neuron in the matrix
+    genre_groups: List[Counter[str]] = [
+        Counter(genre_group) for genre_group in groups[dataset.genres]
     ]
-    groups_dict = {f"Group {i}": g for i, g in enumerate(genre_groups)}
 
-    output_directory = Path("out", "data")
-    os.makedirs(output_directory, exist_ok=True)
+    # save_result(config, dataset_type, inputs, kohonen, genre_groups)
 
-    with open(
-        output_directory.joinpath(f"result-{datetime.now()}.json"),
-        "w",
-        encoding="utf-8",
-    ) as file:
-        result = {
-            "config": config.to_json(),
-            "dataset": {
-                "name": dataset_type.value.get("path"),
-                "input_size": INPUT_SIZE,
-                "size": len(inputs),
-            },
-            "groups": groups_dict,
-            "weights": kohonen.weights.tolist(),
-        }
-        json.dump(result, file, ensure_ascii=False, indent=4)
-
-    ### --- HEATMAP CON NOMBRES -----
-    matrix = np.zeros((K, K), dtype=int)
-
-    # Process the data and fill the matrix
-
-    for group, countries in groups_dict.items():
-        if countries:
-            row, col = divmod(int(group.split()[1]), K)
-            matrix[K - 1 - row, col] = len(countries)
-
-    # Add group names to each cell
-    plt.figure(figsize=(10, 8))
-    for i in range(K):
-        for j in range(K):
-            plt.text(
-                j + 0.5,
-                K - 1 - i + 0.5,
-                "\n".join(groups_dict.get(f"Group {i * K + j}", "")),
-                ha="center",
-                va="center",
-                fontsize=10,
-            )
-
-    plt.title(
-        f"Groups Heatmap {K}x{K} with η(0)={str(LEARNING_RATE)}, R={str(R)} and {MAX_EPOCHS} epochs"
-    )
-
-    groups = np.array(list(map(lambda x: len(x), genre_groups))).reshape((K, K))
-    groups = np.flip(groups, axis=0)
-
-    sns.heatmap(groups, cmap="viridis", annot=False)
-    plt.show()
-
+    plot_activations_matrix(genre_groups)
     ####
     ### NEIGHBOURS ###
 
-    plt.title("Unified Distance Matrix Heatmap")
-
-    unified_distance = kohonen.get_unified_distance_matrix()
-    unified_distance = np.flip(unified_distance, axis=0)
-
-    sns.heatmap(unified_distance, cmap="gray", annot=True)
-    plt.show()
+    plot_u_matrix(kohonen)
