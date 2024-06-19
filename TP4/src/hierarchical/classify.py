@@ -51,7 +51,7 @@ def pivot(
         values=dataset.imdb_id,
         aggregate_function=pl.len(),
         sort_columns=True,
-    ).fill_null(0)
+    ).fill_null(0).sort(index)
 
     def scale_to_sum_1(values):
         values = np.array(values)
@@ -79,6 +79,7 @@ def plot_confusion(
     filename: Optional[str] = None,
     actual: Optional[str] = None,
     predicted: Optional[str] = None,
+    annot = True
 ):
     categorized = pivot(
         categorized, cluster_order, normalize=True, index=actual, column=predicted
@@ -86,7 +87,7 @@ def plot_confusion(
 
     ax = sns.heatmap(
         categorized.to_pandas().set_index(actual),
-        annot=True,
+        annot=annot,
         cmap="Blues",
         fmt="0.1f",
         vmin=0,
@@ -104,6 +105,7 @@ def plot_confusion(
         plt.savefig(filename)
     if 'HIDE_PLOTS' not in os.environ:
         plt.show()
+    plt.clf()
 
 
 def plot_classification(
@@ -117,6 +119,7 @@ def plot_classification(
         filename=OUTPUT_CLUSTERS,
         actual=dataset.genres,
         predicted="cluster",
+        annot=False
     )
 
 
@@ -155,10 +158,10 @@ if __name__ == "__main__":
     linkage = np.loadtxt(INPUT)
     cut = len(linkage) + 1
 
-    k = 200
+    genres = ("Action", "Comedy", "Drama")
 
     def filter_genres(df):
-        return df.filter(pl.col(dataset.genres).is_in(("Action", "Comedy", "Drama")))
+        return df.filter(pl.col(dataset.genres).is_in(genres))
 
     df_normalized = filter_genres(load_dataset(DatasetType.NORMALIZED)).sample(cut, seed=1346789134)
     df_numerical = filter_genres(load_dataset(DatasetType.NUMERICAL)).sample(cut, seed=1346789134)
@@ -203,7 +206,7 @@ if __name__ == "__main__":
     def accuracy_score(vals: pl.DataFrame) -> float:
         return len(vals.filter(pl.col("actual") == pl.col("predicted"))) / len(vals)
 
-    a, b = 0, 1
+    a, b = 0, 2
     desired_k = 100
     k = None
     while k != desired_k:
@@ -231,4 +234,5 @@ if __name__ == "__main__":
         xlabel="predicted",
         ylabel="actual",
         filename=OUTPUT_CONFUSION,
+        cluster_order=genres,
     )

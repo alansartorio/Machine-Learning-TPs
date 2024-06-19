@@ -142,7 +142,7 @@ if __name__ == "__main__":
 
             categorized = classify_in_column(df_normalized, df_numerical, centroids)
 
-            print(categorized["cluster"].n_unique())
+            # print(categorized["cluster"].n_unique())
             if categorized["cluster"].n_unique() != k:
                 return None, None
 
@@ -225,4 +225,4 @@ if __name__ == "__main__":
 
     classify_with_k(3)
     classify_with_k(5)
-    classify_with_k(11)
+    classify_with_k(10)
