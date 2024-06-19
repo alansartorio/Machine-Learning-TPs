@@ -293,6 +293,24 @@ Donde $d$ es la función de distancia elegida.
 
 ---
 
+## Clasificación
+
+![](./plots/hierarchical/classification.svg)
+
+---
+
+### Dendograma
+
+![](./plots/hierarchical/dendogram_all_columns.svg)
+
+---
+
+## Matriz de confusión
+
+![](./plots/hierarchical/confusion.svg)
+
+---
+
 ## Kohonen
 
 Las redes de Kohonen son redes capaces de descubrir por sí mismas regularidades en los datos de entrada, sin necesidad de un supervisor externo. Esta técnica sirve para generar una representación bidimensional de un espacio de datos de mayor dimensionalidad, preservando su estructura topológica.
@@ -385,10 +403,16 @@ Luego de cada iteración, se acutalizarán los pesos del vector $w$, tanto para 
 Sea $(i,j)$ una neurona, para cada neurona de su vecindario (incluyendo a $(i,j)$) se actualizará su vector de pesos $w_k^i,j$ tal que:
 
 $$
-w_k^{ij}(t+1)=w_k^{ij}(t)+\Delta w_k^{ij}\\
-\Delta w_k^{ij} = V*\eta\ *(x_k^p-w_k^{ij})\\
-V=e^{-{2d / R}},\\ d=\text{distancia con la neurona ganadora}\\
-\eta=\eta_\text{inicial}-\text{cte} * k\\
+w_k^{ij}(t+1)=w_k^{ij}(t)+\Delta w_k^{ij}
+$$
+$$
+\Delta w_k^{ij} = V*\eta\ *(x_k^p-w_k^{ij})
+$$
+$$
+V=e^{-{2d / R}},\\ d=\text{distancia con la neurona ganadora}
+$$
+$$
+\eta=\eta_\text{inicial}-\text{cte} * k
 R=(\text{max\_ctd\_epocas}-\text{epoca})*{R_\text{inicial}\over\text{max\_ctd\_epocas}}
 $$
 
@@ -419,27 +443,125 @@ Hay dos formas principales de representación:
 
 :::{.container .r-stretch}
 ::::{.flex-1}
+
+Acción
+
 ![](./plots/kohonen/activation_per_genre_action_k_3.svg)
+
 ::::
 ::::{.flex-1}
-![](./plots/kohonen/activation_per_genre_action_k_3.svg)
+
+Comedia
+
+![](./plots/kohonen/activation_per_genre_comedy_k_3.svg)
+
 ::::
-::::{.flex-1}
-![](./plots/kohonen/activation_per_genre_action_k_3.svg)
+::::{.flex-1 .width}
+
+Drama
+
+![](./plots/kohonen/activation_per_genre_drama_k_3.svg)
+
 ::::
 :::
-
----
-
-### Clasificación en géneros K = 3
-
-![](./plots/kohonen/neuron_classification_k_3.svg)
-
 ---
 
 ### U Matrix K = 3
 
 ![](./plots/kohonen/u_matrix_k_3.svg)
+
+---
+
+### Activación K = 5
+
+![](./plots/kohonen/activation_matrix_k_5.svg)
+
+---
+
+### Activación por género K = 5
+
+:::{.container .r-stretch}
+::::{.flex-1}
+
+Acción
+
+![](./plots/kohonen/activation_per_genre_action_k_5.svg)
+
+::::
+::::{.flex-1}
+
+Comedia
+
+![](./plots/kohonen/activation_per_genre_comedy_k_5.svg)
+
+::::
+::::{.flex-1 .width}
+
+Drama
+
+![](./plots/kohonen/activation_per_genre_drama_k_5.svg)
+
+::::
+:::
+
+
+---
+
+### Clasificación en géneros K = 5
+
+![](./plots/kohonen/neuron_classification_k_5.svg)
+
+---
+
+### U Matrix K = 5
+
+![](./plots/kohonen/u_matrix_k_5.svg)
+
+---
+
+### Activación K = 7
+
+![](./plots/kohonen/activation_matrix_k_7.svg)
+
+---
+
+### Activación por género K = 7
+
+:::{.container .r-stretch}
+::::{.flex-1}
+
+Acción
+
+![](./plots/kohonen/activation_per_genre_action_k_7.svg)
+
+::::
+::::{.flex-1}
+
+Comedia
+
+![](./plots/kohonen/activation_per_genre_comedy_k_7.svg)
+
+::::
+::::{.flex-1 .width}
+
+Drama
+
+![](./plots/kohonen/activation_per_genre_drama_k_7.svg)
+
+::::
+:::
+
+---
+
+### Clasificación en géneros K = 7
+
+![](./plots/kohonen/neuron_classification_k_7.svg)
+
+---
+
+### U Matrix K = 7
+
+![](./plots/kohonen/u_matrix_k_7.svg)
 
 ---
 
@@ -450,6 +572,18 @@ Hay dos formas principales de representación:
 ### Matriz de confusión K = 3
 
 ![](./plots/kohonen/classification/confusion_matrix_k_3.svg)
+
+---
+
+### Matriz de confusión K = 5
+
+![](./plots/kohonen/classification/confusion_matrix_k_5.svg)
+
+---
+
+### Matriz de confusión K = 7
+
+![](./plots/kohonen/classification/confusion_matrix_k_7.svg)
 
 ---
 
