@@ -10,6 +10,9 @@ from sklearn.metrics import confusion_matrix
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import classification_report
 
+# TODO: fix warnings and remove
+import warnings
+warnings.filterwarnings("ignore")
 
 @dataclass
 class PlotConfig:
@@ -32,7 +35,7 @@ class PlotConfig:
 def plot_class_count(df: pd.DataFrame, config=PlotConfig()):
     print("Plotting class count...")
     cnt_pro = df["target"].value_counts()
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=config.fig_size)
     barplot = sns.barplot(x=cnt_pro.index, y=cnt_pro.values, palette=["red", "green"])
     plt.ylabel("Cantidad de diagnósticos", fontsize=12)
     plt.xlabel("target", fontsize=12)
@@ -43,13 +46,11 @@ def plot_class_count(df: pd.DataFrame, config=PlotConfig()):
     config.print_plot()
 
 
-# plt.rcParams.update({'font.size': 20})
-
-
 def plot_corr_matrix(
     df: pd.DataFrame, cols: Optional[List[str]] = None, config=PlotConfig()
 ):
-    plt.figure(figsize=(10, 9))
+    print("Plotting correlation matrix...")
+    plt.figure(figsize=config.fig_size)
     h = sns.heatmap((df if cols is None else df[cols]).corr(), annot=True, linewidths=1)
     h.set_xticklabels(h.get_xticklabels(), rotation=45)
     h.set_yticklabels(h.get_yticklabels(), rotation=0)
@@ -63,7 +64,8 @@ def plot_corr_target(
     cols: Optional[List[str]] = None,
     config=PlotConfig(),
 ):
-    fig, ax = plt.subplots(figsize=(6, 10))
+    print(f"Plotting correlation with {target}...")
+    plt.subplots(figsize=config.fig_size)
 
     # Compute correlations and sort by absolute values
     corr = (
@@ -83,12 +85,13 @@ def plot_corr_target(
 def plot_distributions(
     df: pd.DataFrame, cols: Optional[List[str]] = None, config=PlotConfig()
 ):
+    print("Plotting distributions...")
     # Define the colors
     colors = ["red", "green"]
     ncols = 3
     nrows = len(cols) // ncols + 1
 
-    fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(20, 30))
+    fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=config.fig_size)
     plt.subplots_adjust(wspace=0.2, hspace=0.4)
 
     ax_flat = ax.flatten()
@@ -116,7 +119,10 @@ def plot_distributions(
     config.print_plot()
 
 
-def evaluate_model(X_train, y_train, X_test, y_test):
+def evaluate_model(
+    X_train, y_train, X_test, y_test, confusion_plot_config=PlotConfig()
+):
+    print("Evaluating model...")
     clf1 = DecisionTreeClassifier(max_depth=3, min_samples_leaf=12, random_state=43)
     clf1.fit(X_train, y_train)
 
@@ -135,65 +141,75 @@ def evaluate_model(X_train, y_train, X_test, y_test):
 
     cnf_matrix = confusion_matrix(y_test, y_pred)
 
-    plt.figure(figsize=(7, 5))
+    plt.figure(figsize=confusion_plot_config.fig_size)
     sns.heatmap(cnf_matrix, annot=True, fmt="d")
     plt.xlabel("Predicción")
     plt.ylabel("Real")
-    # plt.show()
-    plt.savefig("plots/confusion_matrix.svg")
+    confusion_plot_config.print_plot()
 
     print(classification_report(y_test, y_pred))
 
 
-def plot_data(X_, y_, titles, filename="dimensionality_reduction"):
+def plot_data(X_, y_, titles, config=PlotConfig()):
     # Define the colors
     colors = ["red" if label == 0 else "green" for label in y_]
 
     # Create figure
-    plt.figure(figsize=(16, 16))
+    plt.figure(figsize=config.fig_size)
+    nplots = len(X_)
 
+    sns.set_theme(font_scale=1.4)
     # Loop over each subplot
-    for i in range(5):
-        plt.subplot(5, 1, i + 1)
-        scatter = plt.scatter(X_[i][:, 0], X_[i][:, 1], c=colors, edgecolor="k")
+    for i, x in enumerate(X_):
+        plt.subplot(nplots, 1, i + 1)
+        plt.scatter(x[:, 0], x[:, 1], c=colors, edgecolor="k")
         plt.title(titles[i])
         plt.gca().set_facecolor("lightgray")
-        red_patch = mpatches.Patch(color="red", label="malignant")
-        green_patch = mpatches.Patch(color="green", label="benign")
+        red_patch = mpatches.Patch(color="red", label="maligno")
+        green_patch = mpatches.Patch(color="green", label="benigno")
         plt.legend(handles=[red_patch, green_patch])
 
-    # plt.show()
-    plt.savefig(f"plots/{filename}.svg")
+    config.print_plot()
+    sns.set_theme(font_scale=1)
 
 
-def evaluate_and_plot_model(X_train, y_train, X_test, y_test):
+def evaluate_and_plot_model(
+    X_train,
+    y_train,
+    X_test,
+    y_test,
+    set_name: str,
+    confusion_plot_config=PlotConfig(),
+    decision_boundary_plot_config: Optional[PlotConfig]=None,
+):
     clf1 = DecisionTreeClassifier(max_depth=3, min_samples_leaf=12, random_state=43)
     clf1.fit(X_train, y_train)
 
     print(
-        "Accuracy of Decision Tree classifier on original training set: {:.2f}".format(
-            clf1.score(X_train, y_train)
-        )
+        f"Accuracy of Decision Tree classifier on {set_name} training set: {clf1.score(X_train, y_train):.2f}"
     )
     print(
-        "Accuracy of Decision Tree classifier on original test set: {:.2f}".format(
-            clf1.score(X_test, y_test)
-        )
+        f"Accuracy of Decision Tree classifier on {set_name} test set: {clf1.score(X_test, y_test):.2f}"
     )
 
     y_pred = clf1.predict(X_test)
 
     cnf_matrix = confusion_matrix(y_test, y_pred)
 
-    # Plot confusion matrix with seaborn
-    plt.figure(figsize=(7, 5))
+    # Plot confusion matrix
+    plt.figure(figsize=confusion_plot_config.fig_size)
     sns.heatmap(cnf_matrix, annot=True, fmt="d")
     plt.xlabel("Predicción")
     plt.ylabel("Real")
-    plt.show()
+    confusion_plot_config.print_plot()
 
     print(classification_report(y_test, y_pred))
 
+    if decision_boundary_plot_config is None:
+        return
+
+    assert X_train.shape[1] == 2, "Decision boundary plot only works with 2D data"
+    
     x_min, x_max = X_train[:, 0].min(), X_train[:, 0].max()
     y_min, y_max = X_train[:, 1].min(), X_train[:, 1].max()
 
@@ -204,14 +220,14 @@ def evaluate_and_plot_model(X_train, y_train, X_test, y_test):
     Z = Z.reshape(xx.shape)
 
     # Plot the decision boundary
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=decision_boundary_plot_config.fig_size)
     plt.contourf(xx, yy, Z, alpha=0.8)
 
     colors = ["red" if label == 0 else "green" for label in y_train]
 
     scatter = plt.scatter(X_train[:, 0], X_train[:, 1], c=colors, edgecolor="k")
     plt.gca().set_facecolor("lightgray")
-    red_patch = mpatches.Patch(color="red", label="malignant")
-    green_patch = mpatches.Patch(color="green", label="benign")
+    red_patch = mpatches.Patch(color="red", label="maligno")
+    green_patch = mpatches.Patch(color="green", label="benigno")
     plt.legend(handles=[red_patch, green_patch])
-    plt.show()
+    decision_boundary_plot_config.print_plot()

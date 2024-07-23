@@ -25,7 +25,6 @@ El dataset de Cáncer de mama de Wisconsin es comúnmente usado dentro del campo
 
 Generar un modelo de clasificación para predecir si un tumor es benigno o maligno, y utilizar **algoritmos de reducción de dimensionalidad** para tratar de mejorar la eficacia del modelo.
 
----
 
 # Algoritmos
 
@@ -302,7 +301,6 @@ Este cálculo de la entropía resultará en representaciones en bajas dimensione
 ::::
 :::
 
----
 
 # Dataset
 
@@ -367,14 +365,154 @@ En total hay 569 documentos, siendo 357 benignos y 212 malignos.
 
 ![](./plots/violin_plots.svg)
 
+
+# Optimización
+
+Reducción de dimensionalidad
+
 ---
 
-# Reducción de dimensionalidad
+**Proyección de los datos de _entrenamiento_ con diferentes métodos**
+
+![](./plots/dimensionality_reduction_train.png)
 
 ---
+
+**Proyección de los datos de _prueba_ con diferentes métodos**
+
+![](./plots/dimensionality_reduction_test.png)
+
 
 # Resultados
 
 ---
+
+## Accuracy por método
+
+| Dataset                          | Training Accuracy | Test Accuracy |
+|----------------------------------|-------------------|---------------|
+| Original                         | 0.96              | 0.92          |
+| PCA                              | 0.95              | 0.93          |
+| KPCA                             | 0.93              | 0.89          |
+| LLE                              | 0.93              | 0.94          |
+| UMAP                             | 0.97              | 0.95          |
+| Supervised UMAP                  | 1.00              | 0.97          |
+
+---
+
+## Dataset Original
+
+---
+
+### Dataset Original - Métricas
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| 0.0   | 0.88      | 0.90   | 0.89     | 39      |
+| 1.0   | 0.95      | 0.93   | 0.94     | 75      |
+| **Accuracy**       |           |        | 0.92     | 114     |
+| **Macro Avg**      | 0.91      | 0.92   | 0.91     | 114     |
+| **Weighted Avg**   | 0.92      | 0.92   | 0.92     | 114     |
+
+---
+
+### Dataset Original - Matriz de confusión
+
+![](./plots/confusion_matrix_original.svg){.stretch}
+
+---
+
+## PCA
+
+---
+
+### PCA - Métricas
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| 0.0   | 0.88      | 0.92   | 0.90     | 39      |
+| 1.0   | 0.96      | 0.93   | 0.95     | 75      |
+| **Accuracy**       |           |        | 0.93     | 114     |
+| **Macro Avg**      | 0.92      | 0.93   | 0.92     | 114     |
+| **Weighted Avg**   | 0.93      | 0.93   | 0.93     | 114     |
+
+---
+
+### PCA - Matriz de confusión
+
+![](./plots/confusion_matrix_PCA.svg)
+
+<!--
+
+---
+
+## KPCA
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| 0.0   | 0.80      | 0.92   | 0.86     | 39      |
+| 1.0   | 0.96      | 0.88   | 0.92     | 75      |
+| **Accuracy**       |           |        | 0.89     | 114     |
+| **Macro Avg**      | 0.88      | 0.90   | 0.89     | 114     |
+| **Weighted Avg**   | 0.90      | 0.89   | 0.90     | 114     | 
+
+---
+
+### LLE
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| 0.0   | 0.97      | 0.85   | 0.90     | 39      |
+| 1.0   | 0.93      | 0.99   | 0.95     | 75      |
+| **Accuracy**       |           |        | 0.94     | 114     |
+| **Macro Avg**      | 0.95      | 0.92   | 0.93     | 114     |
+| **Weighted Avg**   | 0.94      | 0.94   | 0.94     | 114     |
+
+-->
+
+--- 
+
+## UMAP
+
+---
+
+### UMAP - Métricas 
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| 0.0   | 0.90      | 0.95   | 0.93     | 39      |
+| 1.0   | 0.97      | 0.95   | 0.96     | 75      |
+| **Accuracy**       |           |        | 0.95     | 114     |
+| **Macro Avg**      | 0.94      | 0.95   | 0.94     | 114     |
+| **Weighted Avg**   | 0.95      | 0.95   | 0.95     | 114     |
+
+---
+
+### UMAP - Matriz de Confusión
+
+![](./plots/confusion_matrix_UMAP.svg)
+
+---
+
+## Supervised UMAP
+
+---
+
+### Supervised UMAP - Métricas
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| 0.0   | 0.97      | 0.95   | 0.96     | 39      |
+| 1.0   | 0.97      | 0.99   | 0.98     | 75      |
+| **Accuracy**       |           |        | 0.97     | 114     |
+| **Macro Avg**      | 0.97      | 0.97   | 0.97     | 114     |
+| **Weighted Avg**   | 0.97      | 0.97   | 0.97     | 114     |
+
+---
+
+### Supervised UMAP - Matriz de Confusión
+
+![](./plots/confusion_matrix_UMAP_supervised.svg)
+
 
 # GRACIAS

@@ -1,16 +1,11 @@
 import umap
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from sklearn import preprocessing
-from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import load_breast_cancer
 from sklearn.decomposition import PCA, KernelPCA
 from sklearn.manifold import LocallyLinearEmbedding
-from sklearn.tree import DecisionTreeClassifier
 from analyze import (
     plot_class_count,
     plot_corr_matrix,
@@ -22,6 +17,13 @@ from analyze import (
     PlotConfig,
 )
 
+def default_config(filename: str, figsize= (7, 5)) -> PlotConfig:
+        return PlotConfig(
+            show=False,
+            save_file=filename,
+            tight_layout=True,
+            fig_size=figsize,
+        )
 
 if __name__ == "__main__":
     cancer = load_breast_cancer()
@@ -38,25 +40,49 @@ if __name__ == "__main__":
 
     # Pre-Analysis
     reduced_columns = list(filter(lambda c: c.startswith("mean"), data_df.columns))
-    # plot_class_count(data_df, PlotConfig(show=False, save_file="class_count.svg"))
-    # plot_corr_matrix(
-    #     data_df, reduced_columns, PlotConfig(show=False, save_file="corr_matrix.svg")
-    # )
-    # plot_corr_target(
-    #     data_df,
-    #     "target",
-    #     reduced_columns,
-    #     PlotConfig(show=False, save_file="corr_target.svg"),
-    # )
-    plot_distributions(
-        data_df, reduced_columns, PlotConfig(show=False, save_file="violin_plots.svg")
+    plot_class_count(
+        data_df,
+        PlotConfig(
+            show=False, save_file="class_count.svg", tight_layout=True, fig_size=(8, 6)
+        ),
     )
-
-    exit()
+    plot_corr_matrix(
+        data_df,
+        reduced_columns,
+        PlotConfig(
+            show=False, save_file="corr_matrix.svg", tight_layout=True, fig_size=(10, 9)
+        ),
+    )
+    plot_corr_target(
+        data_df,
+        "target",
+        reduced_columns,
+        PlotConfig(
+            show=False, save_file="corr_target.svg", tight_layout=True, fig_size=(10, 9)
+        ),
+    )
+    plot_distributions(
+        data_df,
+        reduced_columns,
+        PlotConfig(
+            show=False,
+            save_file="violin_plots.svg",
+            tight_layout=True,
+            fig_size=(15, 10),  # (20, 30)
+        ),
+    )
 
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=43
+    )
+    evaluate_and_plot_model(
+        X_train,
+        y_train,
+        X_test,
+        y_test,
+        "original",
+        default_config("confusion_matrix_original.svg"),
     )
 
     # Reduce dimensionality
@@ -98,7 +124,12 @@ if __name__ == "__main__":
         X_train_UMAP_supervised,
     ]
     titles = ["PCA", "KPCA", "LLE", "UMAP", "Supervised UMAP"]
-    plot_data(X_train_list, y_train, titles, "dimensionality_reduction_train")
+    plot_data(X_train_list, y_train, titles,  PlotConfig(
+        show=False,
+        save_file="dimensionality_reduction_train",
+        tight_layout=True,
+        fig_size=(20, 20),
+    ))
 
     X_test_list = [
         X_test_PCA,
@@ -108,14 +139,55 @@ if __name__ == "__main__":
         X_test_UMAP_supervised,
     ]
     titles = ["PCA", "KPCA", "LLE", "UMAP", "Supervised UMAP"]
-    plot_data(X_test_list, y_test, titles, "dimensionality_reduction_test")
+    plot_data(X_test_list, y_test, titles, PlotConfig(
+        show=False,
+        save_file="dimensionality_reduction_test",
+        tight_layout=True,
+        fig_size=(20, 20),
+    ))
 
-    evaluate_model(X_train, y_train, X_test, y_test)
-
-    evaluate_and_plot_model(X_train_PCA, y_train, X_test_PCA, y_test)
-    evaluate_and_plot_model(X_train_KPCA, y_train, X_test_KPCA, y_test)
-    evaluate_and_plot_model(X_train_LLE, y_train, X_test_LLE, y_test)
-    evaluate_and_plot_model(X_train_UMAP, y_train, X_test_UMAP, y_test)
     evaluate_and_plot_model(
-        X_train_UMAP_supervised, y_train, X_test_UMAP_supervised, y_test
+        X_train_PCA, 
+        y_train, 
+        X_test_PCA, 
+        y_test,
+        "PCA",
+        default_config("confusion_matrix_PCA.svg"),
+        default_config("decision_boundary_PCA.svg"),
+        )
+    evaluate_and_plot_model(
+        X_train_KPCA, 
+        y_train, 
+        X_test_KPCA, 
+        y_test,
+        "KPCA",
+        default_config("confusion_matrix_KPCA.svg"),
+        default_config("decision_boundary_KPCA.svg"),
+    )
+    evaluate_and_plot_model(
+        X_train_LLE, 
+        y_train, 
+        X_test_LLE, 
+        y_test,
+        "LLE",
+        default_config("confusion_matrix_LLE.svg"),
+        default_config("decision_boundary_LLE.svg"),
+        )
+    evaluate_and_plot_model(
+        X_train_UMAP, 
+        y_train, 
+        X_test_UMAP, 
+        y_test,
+        "UMAP",
+        default_config("confusion_matrix_UMAP.svg"),
+        default_config("decision_boundary_UMAP.svg"),
+        )
+    evaluate_and_plot_model(
+        X_train_UMAP_supervised, 
+        y_train, 
+        X_test_UMAP_supervised, 
+        y_test,
+        "Supervised UMAP",
+        default_config("confusion_matrix_UMAP_supervised.svg"),
+        default_config("decision_boundary_UMAP_supervised.svg")
     )
