@@ -19,9 +19,6 @@ date:
 El dataset de Cáncer de mama de Wisconsin es comúnmente usado dentro del campo de machine learning para tareas de clasificación. Contiene información sobrio biopsias de tumores que sirve para poder predecir si un tumor es benigno o maligno.
 <!-- Explicar la problemática -->
 
-<!-- TODO: hacer -->
-![](./plots/plot.svg)
-
 ---
 
 ## Objetivo
@@ -356,11 +353,11 @@ En total hay 569 documentos, siendo 357 benignos y 212 malignos.
 
 ### Matriz de correlación
 
-![](./plots/corr_matrix.svg)
+![](./plots/corr_matrix.svg){.stretch}
 
 ---
 
-### Correlación de variables con respecto al Diagnóstico
+### Correlación de variables con respecto al diagnóstico
 
 ![](./plots/corr_target.svg)
 
