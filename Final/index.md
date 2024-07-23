@@ -10,6 +10,10 @@ date:
 # theme: "Copenhagen"
 ---
 
+# Introducción
+
+---
+
 ## Introducción
 
 El dataset de Cáncer de mama de Wisconsin es comúnmente usado dentro del campo de machine learning para tareas de clasificación. Contiene información sobrio biopsias de tumores que sirve para poder predecir si un tumor es benigno o maligno.
@@ -23,6 +27,10 @@ El dataset de Cáncer de mama de Wisconsin es comúnmente usado dentro del campo
 ## Objetivo
 
 Generar un modelo de clasificación para predecir si un tumor es benigno o maligno, y utilizar **algoritmos de reducción de dimensionalidad** para tratar de mejorar la eficacia del modelo.
+
+---
+
+# Algoritmos
 
 ---
 
@@ -261,6 +269,8 @@ Este cálculo de la entropía resultará en representaciones en bajas dimensione
 
 ---
 
+<!-- Explicar parámetros n_neighbors, min_dist, n_components, metric https://umap-learn.readthedocs.io/en/latest/parameters.html -->
+
 ## UMAP
 
 ### Ejemplos
@@ -297,7 +307,40 @@ Este cálculo de la entropía resultará en representaciones en bajas dimensione
 
 ---
 
+# Dataset
+
+---
+
 ## Dataset
+
+Para este trabajo vamos a utilizar el dataset de Cáncer de Mama de Wisconsin, el cuál es popular dentro del campo de Machine Learning y puede obtenerse mediante la libería sci-kit learn. Este dataset contiene las características observadas sobre diferentes tumores a partir de imágenes digitalizadas de aspirados por aguja fina (FNA). El objetivo del mismo es poder tener una mejor comprensión de las características de los núcleos celulares para ayudar en el diagnóstico de cáncer de mama.
+
+---
+
+## Dataset - Variables
+
+El dataset contiene 10 variables calculadas para los núcleos celulares dentro de cada imágen: 
+
+1. Radio (media de distancias desde el centro hasta diferentes puntos exteriores)
+2. Textura (desvío estándar de los valores de la escala de grises)
+3. Perímetro
+4. Área
+5. Suavidad (variación local en el valor de los radios)
+6. Compacidad ($\text{perimetro}^2 / \text{area} - 1$)
+7. Concavidad (severidad de las porciones cóncavas del contorno)
+8. Puntos cóncavos (cantidad de porciones cóncavas del contorno)
+9. Simetría
+10. Dimensión fractal ("aproximación de línea costera" - 1)
+
+---
+
+## Dataset - Variables
+
+Cada una de estas variables se representa con tres valores: la _media_, el _desvío estándar_ y el _peor caso_. 
+
+La variable objetivo es el diagnóstico, pudiendo ser <span style="color:green">benigno (B)</span> o <span style="color:red">maligno (M)</span>
+
+En total hay 569 documentos, siendo 357 benignos y 212 malignos.
 
 ---
 
@@ -305,7 +348,35 @@ Este cálculo de la entropía resultará en representaciones en bajas dimensione
 
 ---
 
-## Resultados
+### Cantidad de documentos por clase
+
+![](./plots/class_count.svg)
+
+---
+
+### Matriz de correlación
+
+![](./plots/corr_matrix.svg)
+
+---
+
+### Correlación de variables con respecto al Diagnóstico
+
+![](./plots/corr_target.svg)
+
+---
+
+### Distribución de variables
+
+![](./plots/violin_plots.svg)
+
+---
+
+# Reducción de dimensionalidad
+
+---
+
+# Resultados
 
 ---
 

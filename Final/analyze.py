@@ -29,19 +29,21 @@ data_df.describe().T
 cnt_pro = data_df['target'].value_counts()
 plt.figure(figsize=(8,6))
 barplot = sns.barplot(x=cnt_pro.index, y=cnt_pro.values, palette=['red', 'green'])
-plt.ylabel('Number of Diagnosis', fontsize=12)
+plt.ylabel('Cantidad de diagnósticos', fontsize=12)
 plt.xlabel('target', fontsize=12)
 
 # Set x-tick labels
-barplot.set_xticklabels([' 0 = unhealthy condition (malignant) ' , ' 1 = healthy condition (benign)'])
+barplot.set_xticklabels([' 0 = maligno ' , ' 1 =benigno'])
 
-plt.show()
+# plt.show()
+plt.savefig('plots/class_count.svg')
 
 # heatmap
 plt.figure(figsize=(20,18))
 sns.heatmap(data_df.corr(), annot=True, linewidths=.5)
 
-plt.show()
+# plt.show()
+plt.savefig('plots/corr_matrix.svg')
 
 fig, ax = plt.subplots(figsize = (6,12))
 
@@ -50,8 +52,9 @@ corr = data_df.corrwith(data_df['target']).sort_values(key=abs, ascending=False)
 corr.columns = ['target']
 
 sns.heatmap(corr, annot=True, linewidths=0.5, linecolor='black')
-plt.title('Correlation w.r.t diagnosis')
-plt.show()
+plt.title('Matriz de correlación de las variables con la clasificación')
+# plt.show()
+plt.savefig('plots/corr_target.svg')
 
 # Define the colors
 colors = ['red', 'green']
@@ -65,7 +68,8 @@ for i in range(30):
     title = features[i] + ' vs target'
     plt.title(title, fontsize=10)
 
-plt.show()
+# plt.show()
+plt.savefig('plots/violin_plots.svg')
 
 from sklearn.preprocessing import StandardScaler
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=43)
@@ -105,7 +109,7 @@ X_test_UMAP_supervised = UMAP_model_2.transform(X_test_scaled)
 
 import matplotlib.patches as mpatches
 
-def plot_data(X_, y_, titles):
+def plot_data(X_, y_, titles, filename='dimensionality_reduction'):
     # Define the colors
     colors = ['red' if label == 0 else 'green' for label in y_]
 
@@ -122,17 +126,18 @@ def plot_data(X_, y_, titles):
         green_patch = mpatches.Patch(color='green', label='benign')
         plt.legend(handles=[red_patch, green_patch])
 
-    plt.show()
+    # plt.show()
+    plt.savefig(f"plots/{filename}.svg")
 
 # Call the function
 X_train_list = [X_train_PCA, X_train_KPCA, X_train_LLE, X_train_UMAP, X_train_UMAP_supervised]
 titles = ['PCA', 'KPCA', 'LLE', 'UMAP', 'Supervised UMAP']
-plot_data(X_train_list, y_train, titles)
+plot_data(X_train_list, y_train, titles, 'dimensionality_reduction_train')
 
 # Call the function
 X_test_list = [X_test_PCA, X_test_KPCA, X_test_LLE, X_test_UMAP, X_test_UMAP_supervised]
 titles = ['PCA', 'KPCA', 'LLE', 'UMAP', 'Supervised UMAP']
-plot_data(X_test_list, y_test, titles)
+plot_data(X_test_list, y_test, titles, 'dimensionality_reduction_test')
 
 from sklearn.metrics import classification_report
 import seaborn as sns
@@ -158,9 +163,10 @@ def evaluate_model(X_train, y_train, X_test, y_test):
     # Plot confusion matrix with seaborn
     plt.figure(figsize=(7,5))
     sns.heatmap(cnf_matrix, annot=True, fmt='d')
-    plt.xlabel('Predicted')
-    plt.ylabel('Truth')
-    plt.show()
+    plt.xlabel('Predicción')
+    plt.ylabel('Real')
+    # plt.show()
+    plt.savefig('plots/confusion_matrix.svg')
 
     # Print classification report
     print(classification_report(y_test, y_pred))
@@ -194,8 +200,8 @@ def evaluate_and_plot_model(X_train, y_train, X_test, y_test):
     # Plot confusion matrix with seaborn
     plt.figure(figsize=(7,5))
     sns.heatmap(cnf_matrix, annot=True, fmt='d')
-    plt.xlabel('Predicted')
-    plt.ylabel('Truth')
+    plt.xlabel('Predicción')
+    plt.ylabel('Real')
     plt.show()
 
     # Print classification report
@@ -226,6 +232,7 @@ def evaluate_and_plot_model(X_train, y_train, X_test, y_test):
     plt.legend(handles=[red_patch, green_patch])
     plt.show()
 
+exit()
 evaluate_and_plot_model(X_train_PCA, y_train, X_test_PCA, y_test)
 evaluate_and_plot_model(X_train_KPCA, y_train, X_test_KPCA, y_test)
 evaluate_and_plot_model(X_train_LLE, y_train, X_test_LLE, y_test)
