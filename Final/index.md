@@ -393,12 +393,12 @@ Esta técnica es una extensión de UMAP que toma en cuenta la clase de cada punt
 
 ::::{.flex-1}
 
-![](./plots/presentation_images/supervised_umap_before.webp)
+![](./plots/presentation_images/supervised_umap_before.jpg)
 
 ::::
 ::::{.flex-1}
 
-![](./plots/presentation_images/supervised_umap_after.webp)
+![](./plots/presentation_images/supervised_umap_after.jpg)
 
 ::::
 :::
@@ -483,8 +483,32 @@ Reducción de dimensionalidad
 
 ![](./plots/dimensionality_reduction_test.png)
 
+---
+
+**UMAP para diferentes valores de n_neighbors y min_dist**
+
+![](./plots/umap_comparison.png)
+
 
 # Resultados
+
+---
+
+**Rendimiento del modelo para diferentes valores de n_neighbots y min_dist**
+
+![](./plots/umap_summary_test_accuracy.svg)
+
+---
+
+**Rendimiento del modelo para diferentes valores de n_neighbots y min_dist**
+
+![](./plots/umap_summary_f1.svg)
+
+---
+
+**Matriz de confusión para diferentes valores de n_neighbots y min_dist**
+
+![](./plots/umap_evaluation.svg)
 
 ---
 
