@@ -434,7 +434,7 @@ El dataset contiene 10 variables calculadas para los núcleos celulares dentro d
 
 Cada una de estas variables se representa con tres valores: la _media_, el _desvío estándar_ y el _peor caso_. 
 
-La variable objetivo es el diagnóstico, pudiendo ser <span style="color:green">benigno (B)</span> o <span style="color:red">maligno (M)</span>
+La variable objetivo es el diagnóstico, pudiendo ser <span style="color:green">benigno (B)</span> = 1 o <span style="color:red">maligno (M)</span> = 0
 
 En total hay 569 documentos, siendo 357 benignos y 212 malignos.
 
@@ -494,6 +494,14 @@ Reducción de dimensionalidad
 
 ---
 
+## Clasificación
+
+Para la clasificación de los datos del dataset se utilizó un Decision Tree Classifier de la librería sci-kit learn, manteniendo siempre la misma configuración. 
+
+El modelo se probó con los datos originales, y posteriormente pasándole los embeddings generados por los diferentes métodos de reducción de dimensionalidad.
+
+---
+
 **Rendimiento del modelo para diferentes valores de n_neighbors y min_dist**
 
 ![](./plots/umap_summary_test_accuracy.svg)
@@ -516,12 +524,11 @@ Reducción de dimensionalidad
 
 | Dataset                          | Training Accuracy | Test Accuracy |
 |----------------------------------|-------------------|---------------|
-| Original                         | 0.96              | 0.92          |
-| PCA                              | 0.95              | 0.93          |
-| KPCA                             | 0.93              | 0.89          |
-| LLE                              | 0.93              | 0.94          |
-| UMAP                             | 0.97              | 0.95          |
-| Supervised UMAP                  | 1.00              | 0.97          |
+| Original                         | 0.95              | 0.97          |
+| PCA                              | 0.94              | 0.94          |
+| KPCA                             | 0.93              | 0.96          |
+| UMAP                             | 0.96              | 0.98          |
+| Supervised UMAP                  | 1.00              | 0.98          |
 
 ---
 
@@ -531,13 +538,13 @@ Reducción de dimensionalidad
 
 ### Dataset Original - Métricas
 
-| Class | Precision | Recall | F1-Score | Support |
+| Class | Precision | Recall | F1-score | Support |
 |-------|-----------|--------|----------|---------|
-| 0.0   | 0.88      | 0.90   | 0.89     | 39      |
-| 1.0   | 0.95      | 0.93   | 0.94     | 75      |
-| **Accuracy**       |           |        | 0.92     | 114     |
-| **Macro Avg**      | 0.91      | 0.92   | 0.91     | 114     |
-| **Weighted Avg**   | 0.92      | 0.92   | 0.92     | 114     |
+| 0.0 | 1.00 | 0.93 | 0.96 | 42 |
+| 1.0 | 0.96 | 1.00 | 0.98 | 72 |
+| **Accuracy** | - | - | 0.97 | 114 |
+| **Macro avg** | 0.98 | 0.96 | 0.97 | 114 |
+| **Weighted avg** | 0.97 | 0.97 | 0.97 | 114 |
 
 ---
 
@@ -553,13 +560,13 @@ Reducción de dimensionalidad
 
 ### PCA - Métricas
 
-| Class | Precision | Recall | F1-Score | Support |
+| Class | Precision | Recall | F1-score | Support |
 |-------|-----------|--------|----------|---------|
-| 0.0   | 0.88      | 0.92   | 0.90     | 39      |
-| 1.0   | 0.96      | 0.93   | 0.95     | 75      |
-| **Accuracy**       |           |        | 0.93     | 114     |
-| **Macro Avg**      | 0.92      | 0.93   | 0.92     | 114     |
-| **Weighted Avg**   | 0.93      | 0.93   | 0.93     | 114     |
+| 0.0 | 0.95 | 0.88 | 0.91 | 42 |
+| 1.0 | 0.93 | 0.97 | 0.95 | 72 |
+| **Accuracy** | - | - | 0.94 | 114 |
+| **Macro avg** | 0.94 | 0.93 | 0.93 | 114 |
+| **Weighted avg** | 0.94 | 0.94 | 0.94 | 114 |
 
 ---
 
@@ -567,33 +574,21 @@ Reducción de dimensionalidad
 
 ![](./plots/confusion_matrix_pca.svg)
 
-<!--
-
 ---
 
 ## KPCA
 
-| Class | Precision | Recall | F1-Score | Support |
-|-------|-----------|--------|----------|---------|
-| 0.0   | 0.80      | 0.92   | 0.86     | 39      |
-| 1.0   | 0.96      | 0.88   | 0.92     | 75      |
-| **Accuracy**       |           |        | 0.89     | 114     |
-| **Macro Avg**      | 0.88      | 0.90   | 0.89     | 114     |
-| **Weighted Avg**   | 0.90      | 0.89   | 0.90     | 114     | 
-
 ---
 
-### LLE
+### KPCA - Métricas 
 
-| Class | Precision | Recall | F1-Score | Support |
+| Class | Precision | Recall | F1-score | Support |
 |-------|-----------|--------|----------|---------|
-| 0.0   | 0.97      | 0.85   | 0.90     | 39      |
-| 1.0   | 0.93      | 0.99   | 0.95     | 75      |
-| **Accuracy**       |           |        | 0.94     | 114     |
-| **Macro Avg**      | 0.95      | 0.92   | 0.93     | 114     |
-| **Weighted Avg**   | 0.94      | 0.94   | 0.94     | 114     |
-
--->
+| 0.0 | 0.95 | 0.95 | 0.95 | 42 |
+| 1.0 | 0.97 | 0.97 | 0.97 | 72 |
+| **Accuracy** | - | - | 0.96 | 114 |
+| **Macro avg** | 0.96 | 0.96 | 0.96 | 114 |
+| **Weighted avg** | 0.96 | 0.96 | 0.96 | 114 |
 
 --- 
 
@@ -603,13 +598,13 @@ Reducción de dimensionalidad
 
 ### UMAP - Métricas 
 
-| Class | Precision | Recall | F1-Score | Support |
+| Class | Precision | Recall | F1-score | Support |
 |-------|-----------|--------|----------|---------|
-| 0.0   | 0.90      | 0.95   | 0.93     | 39      |
-| 1.0   | 0.97      | 0.95   | 0.96     | 75      |
-| **Accuracy**       |           |        | 0.95     | 114     |
-| **Macro Avg**      | 0.94      | 0.95   | 0.94     | 114     |
-| **Weighted Avg**   | 0.95      | 0.95   | 0.95     | 114     |
+| 0.0 | 0.95 | 1.00 | 0.98 | 42 |
+| 1.0 | 1.00 | 0.97 | 0.99 | 72 |
+| **Accuracy** | - | - | 0.98 | 114 |
+| **Macro avg** | 0.98 | 0.99 | 0.98 | 114 |
+| **Weighted avg** | 0.98 | 0.98 | 0.98 | 114 |
 
 ---
 
@@ -625,13 +620,13 @@ Reducción de dimensionalidad
 
 ### Supervised UMAP - Métricas
 
-| Class | Precision | Recall | F1-Score | Support |
+| Class | Precision | Recall | F1-score | Support |
 |-------|-----------|--------|----------|---------|
-| 0.0   | 0.97      | 0.95   | 0.96     | 39      |
-| 1.0   | 0.97      | 0.99   | 0.98     | 75      |
-| **Accuracy**       |           |        | 0.97     | 114     |
-| **Macro Avg**      | 0.97      | 0.97   | 0.97     | 114     |
-| **Weighted Avg**   | 0.97      | 0.97   | 0.97     | 114     |
+| 0.0 | 1.00 | 0.95 | 0.98 | 42 |
+| 1.0 | 0.97 | 1.00 | 0.99 | 72 |
+| **Accuracy** | - | - | 0.98 | 114 |
+| **Macro avg** | 0.99 | 0.98 | 0.98 | 114 |
+| **Weighted avg** | 0.98 | 0.98 | 0.98 | 114 |
 
 ---
 
@@ -639,5 +634,10 @@ Reducción de dimensionalidad
 
 ![](./plots/confusion_matrix_supervised_umap.svg)
 
+# Conclusión
+
+En los resultados obtenidos, se puede observar una leve mejora del modelo empleado al utilizar los algoritmos de reducción de dimensionalidad.
+
+Adicionalmente, una de las principales ventajas del uso de estos algoritmos es la capacidad de poder visualizar los datos con los que se está trabajando para poder adquirir, ya de antemano, una mejor comprensión de la estructura subyacente de los mismos.
 
 # GRACIAS
