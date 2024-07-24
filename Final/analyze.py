@@ -186,6 +186,9 @@ def evaluate_and_plot_model(
     confusion_plot_config=PlotConfig(),
     decision_boundary_plot_config: Optional[PlotConfig] = None,
 ):
+    """
+    Fit a Decision Tree classifier to the data and evaluate its performance with the given embeddings
+    """
     clf1 = DecisionTreeClassifier(max_depth=3, min_samples_leaf=12, random_state=43)
     clf1.fit(X_train, y_train)
 
@@ -202,7 +205,9 @@ def evaluate_and_plot_model(
 
     # Plot confusion matrix
     plt.figure(figsize=confusion_plot_config.fig_size)
-    sns.heatmap(cnf_matrix, annot=True, fmt="d")
+    heatmap = sns.heatmap(cnf_matrix, annot=True, fmt="d")
+    heatmap.set_xticklabels(["maligno", "benigno"])
+    heatmap.set_yticklabels(["maligno", "benigno"])
     plt.xlabel("Predicción")
     plt.ylabel("Real")
     confusion_plot_config.print_plot()
@@ -245,7 +250,11 @@ def evaluate_umap(
     y_test: np.ndarray,
     config=PlotConfig(),
 ):
+    """
+    Evaluate UMAP embeddings for different values of n_neighbors and min_dist and plot the results
 
+    Print classification report for each UMAP embedding and plot confusion matrix and key metrics for comparison
+    """
     num_neighbors = len(n_neighbors_values)
     num_dists = len(min_dist_values)
     summary_data = []
@@ -348,63 +357,19 @@ def evaluate_umap(
     plt.close()
 
 
-def evaluate_umap2(
-    umap_results: Dict[str, Any],
-    n_neighbors_values,
-    min_dist_values,
-    y_train,
-    y_test,
-    config=PlotConfig(),
-):
-    num_neighbors = len(n_neighbors_values)
-    num_dists = len(min_dist_values)
-
-    fig, axes = plt.subplots(num_neighbors, num_dists, figsize=config.fig_size)
-    for i, result in enumerate(umap_results):
-        n_neighbors = result["n_neighbors"]
-        min_dist = result["min_dist"]
-        dataset = result["dataset"]
-        X_train = dataset.train
-        X_test = dataset.test
-
-        clf1 = DecisionTreeClassifier(max_depth=3, min_samples_leaf=12, random_state=43)
-        clf1.fit(X_train, y_train)
-
-        (y, x) = np.unravel_index(i, (num_neighbors, num_dists))
-        ax = axes[x, y]
-
-        print(
-            "--------------------------------------------------------------------------"
-        )
-        print(
-            f"Testing UMAP with n_neighbors = {n_neighbors} and min_dist = {min_dist}"
-        )
-        print(f"Accuracy on training set: {clf1.score(X_train, y_train):.2f}")
-        print(f"Accuracy on test set: {clf1.score(X_test, y_test):.2f}")
-
-        y_pred = clf1.predict(X_test)
-
-        cnf_matrix = confusion_matrix(y_test, y_pred)
-
-        # Plot confusion matrix
-        sns.heatmap(cnf_matrix, annot=True, fmt="d", ax=ax)
-        ax.set_xlabel("Predicción")
-        ax.set_ylabel("Real")
-
-        print(classification_report(y_test, y_pred))
-
-    config.print_plot()
-
-
 def plot_umap_comparison(
     n_neighbors_values, min_dist_values, umap_embeddings, labels, config=PlotConfig()
 ):
+    """
+    Plot UMAP embeddings for different values of n_neighbors and min_dist
+    """
     colors = ["red" if label == 0 else "green" for label in labels]
     num_neighbors = len(n_neighbors_values)
     num_dists = len(min_dist_values)
 
     fig, axes = plt.subplots(num_neighbors, num_dists, figsize=config.fig_size)
 
+    sns.set_theme(font_scale=1.4)
     for i, (n_neighbors, min_dist) in enumerate(
         itertools.product(n_neighbors_values, min_dist_values)
     ):
@@ -416,3 +381,4 @@ def plot_umap_comparison(
         ax.set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
     config.print_plot()
+    sns.set_theme(font_scale=1)

@@ -91,11 +91,14 @@ def plot_pre_analysis(dat_df: pd.DataFrame):
         ),
     )
 
-def compute_reductions(
+def compute_embeddings(
         X_train: np.ndarray,
         X_test: np.ndarray,
         algorithms: List[str],
 ) -> Dict[str, Dataset]: 
+    """
+    Generate embeddings for the selected algorithms
+    """
     seed = config.get("Seed")
     reductions: Dict[str, Dataset] = {}
 
@@ -167,6 +170,9 @@ def test_umap(
         n_neighbors_values=[15],
         min_dist_values=[0.1],
         ) -> List[Dict[str, Any]]:
+    """
+    Generate umap embeddings for different values of n_neighbors and min_dist
+    """
     n_components = 2
     umap_conf = config.get("UMAP", {})
     results = []
@@ -205,7 +211,7 @@ if __name__ == "__main__":
     X = data_df[data_df.columns[:-1]]
     y = data_df.target
 
-    plot_pre_analysis(data_df)
+    # plot_pre_analysis(data_df)
 
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(
@@ -274,7 +280,7 @@ if __name__ == "__main__":
 
     algorithms = ["PCA", "KPCA", "UMAP", "Supervised UMAP"]
 
-    reductions = compute_reductions(X_train_scaled, X_test_scaled, algorithms)    
+    reductions = compute_embeddings(X_train_scaled, X_test_scaled, algorithms)    
 
     X_train_list = list(map(lambda x: x.train, reductions.values()))
     X_test_list = list(map(lambda x: x.test, reductions.values()))

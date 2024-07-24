@@ -426,7 +426,7 @@ El dataset contiene 10 variables calculadas para los núcleos celulares dentro d
 7. **Concavidad** (severidad de las porciones cóncavas del contorno)
 8. **Puntos cóncavos** (cantidad de porciones cóncavas del contorno)
 9. **Simetría**
-10. **Dimensión fractal** ("aproximación de línea costera" - 1)
+10. **Dimensión fractal** ("aproximación de línea costera" - 1). Irregularidad o complejidad del borde de las células.
 
 ---
 
@@ -494,19 +494,19 @@ Reducción de dimensionalidad
 
 ---
 
-**Rendimiento del modelo para diferentes valores de n_neighbots y min_dist**
+**Rendimiento del modelo para diferentes valores de n_neighbors y min_dist**
 
 ![](./plots/umap_summary_test_accuracy.svg)
 
 ---
 
-**Rendimiento del modelo para diferentes valores de n_neighbots y min_dist**
+**Rendimiento del modelo para diferentes valores de n_neighbors y min_dist**
 
 ![](./plots/umap_summary_f1.svg)
 
 ---
 
-**Matriz de confusión para diferentes valores de n_neighbots y min_dist**
+**Matriz de confusión para diferentes valores de n_neighbors y min_dist**
 
 ![](./plots/umap_evaluation.svg)
 
