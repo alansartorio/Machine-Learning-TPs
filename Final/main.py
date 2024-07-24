@@ -1,6 +1,10 @@
 import umap
 import numpy as np
 import pandas as pd
+import re
+import unicodedata
+from dataclasses import dataclass
+from typing import List, Dict
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import load_breast_cancer
@@ -17,13 +21,36 @@ from analyze import (
     PlotConfig,
 )
 
-def default_config(filename: str, figsize= (7, 5)) -> PlotConfig:
-        return PlotConfig(
-            show=False,
-            save_file=filename,
-            tight_layout=True,
-            fig_size=figsize,
-        )
+
+@dataclass
+class Dataset:
+    train: np.ndarray
+    test: np.ndarray
+
+
+def slug(input_string):
+    normalized_string = (
+        unicodedata.normalize("NFKD", input_string)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )
+
+    lower_case_string = normalized_string.lower()
+
+    slug = re.sub(r"[^a-z0-9]+", "_", lower_case_string)
+    slug = slug.strip("_")
+
+    return slug
+
+
+def default_config(filename: str, figsize=(7, 5)) -> PlotConfig:
+    return PlotConfig(
+        show=False,
+        save_file=filename,
+        tight_layout=True,
+        fig_size=figsize,
+    )
+
 
 if __name__ == "__main__":
     cancer = load_breast_cancer()
@@ -91,103 +118,86 @@ if __name__ == "__main__":
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
-    # PCA
-    pca = PCA(n_components=2, random_state=42)
-    X_train_PCA = pca.fit_transform(X_train_scaled)
-    X_test_PCA = pca.transform(X_test_scaled)
+    algorithms = ["PCA", "KPCA", "LLE", "UMAP", "Supervised UMAP"]
 
-    # LLE
-    lle_model = LocallyLinearEmbedding(n_components=2, random_state=42)
-    X_train_LLE = lle_model.fit_transform(X_train_scaled)
-    X_test_LLE = lle_model.transform(X_test_scaled)
+    reductions: Dict[str, Dataset] = {}
 
-    # Kernel PCA
-    kpca_model = KernelPCA(n_components=2, kernel="rbf", random_state=42)
-    X_train_KPCA = kpca_model.fit_transform(X_train_scaled)
-    X_test_KPCA = kpca_model.transform(X_test_scaled)
+    for alg in algorithms:
 
-    UMAP_model = umap.UMAP(n_neighbors=5, min_dist=0.3, n_components=2, random_state=42)
-    X_train_UMAP = UMAP_model.fit_transform(X_train_scaled)
-    X_test_UMAP = UMAP_model.transform(X_test_scaled)
+        match alg:
+            case "PCA":
+                pca = PCA(n_components=2, random_state=42)
+                reduction = Dataset(
+                    train=pca.fit_transform(X_train_scaled),
+                    test=pca.transform(X_test_scaled),
+                )
+            case "LLE":
+                lle_model = LocallyLinearEmbedding(n_components=2, random_state=42)
+                reduction = Dataset(
+                    train=lle_model.fit_transform(X_train_scaled),
+                    test=lle_model.transform(X_test_scaled),
+                )
+            case "KPCA":
+                kpca_model = KernelPCA(n_components=2, kernel="rbf", random_state=42)
+                reduction = Dataset(
+                    train=kpca_model.fit_transform(X_train_scaled),
+                    test=kpca_model.transform(X_test_scaled),
+                )
+            case "UMAP":
+                UMAP_model = umap.UMAP(
+                    n_neighbors=5, min_dist=0.3, n_components=2, random_state=42
+                )
+                reduction = Dataset(
+                    train=UMAP_model.fit_transform(X_train_scaled),
+                    test=UMAP_model.transform(X_test_scaled),
+                )
+            case "Supervised UMAP":
+                UMAP_model = umap.UMAP(
+                    n_neighbors=5, min_dist=0.3, n_components=2, random_state=42
+                )
+                reduction = Dataset(
+                    train=UMAP_model.fit_transform(X_train_scaled, y=y_train),
+                    test=UMAP_model.transform(X_test_scaled),
+                )
+            case _:
+                raise ValueError(f"Unknown algorithm: {alg}")
 
-    UMAP_model_2 = umap.UMAP(
-        n_neighbors=5, min_dist=0.3, n_components=2, random_state=42
+        reductions.update({alg: reduction})
+
+    X_train_list = list(map(lambda x: x.train, reductions.values()))
+    X_test_list = list(map(lambda x: x.test, reductions.values()))
+
+    plot_data(
+        X_train_list,
+        y_train,
+        algorithms,
+        PlotConfig(
+            show=False,
+            save_file="dimensionality_reduction_train",
+            tight_layout=True,
+            fig_size=(20, 20),
+        ),
     )
-    X_train_UMAP_supervised = UMAP_model_2.fit_transform(X_train_scaled, y=y_train)
-    X_test_UMAP_supervised = UMAP_model_2.transform(X_test_scaled)
 
-    X_train_list = [
-        X_train_PCA,
-        X_train_KPCA,
-        X_train_LLE,
-        X_train_UMAP,
-        X_train_UMAP_supervised,
-    ]
-    titles = ["PCA", "KPCA", "LLE", "UMAP", "Supervised UMAP"]
-    plot_data(X_train_list, y_train, titles,  PlotConfig(
-        show=False,
-        save_file="dimensionality_reduction_train",
-        tight_layout=True,
-        fig_size=(20, 20),
-    ))
-
-    X_test_list = [
-        X_test_PCA,
-        X_test_KPCA,
-        X_test_LLE,
-        X_test_UMAP,
-        X_test_UMAP_supervised,
-    ]
-    titles = ["PCA", "KPCA", "LLE", "UMAP", "Supervised UMAP"]
-    plot_data(X_test_list, y_test, titles, PlotConfig(
-        show=False,
-        save_file="dimensionality_reduction_test",
-        tight_layout=True,
-        fig_size=(20, 20),
-    ))
-
-    evaluate_and_plot_model(
-        X_train_PCA, 
-        y_train, 
-        X_test_PCA, 
+    plot_data(
+        X_test_list,
         y_test,
-        "PCA",
-        default_config("confusion_matrix_PCA.svg"),
-        default_config("decision_boundary_PCA.svg"),
-        )
-    evaluate_and_plot_model(
-        X_train_KPCA, 
-        y_train, 
-        X_test_KPCA, 
-        y_test,
-        "KPCA",
-        default_config("confusion_matrix_KPCA.svg"),
-        default_config("decision_boundary_KPCA.svg"),
+        algorithms,
+        PlotConfig(
+            show=False,
+            save_file="dimensionality_reduction_test",
+            tight_layout=True,
+            fig_size=(20, 20),
+        ),
     )
-    evaluate_and_plot_model(
-        X_train_LLE, 
-        y_train, 
-        X_test_LLE, 
-        y_test,
-        "LLE",
-        default_config("confusion_matrix_LLE.svg"),
-        default_config("decision_boundary_LLE.svg"),
+
+    for alg, dataset in reductions.items():
+        evaluate_and_plot_model(
+            dataset.train,
+            y_train,
+            dataset.test,
+            y_test,
+            alg,
+            default_config(f"confusion_matrix_{slug(alg)}.svg"),
+            default_config(f"decision_boundary_{slug(alg)}.svg"),
         )
-    evaluate_and_plot_model(
-        X_train_UMAP, 
-        y_train, 
-        X_test_UMAP, 
-        y_test,
-        "UMAP",
-        default_config("confusion_matrix_UMAP.svg"),
-        default_config("decision_boundary_UMAP.svg"),
-        )
-    evaluate_and_plot_model(
-        X_train_UMAP_supervised, 
-        y_train, 
-        X_test_UMAP_supervised, 
-        y_test,
-        "Supervised UMAP",
-        default_config("confusion_matrix_UMAP_supervised.svg"),
-        default_config("decision_boundary_UMAP_supervised.svg")
-    )
